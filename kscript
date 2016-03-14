@@ -5,9 +5,9 @@ if [ -z "$(which mvncp)" ]; then
     curl -s https://raw.githubusercontent.com/holgerbrandl/kscript/master/mvncp > ~/bin/mvncp && chmod u+x ~/bin/mvncp
 fi
 
-if [ -n "$1" ]; then
-#    classpath=$(mvncp ${1/,/ } 2>/dev/null)
-    classpath=$(mvncp $(echo "$DEPS" | tr ',' " " | tr -d '"') 2>/dev/null)
+if [ -n "$DEPS" ]; then
+    classpath=$(mvncp ${DEPS/,/ } 2>/dev/null)
+#    classpath=$(mvncp $(echo "$DEPS" | tr ',' " " | tr -d '"') 2>/dev/null)
 fi
 #shift
 
