@@ -2,7 +2,7 @@
 
 ### auto-install mvncp for automatic dependency resolution if not yet present
 if [ -z "$(which mvncp)" ]; then
-    curl -s https://raw.githubusercontent.com/holgerbrandl/kscript/master/mvncp > ~/bin/kscript && chmod u+x ~/bin/mvncp
+    curl -s https://raw.githubusercontent.com/holgerbrandl/kscript/master/mvncp > ~/bin/mvncp && chmod u+x ~/bin/mvncp
 fi
 
 if [ -n "$1" ]; then
@@ -19,8 +19,11 @@ shift
 scriptFile=$1
 shift
 
+## work around missing md5sum on mac
+if [ "${OSTYPE//[0-9.]/}" == "darwin" ]; then md5sum(){ md5 -r $1; }; fi
+
 #jarFile=$(pwd)/${scriptFile%%.kts}.jar
-scriptCheckSum=$(md5 ${scriptFile} | awk '{ print $4 }')
+scriptCheckSum=$(md5sum ${scriptFile} | awk '{ print $1 }')
 scriptCheckSum=${scriptCheckSum:0:6}
 
 jarFile=$(pwd)/.$(basename ${scriptFile} .kts).${scriptCheckSum}.jar
