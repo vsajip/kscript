@@ -2,7 +2,7 @@
 
 ### auto-install mvncp for automatic dependency resolution if not yet present
 if [ -z "$(which mvncp)" ]; then
-    curl -s https://raw.githubusercontent.com/holgerbrandl/kutils/master/misc/kscript/mvncp > ~/bin/kscript && chmod u+x ~/bin/mvncp
+    curl -s https://raw.githubusercontent.com/holgerbrandl/kscript/master/mvncp > ~/bin/kscript && chmod u+x ~/bin/mvncp
 fi
 
 if [ -n "$1" ]; then
@@ -60,4 +60,4 @@ fi
 #jar ufm ${jarFile} ${mainJava}.manimain
 #jar tf ${jarFile}
 
-exec kotlin -classpath ${jarFile}:"$classpath" Main_${className} asdf asdf
+exec kotlin -classpath ${jarFile}:"$classpath" Main_${className} "$@"

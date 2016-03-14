@@ -3,20 +3,24 @@
 
 Easy-to-use scripting support for [Kotlin](https://kotlinlang.org/) on *nix-based systems.
 
-Kotlin has a limited support for scripting already but it's not feature-rich to be ready for a day to day use.
+Kotlin has a limited support for scripting already but it's not (yet) feature-rich enough to be fun.
+
+In particular this wrapper around `kotlinc-jvm -script` adds
+* Complied script caching (using md checksums)
+* Automatic depedendency resolution via gradle-style resource locators
 
 ## Installation
 
-Simply download `kscript` (which [itself](kscript) is just 10 lines of bash) to your `~/bin` with:
+Simply download [kscript](kscript)  to your `~/bin` with:
 ```bash
-curl -s https://raw.githubusercontent.com/holgerbrandl/kutils/master/misc/kscript/kscript > ~/bin/kscript && chmod u+x ~/bin/kscript
+curl -s https://raw.githubusercontent.com/holgerbrandl/kscript/master/kscript > ~/bin/kscript && chmod u+x ~/bin/kscript
 ```
 
-`kotlinc-jvm` is required to be in your `PATH`. It will be once you have [installed Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html).
+`kotlinc-jvm` is required to be in your `PATH`. It will be once you have [installed Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html). Also `ruby` is required for the dependency resolution bits.
 
 ## Usage
 
-Simple use `kscript` as interpreter in the shebang line of your Kotlin scripts:
+To use `kscript` just specify it in the shebang line of your Kotlin scripts:
 
 ```kotlin
 #!/usr/bin/env kscript ""
@@ -26,9 +30,9 @@ for (arg in args) {
     println("arg: $arg")
 }
 ```
-Since no additional dependencies are required, the kscript argument is empty.
+Since no additional dependencies are required in this example, the kscript dependencies argument is empty (but still required).
 
-To specify dependencies simply use gradly-style locators. Multiple dependencies need to be separated by comma. Here's an example using [docopt](https://github.com/docopt/docopt.java) and [log4j](http://logging.apache.org/log4j/2.x/)
+To specify dependencies simply use gradle-style locators. Multiple dependencies need to be separated by comma. Here's an example using [docopt](https://github.com/docopt/docopt.java) and [log4j](http://logging.apache.org/log4j/2.x/)
 
 ```kotlin
 #!/usr/bin/env kscript org.docopt:docopt:0.6.0-SNAPSHOT,log4j:log4j:1.2.14
@@ -64,9 +68,8 @@ References
 
 `kscript` is inspired (and bluntly borrows `mvncp` for dependency resolution) by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way to do scripting in Kotlin. `kotlin-script` has more options compared to `kscript`, but the latter is conceptually cleaner (no code wrapping) and more simplistic.
 
-The major advantage of using `kotlin-script` over `kscript` is that the former will cache the compiled script whereas the latter does not.
 
-`kscript` works better with Intellij as IDE, because extended multi-line shebang-headers are not (yet?) supported by Intellij (even if the kotlin-script parser seems to be able to handle them).  However in order to `mvncp` for dependency resolution, `kotlin script` relies on such mutli-line shebang headers (see [here](https://github.com/andrewoma/kotlin-script#mvncp)). In contrast, since `kscript` just works with just a standard shebang line, code parsing works very well in Intellij.
+`kscript` works better with Intellij as IDE, because extended multi-line shebang-headers are not (yet?) supported by Intellij Kotlin plugin (even if the kotlin-script parser seems to be able to handle them).  However in order to use `mvncp` for dependency resolution, `kotlin script` relies on such mutli-line shebang headers (see [here](https://github.com/andrewoma/kotlin-script#mvncp)). In contrast, since `kscript` just works with just a standard shebang line, code parsing works very well in Intellij.
 
 
 
