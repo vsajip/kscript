@@ -16,6 +16,7 @@ shift
 
 ## ... or use a cached version of it if possible
 #scriptFile="./test.kts"
+#scriptFile="./mein_test.kts"
 scriptFile=$1
 shift
 
@@ -39,7 +40,7 @@ className=$(echo ${className:0:1} | tr  '[a-z]' '[A-Z]')${className:1}
 if [ ! -f "${jarFile}" ]; then
     kotlinc  -classpath "${classpath}" -d ${jarFile} ${scriptFile}
 
-    mainJava=$(mktemp -dt kscript)/Main_${className}.java
+    mainJava=$(mktemp -d kscript.XXXXXX)/Main_${className}.java
 
     echo '
     public class Main_'${className}' {
