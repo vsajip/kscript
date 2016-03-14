@@ -7,9 +7,9 @@ fi
 
 if [ -n "$1" ]; then
 #    classpath=$(mvncp ${1/,/ } 2>/dev/null)
-    classpath=$(mvncp $(echo "$1" | tr ',' " " | tr -d '"') 2>/dev/null)
+    classpath=$(mvncp $(echo "$DEPS" | tr ',' " " | tr -d '"') 2>/dev/null)
 fi
-shift
+#shift
 
 ## directly run the script...
 #echo kotlinc -script -classpath "$classpath" "$@"

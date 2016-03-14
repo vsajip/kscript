@@ -74,3 +74,15 @@ http://www.unix.com/shell-programming-and-scripting/44511-environment-variables-
 
 http://stackoverflow.com/questions/12487424/uppercase-first-character-in-a-variable-with-bash
 https://youtrack.jetbrains.com/issue/KT-10533
+
+## Why not use env?
+http://www.in-ulm.de/~mascheck/various/shebang/#interpreter-script
+
+Most probably there isn't any Bell-Labs- or Berkeley-derived Unix that accepts the interpreter to be a script, which starts with #! again.
+However, Linux since 2.6.27.9 2 and Minix accept this.
+
+Also see https://en.wikipedia.org/wiki/Shebang_(Unix)#Portability
+
+ Some systems, including Linux, do not split up the arguments;[10] for example, when running the script with the first line like,
+
+Also see http://stackoverflow.com/questions/4303128/how-to-use-multiple-arguments-with-a-shebang-i-e
