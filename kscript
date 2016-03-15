@@ -6,7 +6,8 @@ if [ -z "$(which mvncp)" ]; then
 fi
 
 if [ -n "$DEPS" ]; then
-    classpath=$(mvncp ${DEPS/,/ } 2>/dev/null)
+    classpath=$(mvncp ${DEPS/,/ } | grep -v outer)
+    if [ -n "$(echo $classpath | grep ERROR)" ]; then echo "$classpath" >&2; exit; fi
 #    classpath=$(mvncp $(echo "$DEPS" | tr ',' " " | tr -d '"') 2>/dev/null)
 fi
 #shift
@@ -30,7 +31,7 @@ scriptCheckSum=${scriptCheckSum:0:6}
 jarFile=$(pwd)/.$(basename ${scriptFile} .kts).${scriptCheckSum}.jar
 
 
-## capialize first letter (since this is what kotlin compiler is doing for the wrapper
+## capitalize first letter (since this is what kotlin compiler is doing for the wrapper
 className=$(basename ${scriptFile} .kts)
 #className="${className^}" ## disabled because requires bash4 and thus not on macos
 className=$(echo ${className:0:1} | tr  '[a-z]' '[A-Z]')${className:1}
@@ -38,6 +39,9 @@ className=$(echo ${className:0:1} | tr  '[a-z]' '[A-Z]')${className:1}
 
 # build cache-jar if it does not yet exist
 if [ ! -f "${jarFile}" ]; then
+    ## remove previous (now outdated) cache jars
+    rm -f .$(basename ${scriptFile} .kts).*.jar
+
     kotlinc  -classpath "${classpath}" -d ${jarFile} ${scriptFile}
 
     mainJava=$(mktemp -d kscript.XXXXXX)/Main_${className}.java
