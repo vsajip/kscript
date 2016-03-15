@@ -6,8 +6,8 @@ Easy-to-use scripting support for [Kotlin](https://kotlinlang.org/) on *nix-base
 Kotlin has a limited support for scripting already but it's not (yet) feature-rich enough to be fun.
 
 In particular this wrapper around `kotlinc-jvm -script` adds
-* Complied script caching (using md checksums)
-* Automatic depedendency resolution via gradle-style resource locators
+* Complied script caching (using md5 checksums)
+* Automatic dependency resolution via gradle-style resource locators
 
 ## Installation
 
@@ -61,9 +61,9 @@ for (arg in args) {
     println("arg: $arg")
 }
 ```
-kscript will read dependencies from the *first* line in a script starting with `//DEPS` (if any). Multiple dependencies can be split by comma, space or semicolon.
+`kscript` will read dependencies from the *first* line in a script starting with `//DEPS` (if any). Multiple dependencies can be split by comma, space or semicolon.
 
-Note: It might feel more intuitive to provide  dependencies as an argument to kscript, however because of the way the shebang line works on Linux this is not possible.
+Note: It might feel more intuitive to provide  dependencies as an argument to `kscript``, however because of the way the shebang line works on Linux this is not possible.
 
 
 References
