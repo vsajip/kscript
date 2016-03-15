@@ -34,7 +34,8 @@ for (arg in args) {
 To specify dependencies simply use gradle-style locators. Multiple dependencies need to be separated by comma. Here's an example using [docopt](https://github.com/docopt/docopt.java) and [log4j](http://logging.apache.org/log4j/2.x/)
 
 ```kotlin
-#!/usr/bin/env DEPS=org.docopt:docopt:0.6.0-SNAPSHOT,log4j:log4j:1.2.14 kscript
+#!/usr/bin/env
+//DEPS org.docopt:docopt:0.6.0-SNAPSHOT,log4j:log4j:1.2.14 kscript
 
 import org.docopt.Docopt
 import java.util.*
@@ -60,7 +61,9 @@ for (arg in args) {
     println("arg: $arg")
 }
 ```
-The reason to use env-parameters instead of a more intuitive `#!/usr/bin/env kscript log4j:log4j:1.2.14` is that shebang lines are not consistently processed on different systems. E.g. Linux would not consider log4j as an argument of kscript but rather `kscript log4j:log4j:1.2.14` as a single executable identifier.
+kscript will read dependencies from the *first* line in a script starting with `//DEPS` (if any). Multiple dependencies can be split by comma, space or semicolon.
+
+Note: It might feel more intuitive to provide  dependencies as an argument to kscript, however because of the way the shebang line works on Linux this is not possible.
 
 
 References
