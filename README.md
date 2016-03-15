@@ -34,8 +34,8 @@ for (arg in args) {
 To specify dependencies simply use gradle-style locators. Multiple dependencies need to be separated by comma. Here's an example using [docopt](https://github.com/docopt/docopt.java) and [log4j](http://logging.apache.org/log4j/2.x/)
 
 ```kotlin
-#!/usr/bin/env
-//DEPS org.docopt:docopt:0.6.0-SNAPSHOT,log4j:log4j:1.2.14 kscript
+#!/usr/bin/env kscript
+//DEPS org.docopt:docopt:0.6.0-SNAPSHOT,log4j:log4j:1.2.14
 
 import org.docopt.Docopt
 import java.util.*
