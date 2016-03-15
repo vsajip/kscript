@@ -69,6 +69,8 @@ Note: It might feel more intuitive to provide  dependencies as an argument to `k
 References
 ============
 
+The initial version of `kscript` was kindly contributed by Oscar Gonzales.
+
 `kscript` is inspired (and bluntly borrows `mvncp` for dependency resolution) by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way to do scripting in Kotlin. `kotlin-script` has more options compared to `kscript`, but the latter is conceptually cleaner (no code wrapping) and more simplistic.
 
 
