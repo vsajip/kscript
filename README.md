@@ -23,19 +23,18 @@ curl -s https://raw.githubusercontent.com/holgerbrandl/kscript/master/kscript > 
 To use `kscript` just specify it in the shebang line of your Kotlin scripts:
 
 ```kotlin
-#!/usr/bin/env kscript ""
+#!/usr/bin/env kscript
 
 println("Hello from Kotlin!")
 for (arg in args) {
     println("arg: $arg")
 }
 ```
-Since no additional dependencies are required in this example, the kscript dependencies argument is empty (but still required).
 
 To specify dependencies simply use gradle-style locators. Multiple dependencies need to be separated by comma. Here's an example using [docopt](https://github.com/docopt/docopt.java) and [log4j](http://logging.apache.org/log4j/2.x/)
 
 ```kotlin
-#!/usr/bin/env kscript org.docopt:docopt:0.6.0-SNAPSHOT,log4j:log4j:1.2.14
+#!/usr/bin/env DEPS=org.docopt:docopt:0.6.0-SNAPSHOT,log4j:log4j:1.2.14 kscript
 
 import org.docopt.Docopt
 import java.util.*
@@ -61,6 +60,7 @@ for (arg in args) {
     println("arg: $arg")
 }
 ```
+The reason to use env-parameters instead of a more intuitive `#!/usr/bin/env kscript log4j:log4j:1.2.14` is that shebang lines are not consistently processed on different systems. E.g. Linux would not consider log4j as an argument of kscript but rather `kscript log4j:log4j:1.2.14` as a single executable identifier.
 
 
 References
@@ -70,8 +70,6 @@ References
 
 
 `kscript` works better with Intellij as IDE, because extended multi-line shebang-headers are not (yet?) supported by Intellij Kotlin plugin (even if the kotlin-script parser seems to be able to handle them).  However in order to use `mvncp` for dependency resolution, `kotlin script` relies on such mutli-line shebang headers (see [here](https://github.com/andrewoma/kotlin-script#mvncp)). In contrast, since `kscript` just works with just a standard shebang line, code parsing works very well in Intellij.
-
-
 
 
 

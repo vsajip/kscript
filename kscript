@@ -44,7 +44,7 @@ if [ ! -f "${jarFile}" ]; then
 
     kotlinc  -classpath "${classpath}" -d ${jarFile} ${scriptFile}
 
-    mainJava=$(mktemp -d kscript.XXXXXX)/Main_${className}.java
+    mainJava=$(mktemp -dt kscript.XXXXXX)/Main_${className}.java
 
     echo '
     public class Main_'${className}' {
