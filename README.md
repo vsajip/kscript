@@ -31,7 +31,7 @@ for (arg in args) {
 }
 ```
 
-To specify dependencies simply use gradle-style locators. Multiple dependencies need to be separated by comma. Here's an example using [docopt](https://github.com/docopt/docopt.java) and [log4j](http://logging.apache.org/log4j/2.x/)
+To specify dependencies simply use gradle-style locators. Here's an example using [docopt](https://github.com/docopt/docopt.java) and [log4j](http://logging.apache.org/log4j/2.x/)
 
 ```kotlin
 #!/usr/bin/env kscript
@@ -63,7 +63,7 @@ for (arg in args) {
 ```
 `kscript` will read dependencies from the *first* line in a script starting with `//DEPS` (if any). Multiple dependencies can be split by comma, space or semicolon.
 
-Note: It might feel more intuitive to provide  dependencies as an argument to `kscript``, however because of the way the shebang line works on Linux this is not possible.
+Note: It might feel more intuitive to provide  dependencies as an argument to `kscript`, however because of the way the shebang line works on Linux this is not possible.
 
 
 References
@@ -72,7 +72,7 @@ References
 `kscript` is inspired (and bluntly borrows `mvncp` for dependency resolution) by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way to do scripting in Kotlin. `kotlin-script` has more options compared to `kscript`, but the latter is conceptually cleaner (no code wrapping) and more simplistic.
 
 
-`kscript` works better with Intellij as IDE, because extended multi-line shebang-headers are not (yet?) supported by Intellij Kotlin plugin (even if the kotlin-script parser seems to be able to handle them).  However in order to use `mvncp` for dependency resolution, `kotlin script` relies on such mutli-line shebang headers (see [here](https://github.com/andrewoma/kotlin-script#mvncp)). In contrast, since `kscript` just works with just a standard shebang line, code parsing works very well in Intellij.
+`kscript` works better with [Intellij](https://www.jetbrains.com/idea/), since extended multi-line shebang-headers are not (yet?) supported by Intellij's' Kotlin plugin (even if the kotlin-script parser seems to be able to handle them).  However in order to use `mvncp` for dependency resolution, `kotlin script` relies on such mutli-line shebang headers (see [here](https://github.com/andrewoma/kotlin-script#mvncp)). In contrast, since `kscript` just works with just a standard shebang line, code parsing works very well in Intellij.
 
 
 
