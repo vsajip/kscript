@@ -1,11 +1,14 @@
-#!/usr/bin/env DEPS=org.docopt:docopt:0.6.0-SNAPSHOT,log4j:log4j:1.2.14 kscript
+#!/usr/bin/env kscript
+//DEPS org.docopt:docopt:0.6.0-SNAPSHOT,log4j:log4j:1.2.14
 
 //#!/usr/bin/env kotlinc -script -classpath /Users/brandl/.m2/repository/org/docopt/docopt/0.6.0-SNAPSHOT/docopt-0.6.0-SNAPSHOT.jar
 
 import org.docopt.Docopt
+import java.io.File
 import java.util.*
 
 
+var test = File("sdf")
 val usage = """
 Usage: jl <command> [options] [<joblist_file>]
 
