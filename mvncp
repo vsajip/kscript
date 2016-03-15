@@ -264,7 +264,7 @@ def parseOptions(args)
   options.useCache = true
   options.scalaVersion = nil
   
-  opts = OptionParser.new do |opts|
+  myopts = OptionParser.new do |opts|
     opts.on('-h', '--help')          { require 'rdoc/usage'; RDoc::usage() }
     opts.on('-V', '--verbose')       { options.verbose = true }  
     opts.on('-t', '--tree')          { options.tree = true }  
@@ -275,7 +275,7 @@ def parseOptions(args)
   end
   
   begin
-    opts.parse!(args)
+    myopts.parse!(args)
   rescue
     puts $!
     usage
