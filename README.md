@@ -6,7 +6,7 @@ Easy-to-use scripting support for [Kotlin](https://kotlinlang.org/) on *nix-base
 Kotlin has a limited support for scripting already but it's not (yet) feature-rich enough to be fun.
 
 In particular this wrapper around `kotlinc-jvm -script` adds
-* Complied script caching (using md5 checksums)
+* Compiled script caching (using md5 checksums)
 * Automatic dependency resolution via gradle-style resource locators
 
 ## Installation
