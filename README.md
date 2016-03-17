@@ -16,7 +16,7 @@ Simply download [kscript](kscript)  to your `~/bin` with:
 curl -s https://raw.githubusercontent.com/holgerbrandl/kscript/master/kscript > ~/bin/kscript && chmod u+x ~/bin/kscript
 ```
 
-`kotlinc-jvm` is required to be in your `PATH`. It will be once you have [installed Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html). Also `ruby` is required for the dependency resolution bits.
+Just `kotlinc-jvm` is required to be in your `PATH`. It will be once you have [installed Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html).
 
 ## Usage
 
@@ -71,12 +71,10 @@ References
 
 The initial version of `kscript` was kindly contributed by Oscar Gonzales.
 
-`kscript` is inspired (and bluntly borrows `mvncp` for dependency resolution) by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way to do scripting in Kotlin. `kotlin-script` has more options compared to `kscript`, but the latter is conceptually cleaner (no code wrapping) and more simplistic.
+`kscript` is inspired by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way to do scripting in Kotlin. `kotlin-script` has more options compared to `kscript`, but the latter is conceptually cleaner (no code wrapping) and more simplistic.
 
 
-`kscript` works better with [Intellij](https://www.jetbrains.com/idea/), since extended multi-line shebang-headers are not (yet?) supported by Intellij's' Kotlin plugin (even if the kotlin-script parser seems to be able to handle them).  However in order to use `mvncp` for dependency resolution, `kotlin script` relies on such mutli-line shebang headers (see [here](https://github.com/andrewoma/kotlin-script#mvncp)). In contrast, since `kscript` just works with just a standard shebang line, code parsing works very well in Intellij.
-
-
+`kscript` works better with [Intellij](https://www.jetbrains.com/idea/), since extended multi-line shebang-headers are not (yet?) supported by Intellij's' Kotlin plugin (even if the kotlin-script parser seems to be able to handle them).  However,  for dependency resolution, `kotlin script` relies on such mutli-line shebang headers (see [here](https://github.com/andrewoma/kotlin-script#mvncp)). In contrast, since `kscript` just works with just a standard shebang line, code parsing works very well in Intellij.
 
 Issues
 =======

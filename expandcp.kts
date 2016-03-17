@@ -113,6 +113,7 @@ fun runMaven(pom: String, goal: String): Iterable<String> {
 }
 
 val mavenResult = runMaven(pom, "dependency:build-classpath")
+
 val classPath = mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies classpath:") }.drop(1).first()
 
 //println("classpath is ${classPath}")
