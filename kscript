@@ -1,10 +1,10 @@
 #!/bin/bash
 
-### auto-install expand2cp.kts into same dir as kscript for automatic dependency resolution if not yet in PATH
-if [ -z "$(which expand2cp.kts)" ]; then
+### auto-install expandcp.kts into same dir as kscript for automatic dependency resolution if not yet in PATH
+if [ -z "$(which expandcp.kts 2> /dev/null)" ]; then
     installDir=$(dirname $(which kscript))
-    curl -s https://raw.githubusercontent.com/holgerbrandl/kscript/master/expand2cp.kts > ${installDir}/expand2cp.kts
-    chmod u+x ${installDir}/expand2cp.kts
+    curl -s https://raw.githubusercontent.com/holgerbrandl/kscript/master/expandcp.kts > ${installDir}/expandcp.kts
+    chmod u+x ${installDir}/expandcp.kts
 fi
 
 dependencies=$(grep -F "//DEPS" $1 | head -n1 | cut -f2- -d' ' | tr ',' ' ' | tr ';' ' ' )
