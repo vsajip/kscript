@@ -103,8 +103,8 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
 
 fun runMaven(pom: String, goal: String): Iterable<String> {
-    //    val temp = File.createTempFile("__mvncp__temp__", "_pom.xml")
-    val temp = File("test.pom")
+    val temp = File.createTempFile("__mvncp__temp__", "_pom.xml")
+    //    val temp = File("test.pom")
     temp.writeText(pom)
     val exec = Runtime.getRuntime().exec("mvn -f ${temp.absolutePath} ${goal}")
 
