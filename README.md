@@ -42,24 +42,18 @@ import java.util.*
 
 
 val usage = """
-Usage: cooltool <command> [options] [<input_file>]
+Use this cool tool to do cool stuff
+Usage: cooltool.kts [options] <igenome> <fastq_files>...
 
-Supported commands are
-  submit    Submits a job to the underlying queuing system and adds it to the list
-  add       Extracts job-ids from stdin and adds them to the list
-  wait      Wait for a list of jobs to finish
-
-If no args are provided cooltool is likely to do nothing
+Options:
+ --gtf <gtfFile>     Custom gtf file instead of igenome bundled copy
+ --pc-only           Use protein coding genes only for mapping and quantification
 """
 
 val doArgs = Docopt(usage).parse(args.toList())
 
-println("parsed args are: \n" + doArgs)
-
 println("Hello from Kotlin!")
-for (arg in args) {
-    println("arg: $arg")
-}
+println("Parsed script arguments are: \n" + doArgs.joinToString())
 ```
 `kscript` will read dependencies from the *first* line in a script starting with `//DEPS` (if any). Multiple dependencies can be split by comma, space or semicolon.
 
