@@ -89,7 +89,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
 
 fun runMaven(pom: String, goal: String): Iterable<String> {
-    val temp = File.createTempFile("__mvncp__temp__", "_pom.xml")
+    val temp = File.createTempFile("__expandcp__temp__", "_pom.xml")
     temp.writeText(pom)
     val exec = Runtime.getRuntime().exec("mvn -f ${temp.absolutePath} ${goal}")
 
@@ -98,6 +98,21 @@ fun runMaven(pom: String, goal: String): Iterable<String> {
 }
 
 val mavenResult = runMaven(pom, "dependency:build-classpath")
+
+
+// Check for errors (e.g. when using non-existing deps expandcp.kts log4j:log4j:1.2.14 org.docopt:docopt:22.3-MISSING)
+mavenResult.filter { it.startsWith("[ERROR]") }.let {
+
+    val failureRegex = "Failure to find ([^ ]*)".toRegex()
+    //    failureRegex.findAll("lala Failure to find hallo:2323").iterator().next().groups.get(0)
+
+    val failedDep = it.find { it.contains("Failure to find") }?.let { failureRegex.find(it)!!.groupValues[1] }
+    System.err.println("Failed to resolve: ${failedDep}")
+
+    exitProcess(1)
+}
+
+
 
 // Extract the classpath from the maven output
 val classPath = mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies classpath:") }.drop(1).first()
