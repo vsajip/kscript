@@ -71,7 +71,7 @@ if (useCache && cacheFile.isFile()) {
 
 val depTags = depIds.map {
     val splitDepId = it.split(":")
-    require(listOf(3, 4).contains(splitDepId.size)) { "invalid dependency id" }
+    require(listOf(3, 4).contains(splitDepId.size)) { "invalid dependency id: ${it}" }
 
     """
     <dependency>
