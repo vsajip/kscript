@@ -16,12 +16,6 @@ classpath suitable for use with 'java -cp' or 'kotlin =cp' (it will download if 
  * Support for transitive Maven dependencies (including exclusions)
 * Caching of dependency requests (cached requests take around 30ms)
 
-## Todo
-
-- Display of the dependency 'tree' of transitive dependencies
-- MVNCP_TEMPLATE can be set to override the inbuilt pom.xml template.
-- --clear-cache option to delete the cache
-
 ## Example
 
 Return the classpath for log4j (downloading it first if required).
@@ -32,23 +26,29 @@ $ resdep log4j:log4j:1.2.14
 Inspired by mvncp created by Andrew O'Malley
 Written be Holger Brandl 2016
 
+## Todo
+
+- Display of the dependency 'tree' of transitive dependencies
+- MVNCP_TEMPLATE can be set to override the inbuilt pom.xml template.
+- --clear-cache option to delete the cache
+
  */
 
-
-val useCache = true
-val cacheFile = File("/tmp/kscript_deps_cache.txt")
 
 
 val depIds = args
 val depsHash = depIds.joinToString(";")
 
-// todo maybe we should not use cache here but from bash to avoid jvm launch for cached classpaths
-if (useCache && cacheFile.isFile()) {
+
+// Use cached classpath from previous run if present
+val cacheFile = File("/tmp/kscript_deps_cache.txt")
+
+if (cacheFile.isFile()) {
     val cache = cacheFile.
             readLines().filter { it.isNotBlank() }.
             associateBy({ it.split(" ")[0] }, { it.split(" ")[1] })
 
-    if (cache.containsKey(depIds.joinToString(";"))) {
+    if (cache.containsKey(depsHash)) {
         println(cache.get(depsHash))
         exitProcess(0)
     }
@@ -90,7 +90,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
 fun runMaven(pom: String, goal: String): Iterable<String> {
     val temp = File.createTempFile("__mvncp__temp__", "_pom.xml")
-    //    val temp = File("test.pom")
     temp.writeText(pom)
     val exec = Runtime.getRuntime().exec("mvn -f ${temp.absolutePath} ${goal}")
 
@@ -100,12 +99,12 @@ fun runMaven(pom: String, goal: String): Iterable<String> {
 
 val mavenResult = runMaven(pom, "dependency:build-classpath")
 
+// Extract the classpath from the maven output
 val classPath = mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies classpath:") }.drop(1).first()
 
 
-// add classpath to cache
+// Add classpath to cache
 cacheFile.appendText(depsHash + " " + classPath + "\n")
 
-// print the classpath and exit
+// Print the classpath
 println(classPath)
-exitProcess(0)
