@@ -29,7 +29,8 @@ if [ "${OSTYPE//[0-9.]/}" == "darwin" ]; then md5sum(){ md5 -r $1; }; fi
 scriptCheckSum=$(md5sum ${scriptFile} | awk '{ print $1 }')
 scriptCheckSum=${scriptCheckSum:0:6}
 
-jarFile=$(pwd)/.$(basename ${scriptFile} .kts).${scriptCheckSum}.jar
+jarDir=$(dirname ${scriptFile})     # see https://github.com/holgerbrandl/kscript/issues/5
+jarFile=${jarDir}/.$(basename ${scriptFile} .kts).${scriptCheckSum}.jar
 
 
 ## capitalize first letter (since this is what kotlin compiler is doing for the wrapper
