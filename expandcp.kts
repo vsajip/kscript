@@ -14,7 +14,7 @@ classpath suitable for use with 'java -cp' or 'kotlin =cp' (it will download if 
 ## Features
 
  * Support for transitive Maven dependencies (including exclusions)
-* Caching of dependency requests (cached requests take around 30ms)
+ * Caching of dependency requests (cached requests take around 30ms)
 
 ## Example
 
@@ -33,7 +33,6 @@ Written be Holger Brandl 2016
 - --clear-cache option to delete the cache
 
  */
-
 
 
 val depIds = args
@@ -101,17 +100,12 @@ val mavenResult = runMaven(pom, "dependency:build-classpath")
 
 
 // Check for errors (e.g. when using non-existing deps expandcp.kts log4j:log4j:1.2.14 org.docopt:docopt:22.3-MISSING)
-mavenResult.filter { it.startsWith("[ERROR]") }.let {
-
-    val failureRegex = "Failure to find ([^ ]*)".toRegex()
-    //    failureRegex.findAll("lala Failure to find hallo:2323").iterator().next().groups.get(0)
-
-    val failedDep = it.find { it.contains("Failure to find") }?.let { failureRegex.find(it)!!.groupValues[1] }
+mavenResult.filter { it.startsWith("[ERROR]") }.find { it.contains("Failure to find") }?.let {
+    val failedDep = "Failure to find ([^ ]*)".toRegex().find(it)!!.groupValues[1]
     System.err.println("Failed to resolve: ${failedDep}")
 
     exitProcess(1)
 }
-
 
 
 // Extract the classpath from the maven output
