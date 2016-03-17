@@ -5,17 +5,16 @@ import java.io.File
 import java.io.InputStreamReader
 import kotlin.system.exitProcess
 
+/**
 
-// resdep is a kotlin script for setting a Java classpath from a Maven repository.
-// It accepts a set of Maven ids of dependencies and resolves them to a
-// classpath suitable for use with 'java -cp' (it will download if necessary).
+expandcp.kts is a kotlin script for setting a Java classpath from a Maven repository.
+It accepts a set of Maven ids of dependencies and resolves them to a
+classpath suitable for use with 'java -cp' or 'kotlin =cp' (it will download if necessary).
 
-/*
-Features
-Features:
-* Support for transitive Maven depenendencies (including exclusions)
+## Features
+
+ * Support for transitive Maven dependencies (including exclusions)
 * Caching of dependency requests (cached requests take around 30ms)
-* Automatic Scala version detection (and name mangling as per sbt)
 
 ## Todo
 
@@ -31,20 +30,10 @@ $ resdep log4j:log4j:1.2.14
 ## References
 
 Inspired by mvncp created by Andrew O'Malley
-Written be Holger Brandl
-*/
+Written be Holger Brandl 2016
 
-// Stores resolved dependencies
-//class Dependencies
-//attr_reader :classpath, :tree
-//def initialize(classpath, tree)
-//@classpath = classpath
-//        @tree = tree
-//        end
-//def valid?
-//@classpath && @tree
-//end
-//end
+ */
+
 
 val useCache = true
 val cacheFile = File("/tmp/kscript_deps_cache.txt")
@@ -53,16 +42,13 @@ val cacheFile = File("/tmp/kscript_deps_cache.txt")
 val depIds = args
 val depsHash = depIds.joinToString(";")
 
-// todo maybe we should not use cache here but from bash to avoid jvm launch for caches classpaths
+// todo maybe we should not use cache here but from bash to avoid jvm launch for cached classpaths
 if (useCache && cacheFile.isFile()) {
     val cache = cacheFile.
             readLines().filter { it.isNotBlank() }.
             associateBy({ it.split(" ")[0] }, { it.split(" ")[1] })
 
-    //    val depsHash = depsMd5(args)
-
     if (cache.containsKey(depIds.joinToString(";"))) {
-        //        println("using cached classpath")
         println(cache.get(depsHash))
         exitProcess(0)
     }
@@ -116,9 +102,8 @@ val mavenResult = runMaven(pom, "dependency:build-classpath")
 
 val classPath = mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies classpath:") }.drop(1).first()
 
-//println("classpath is ${classPath}")
 
-// append classpath to cache
+// add classpath to cache
 cacheFile.appendText(depsHash + " " + classPath + "\n")
 
 // print the classpath and exit
