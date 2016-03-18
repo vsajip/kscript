@@ -13,7 +13,7 @@ In particular this wrapper around `kotlinc-jvm -script` adds
 
 Simply download [kscript](kscript)  to your `~/bin` with:
 ```bash
-curl -s https://raw.githubusercontent.com/holgerbrandl/kscript/master/kscript > ~/bin/kscript && chmod u+x ~/bin/kscript
+curl -L -o ~/bin/kscript https://git.io/vaoN8 && chmod u+x ~/bin/kscript
 ```
 
 Just `kotlinc-jvm` is required to be in your `PATH`. It will be once you have [installed Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html).
@@ -75,6 +75,11 @@ Issues
 
 Feel welcome to submit ideas and suggestions.
 
+Related Proejcts
+================
+
+* [coursier](https://github.com/alexarchambault/coursier) - Pure Scala Artifact Fetching. Potential more powerful replacement for `expandcp.kts`
+* [kotlin-script](https://github.com/andrewoma/kotlin-script) - Support for using Kotlin as a scripting language
 
 
 
