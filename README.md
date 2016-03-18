@@ -75,7 +75,7 @@ Issues
 
 Feel welcome to submit ideas and suggestions.
 
-Related Proejcts
+Related Projects
 ================
 
 * [coursier](https://github.com/alexarchambault/coursier) - Pure Scala Artifact Fetching. Potential more powerful replacement for `expandcp.kts`

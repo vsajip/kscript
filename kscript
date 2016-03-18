@@ -7,7 +7,7 @@ if ! which expandcp.kts &> /dev/null; then
     chmod u+x ${installDir}/expandcp.kts
 fi
 
-dependencies=$(grep -F "//DEPS" $1 | head -n1 | cut -f2- -d' ' | tr ',;')
+dependencies=$(grep -F "//DEPS" $1 | head -n1 | cut -f2- -d' ' | tr ',;' ' ')
 #dependencies=" org.docopt:docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14 "
 
 if [ -n "$dependencies" ]; then
@@ -28,7 +28,10 @@ if [ "${OSTYPE//[0-9.]/}" == "darwin" ]; then md5sum(){ md5 -r $1; }; fi
 
 scriptCheckSum=$(md5sum $scriptFile | cut -c1-6)
 
-jarDir=$(dirname ${scriptFile})     # see https://github.com/holgerbrandl/kscript/issues/5
+## we can use readlink here which is not functional on macos, thus:
+# http://stackoverflow.com/questions/3915040/bash-fish-command-to-print-absolute-path-to-a-file
+abspath() { echo "$(cd "$(dirname "$1")"; pwd)/$(basename "$1")"; }
+jarDir=$(dirname $(abspath  ${scriptFile}))     # see https://github.com/holgerbrandl/kscript/issues/5
 jarFile=${jarDir}/.$(basename ${scriptFile} .kts).${scriptCheckSum}.jar
 
 
@@ -44,6 +47,12 @@ if [ ! -f "${jarFile}" ]; then
     rm -f .$(basename ${scriptFile} .kts).*.jar
 
     kotlinc  -classpath "${classpath}" -d ${jarFile} ${scriptFile}
+
+    if [ $? -eq 1 ]; then
+        echo "ERROR: compilation of '$scriptFile' failed" >&2
+        exit 1;
+    fi
+
 
     mainJava=$(mktemp -dt kscript.XXXXXX)/Main_${className}.java
 
