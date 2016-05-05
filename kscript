@@ -65,10 +65,16 @@ if [ ! -f "${jarFile}" ]; then
     }
     '> ${mainJava}
 
-    javac ${mainJava}  2> /dev/null
+    ## prefer JAVA_HOME over PATH for javac and jar (to stay in sync with kotlinc; see  #6)
+    if [ -n "$JAVA_HOME" -a -x "$JAVA_HOME/bin/java" ]; then
+        JAVAC_CMD="$JAVA_HOME/bin/javac"
+        JAR_CMD="$JAVA_HOME/bin/jar"
+    fi
+
+    ${JAVAC_CMD:=java} ${mainJava}  2> /dev/null
 
     ## update the jar to include main-wrapper
-    (cd $(dirname ${mainJava}) && jar uf ${jarFile}  $(basename ${mainJava%%.java}.class))
+    (cd $(dirname ${mainJava}) && ${JAR_CMD:=jar} uf ${jarFile} $(basename ${mainJava%%.java}.class))
 fi
 
 
