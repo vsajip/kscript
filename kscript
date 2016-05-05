@@ -71,7 +71,7 @@ if [ ! -f "${jarFile}" ]; then
         JAR_CMD="$JAVA_HOME/bin/jar"
     fi
 
-    ${JAVAC_CMD:=java} ${mainJava}  2> /dev/null
+    ${JAVAC_CMD:=javac} ${mainJava}  2> /dev/null
 
     ## update the jar to include main-wrapper
     (cd $(dirname ${mainJava}) && ${JAR_CMD:=jar} uf ${jarFile} $(basename ${mainJava%%.java}.class))
