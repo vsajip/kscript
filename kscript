@@ -1,5 +1,7 @@
 #!/bin/bash
 
+KSCRIPT_VERSION=1.0
+
 ### auto-install expandcp.kts into same dir as kscript for automatic dependency resolution if not yet in PATH
 if ! which expandcp.kts &> /dev/null; then
     installDir=$(dirname $(which kscript))
