@@ -92,9 +92,9 @@ println("hello again")
 EOF
 ```
 
-Finally (for sake of completeness) it also works with process substitution
+Finally (for sake of completeness) it also works with process substitution and for sure you can always provide additional arguments (exposed as `args : Array<String>` within the script)
 ```{bash}
-kscript  <(echo 'println("k-onliner")')
+kscript - arg1 arg2 arg3 <(echo 'println("k-onliner")')
 ```
 
 Inlined _kscripts_ are also cached based on `md5` checksum, so running the same snippet again will use a cached jar (sitting in `$TMPDIR`).
