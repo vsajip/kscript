@@ -64,7 +64,7 @@ Note: It might feel more intuitive to provide  dependencies as an argument to `k
 Inline Usage
 ============
 
-You can even inline `kscript` solutions into larger scripts, because `kscript` can read from stdin as well. So, depdending your preference you could simply pipe a kotlin snippet into `kscript`
+You can even inline `kscript` solutions into larger scripts, because `kscript` can read from stdin as well. So, depending on your preference you could simply pipe a kotlin snippet into `kscript`
 
 ```{bash}
 echo '
