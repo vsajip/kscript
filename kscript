@@ -24,7 +24,7 @@ if [ "$scriptFile" == "-" ]; then scriptFile="/dev/stdin"; fi
 if [[ "$scriptFile" != *kts ]]; then
     tmpScript=${TMPDIR=/tmp}/kscript_stdin_$(mktemp -d XXXXXXXXX).kts # odd but works on macos as well
 #    tmpScript=/tmp/kscript_stdin_$(mktemp -d XXXXXXXXX).kts # odd but works on macos as well
-    cat ${scriptFile} | tee > ${tmpScript}
+    cat ${scriptFile} > ${tmpScript}
 
     ## rename to use checksum as name to allow for jar-caching also when using stdin
     stdinMD5=$(md5sum ${tmpScript} | cut -c1-6)
