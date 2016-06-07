@@ -60,6 +60,41 @@ println("Parsed script arguments are: \n" + doArgs.joinToString())
 Note: It might feel more intuitive to provide  dependencies as an argument to `kscript`, however because of the way the shebang line works on Linux this is not possible.
 
 
+
+Inline Usage
+============
+
+You can even inline `kscript` solutions into larger scripts, because `kscript` can read from stdin as well. So, depdending your preference you could simply pipe a kotlin snippet into `kscript`
+
+```
+echo '
+println("hello kotlin")
+' |  kscript
+```
+
+
+or do the same using `heredoc` (preferred solution) which gives you some more flexibility to also use single quotes in your script:
+```
+kscript - <<"EOF"
+println("hello kotlin and heredoc")
+EOF
+```
+
+Since the piped content is considered as a regular script it can also have dependencies
+```
+kscript - <<"EOF"
+//DEPS org.docopt:docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14
+
+import org.docopt.Docopt
+val docopt = Docopt("Usage: jl <command> [options] [<joblist_file>]")
+
+println("hello again")
+EOF
+```
+
+Inlined _kscripts_ are also cached based on `md5` checksum, so running the same snippet again will use a cached jar (sitting in `$TMPDIR`).
+
+
 References
 ============
 
