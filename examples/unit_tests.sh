@@ -19,8 +19,8 @@ expandcp.kts org.docopt:docopt:0.6.0-SNAPSHOT
 
 ## (1) via pipe
 echo '
-println(1+1)
-' |  kscript
+println(1+3)
+' |  kscript -
 
 
 ## (2) heredoc
