@@ -86,3 +86,16 @@ Also see https://en.wikipedia.org/wiki/Shebang_(Unix)#Portability
  Some systems, including Linux, do not split up the arguments;[10] for example, when running the script with the first line like,
 
 Also see http://stackoverflow.com/questions/4303128/how-to-use-multiple-arguments-with-a-shebang-i-e
+
+
+## directly run scripts with kotlinc
+
+```
+## directly run the script...
+echo kotlinc -script -classpath "$classpath" "$@"
+
+```
+
+## how does process substitution work?
+
+http://unix.stackexchange.com/questions/156084/why-does-process-substitution-result-in-a-file-called-dev-fd-63-which-is-a-pipe

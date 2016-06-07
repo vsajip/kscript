@@ -2,6 +2,40 @@
 
 KSCRIPT_VERSION=1.0
 
+
+## ... or use a cached version of it if possible
+#scriptFile="./test.kts"
+scriptFile=$1
+shift
+
+
+## work around missing md5sum on mac
+if [ "${OSTYPE//[0-9.]/}" == "darwin" ]; then md5sum(){ md5 -r $1; }; fi
+
+
+## If script is provided from stdin create a temporary file
+## note we cannot  support empty args list here because this would confuse with actual script args
+if [ "$scriptFile" == "-" ]; then scriptFile="/dev/stdin"; fi
+#if [ "$scriptFile"=="/dev/stdin" ]; then
+
+## Rather Test if script ends with kts to also support process substitution here. Wrap stdin
+# http://serverfault.com/questions/52034/what-is-the-difference-between-double-and-single-square-brackets-in-bash
+# https://viewsby.wordpress.com/2013/09/06/bash-string-ends-with/
+if [[ "$scriptFile" != *kts ]]; then
+    tmpScript=${TMPDIR=/tmp}/kscript_stdin_$(mktemp -d XXXXXXXXX).kts # odd but works on macos as well
+#    tmpScript=/tmp/kscript_stdin_$(mktemp -d XXXXXXXXX).kts # odd but works on macos as well
+    cat ${scriptFile} | tee > ${tmpScript}
+
+    ## rename to use checksum as name to allow for jar-caching also when using stdin
+    stdinMD5=$(md5sum ${tmpScript} | cut -c1-6)
+
+    ## replace script file with md5 hash file copy of stdin
+    scriptFile=$(dirname ${tmpScript})/kscript_stdin_${stdinMD5}.kts
+    mv ${tmpScript} $scriptFile
+fi
+
+
+
 ### auto-install expandcp.kts into same dir as kscript for automatic dependency resolution if not yet in PATH
 if ! which expandcp.kts &> /dev/null; then
     installDir=$(dirname $(which kscript))
@@ -9,7 +43,7 @@ if ! which expandcp.kts &> /dev/null; then
     chmod u+x ${installDir}/expandcp.kts
 fi
 
-dependencies=$(grep -F "//DEPS" $1 | head -n1 | cut -f2- -d' ' | tr ',;' ' ')
+dependencies=$(grep -F "//DEPS" ${scriptFile} | head -n1 | cut -f2- -d' ' | tr ',;' ' ')
 #dependencies=" org.docopt:docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14 "
 
 if [ -n "$dependencies" ]; then
@@ -17,16 +51,7 @@ if [ -n "$dependencies" ]; then
     if [ $? -eq 1 ]; then exit 1; fi
 fi
 
-## directly run the script...
-#echo kotlinc -script -classpath "$classpath" "$@"
-
-## ... or use a cached version of it if possible
-#scriptFile="./test.kts"
-scriptFile=$1
-shift
-
-## work around missing md5sum on mac
-if [ "${OSTYPE//[0-9.]/}" == "darwin" ]; then md5sum(){ md5 -r $1; }; fi
+#echo "used classpath is ${classpath}"
 
 scriptCheckSum=$(md5sum $scriptFile | cut -c1-6)
 
