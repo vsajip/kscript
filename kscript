@@ -6,6 +6,7 @@ KSCRIPT_VERSION=1.0
 ## Show basic CLI description if no arguments are provided
 if [ $# == 0 ]  || [ $1 == "-v" ] || [ $1 == "--version" ] || [ $1 == "-h" ] || [ $1 == "--help" ]; then
     echo "Usage     : kscript <scriptfile or - for stdin> [<script_args>]*" >&2
+    echo "Usage     : kscript --clear-jar-cache" >&2
     echo "" >&2
     echo "Easy-to-use scripting support for Kotlin on *nix-based systems." >&2
     echo "" >&2
@@ -16,6 +17,12 @@ if [ $# == 0 ]  || [ $1 == "-v" ] || [ $1 == "--version" ] || [ $1 == "-h" ] || 
     exit 1;
 fi
 
+## optionally clear up jar cache
+if [ $1 == "--clear-jar-cache" ]; then
+    echo "Cleaning up jar cache..."
+    rm ${TMPDIR}/.kscript*jar
+    exit 0
+fi
 
 ## ... or use a cached version of it if possible
 #scriptFile="./test.kts"
@@ -37,8 +44,7 @@ if [ "$scriptFile" == "-" ]; then scriptFile="/dev/stdin"; fi
 # https://viewsby.wordpress.com/2013/09/06/bash-string-ends-with/
 
 if [[ "$scriptFile" != *kts ]]; then
-    tmpScript=${TMPDIR=/tmp}/kscript_stdin_$(mktemp -d XXXXXXXXX).kts # odd but works on macos as well
-#    tmpScript=/tmp/kscript_stdin_$(mktemp -d XXXXXXXXX).kts # odd but works on macos as well
+    tmpScript=${TMPDIR=/tmp}/kscript_stdin_${RANDOM}${RANDOM}.kts # odd but works on macos as well
     cat "${scriptFile}" > ${tmpScript}
 
     ## rename to use checksum as name to allow for jar-caching also when using stdin
