@@ -35,7 +35,7 @@ To specify dependencies simply use gradle-style locators. Here's an example usin
 
 ```kotlin
 #!/usr/bin/env kscript
-//DEPS org.docopt:docopt:0.6.0-SNAPSHOT,log4j:log4j:1.2.14
+//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:1.2.14
 
 import org.docopt.Docopt
 import java.util.*
@@ -83,7 +83,7 @@ EOF
 Since the piped content is considered as a regular script it can also have dependencies
 ```{bash}
 kscript - <<"EOF"
-//DEPS org.docopt:docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14
+//DEPS com.offbytwo:docopt:0.6.0.20150202 log4j:log4j:1.2.14
 
 import org.docopt.Docopt
 val docopt = Docopt("Usage: jl <command> [options] [<joblist_file>]")
