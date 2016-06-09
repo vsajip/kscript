@@ -20,7 +20,7 @@ fi
 ## optionally clear up jar cache
 if [ $1 == "--clear-jar-cache" ]; then
     echo "Cleaning up jar cache..."
-    rm ${TMPDIR}/.kscript*jar
+    rm -f ${TMPDIR}/.kscript*jar
     exit 0
 fi
 
