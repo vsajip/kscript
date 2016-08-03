@@ -80,6 +80,13 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
     <artifactId>resdep_template</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+     <repositories>
+        <repository>
+            <id>jcenter</id>
+            <url>http://jcenter.bintray.com/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
     ${depTags.joinToString("\n")}
     </dependencies>

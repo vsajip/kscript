@@ -46,11 +46,6 @@ https://www.biostars.org/p/52698/
 
 
 
-fun main(args: Array<String>) {
-    kutils.KscriptHelpers.processStdin { "huhu" + it }
-}
-
-
 kscript -s '
 //DEPS de.mpicbg.scicomp:kutils:0.2-SNAPSHOT
 kutils.KscriptHelpers.processStdin { "huhu" + it }
@@ -62,11 +57,10 @@ kscript -st '"huhu" + it'
 
 
 ## REPL test: Filter-Join fasta files by ID
-kotlinc -classpath $(expandcp.kts de.mpicbg.scicomp:kutils:0.2-SNAPSHOT) 
+kotlinc -classpath $(expandcp.kts de.mpicbg.scicomp:kutils:0.2)
 <<"EOF"
+import de.mpicbg.scicomp.kscript.*
 
-
-kutils.KscriptHelpers.processStdin { "huhu" + it }
-kscript 
+"house\nasdf".processLines { "huhu" + it }
 
 EOF

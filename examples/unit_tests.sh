@@ -47,3 +47,31 @@ println((1+3).toString() + " test")
 
 kscript <(cat .test.kts)
 
+
+
+## (4) KOTLIN_OPTS (
+
+kscript - <<"EOF" | grep "^-ea"
+//KOTLIN_OPTS -J-Xmx5g  -J-server -J-ea
+
+import java.lang.management.ManagementFactory
+import java.lang.management.RuntimeMXBean
+
+println("Hello from Kotlin with 5g of heap memory in server mode!")
+
+val bean = ManagementFactory.getRuntimeMXBean()
+val aList = bean.inputArguments
+
+for (i in aList.indices) {
+    println(aList[i])
+}
+
+EOF
+
+
+
+
+
+public void runtimeParameters() {
+
+}

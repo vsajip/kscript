@@ -110,6 +110,20 @@ The initial version of `kscript` was kindly contributed by Oscar Gonzalez.
 
 `kscript` works better with [Intellij](https://www.jetbrains.com/idea/), since extended multi-line shebang-headers are not (yet?) supported by Intellij's' Kotlin plugin (even if the kotlin-script parser seems to be able to handle them).  However,  for dependency resolution, `kotlin script` relies on such mutli-line shebang headers (see [here](https://github.com/andrewoma/kotlin-script#mvncp)). In contrast, since `kscript` just works with just a standard shebang line, code parsing works very well in Intellij.
 
+FAQ
+============
+
+### How to adjust the memory the JVM running my scriptlets?
+
+`kscript` allows to provide a `//KOTLIN_OPTS` line followed by parameters passed on to `kotlin` similar to how dependencies are defined:
+```kotlin
+#!/usr/bin/env kscript
+//KOTLIN_OPTS -J-Xmx5g  -J-server
+
+println("Hello from Kotlin with 5g of heap memory in server mode!")
+```
+
+
 Issues
 =======
 

@@ -65,6 +65,8 @@ if ! which expandcp.kts &> /dev/null; then
 fi
 
 dependencies=$(grep -F "//DEPS" ${scriptFile} | head -n1 | cut -f2- -d' ' | tr ',;' ' ')
+kotlin_opts=$(grep -F "//KOTLIN_OPTS" ${scriptFile} | head -n1 | cut -f2- -d' ')
+
 #dependencies=" org.docopt:docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14 "
 
 if [ -n "$dependencies" ]; then
@@ -132,4 +134,5 @@ fi
 #jar ufm ${jarFile} ${mainJava}.manimain
 #jar tf ${jarFile}
 
-exec kotlin -classpath ${jarFile}:"$classpath" Main_${className} "$@"
+echo KOTLIN_OPTS are ${kotlin_opts}
+exec kotlin ${kotlin_opts} -classpath ${jarFile}:"$classpath" Main_${className} "$@"
