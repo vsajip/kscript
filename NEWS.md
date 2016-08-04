@@ -6,7 +6,8 @@
 * versioning and auto-update
 * basic command-line help
 * Added support for `KOTLIN_OPTS` (see [#8](https://github.com/holgerbrandl/kscript/issues/8))
-
+* Added CLI help to `expandcp.kts`
+* Added option to clear dependency lookup cache: `expandcp.kts --clear-cache`
 
 ## v1.0
 Initial Release

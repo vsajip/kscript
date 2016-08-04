@@ -5,45 +5,49 @@ import java.io.File
 import java.io.InputStreamReader
 import kotlin.system.exitProcess
 
-/**
-
-expandcp.kts is a kotlin script for setting a Java classpath from a Maven repository.
-It accepts a set of Maven ids of dependencies and resolves them to a
-classpath suitable for use with 'java -cp' or 'kotlin =cp' (it will download if necessary).
-
-## Features
-
- * Support for transitive Maven dependencies (including exclusions)
- * Caching of dependency requests (cached requests take around 30ms)
+if (args.size == 0 || listOf("--help", "-help", "-h").contains(args[0])) {
+    System.err.println("""expandcp.kts resolves a space separated list of gradle-style resource locators into a
+classpath suitable for use with 'java -cp' or 'kotlin -cp'. expandcp.kts will use maven to resolve dependencies.
 
 ## Example
 
-Return the classpath for log4j (downloading it first if required).
-$ resdep log4j:log4j:1.2.14
+expandcp.kts org.apache.commons:commons-csv:1.3 log4j:log4j:1.2.14
 
-## References
+## Features
+
+* Support for transitive Maven dependencies
+* Caching of dependency requests (cached requests take just around 30ms). Use `expandcp.kts --clear-cache` to
+  clear this cache in case the dependency tree has changed
+
+## Copyright
 
 Inspired by mvncp created by Andrew O'Malley
+
 Written be Holger Brandl 2016
+https://github.com/holgerbrandl/kscript
+""")
 
-## Todo
+    exitProcess(0)
+}
 
-- Display of the dependency 'tree' of transitive dependencies
-- MVNCP_TEMPLATE can be set to override the inbuilt pom.xml template.
-- --clear-cache option to delete the cache
 
- */
+// Use cached classpath from previous run if present
+val DEP_LOOKUP_CACHE_FILE = File("/tmp/kscript_deps_cache.txt")
+
+
+if (args.size == 1 && args[0] == "--clear-cache") {
+    if (DEP_LOOKUP_CACHE_FILE.exists()) DEP_LOOKUP_CACHE_FILE.delete()
+    System.err.println("Cleaning up dependency lookup cache... Done!")
+    exitProcess(0)
+}
 
 
 val depIds = args
 val depsHash = depIds.joinToString(";")
 
 
-// Use cached classpath from previous run if present
-val cacheFile = File("/tmp/kscript_deps_cache.txt")
-
-if (cacheFile.isFile()) {
-    val cache = cacheFile.
+if (DEP_LOOKUP_CACHE_FILE.isFile()) {
+    val cache = DEP_LOOKUP_CACHE_FILE.
             readLines().filter { it.isNotBlank() }.
             associateBy({ it.split(" ")[0] }, { it.split(" ")[1] })
 
@@ -120,7 +124,7 @@ val classPath = mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies clas
 
 
 // Add classpath to cache
-cacheFile.appendText(depsHash + " " + classPath + "\n")
+DEP_LOOKUP_CACHE_FILE.appendText(depsHash + " " + classPath + "\n")
 
 // Print the classpath
 println(classPath)

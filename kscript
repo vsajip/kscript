@@ -40,7 +40,7 @@ fi
 if [ $1 == "--self-update" ]; then
     echo "Installing latest version of kscript..."
     curl -L -o $(which kscript) https://git.io/vaoNi 2>/dev/null && chmod u+x $(which kscript)
-    curl -L -o $(which expandcp.kts) https://git.io/v6IW7 2>/dev/null && chmod u+x $(which expandcp.kts)
+    curl -L -o $(which expandcp.kts) https://git.io/v6tI7 2>/dev/null && chmod u+x $(which expandcp.kts)
 
     echo "You're now running kscript "$(kscript --help 2>&1| grep Version | cut -f2- | tr -d ':')
 
@@ -157,5 +157,4 @@ fi
 #jar ufm ${jarFile} ${mainJava}.manimain
 #jar tf ${jarFile}
 
-echo KOTLIN_OPTS are ${kotlin_opts}
 exec kotlin ${kotlin_opts} -classpath ${jarFile}:"$classpath" Main_${className} "$@"
