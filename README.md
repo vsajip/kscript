@@ -11,13 +11,12 @@ In particular this wrapper around `kotlinc-jvm -script` adds
 
 ## Installation
 
-Just `kotlinc` is required to be in your `PATH` in order to use `kscript`. To [install Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html), just run 
+To use `kscript` just `kotlinc` is required. To [install Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html) we recommend [sdkman](http://sdkman.io/install.html):  
 ```
-curl -s "https://get.sdkman.io" | bash 
-soure ~/.bash_profile
-sdk install kotlin
+curl -s "https://get.sdkman.io" | bash  # install sdkman
+soure ~/.bash_profile                   # add sdkman to PATH
+sdk install kotlin                      # install kotlin
 ```
-For details see http://sdkman.io/install.html.
 
 Once kotlin is installed, simply download [kscript](kscript)  to your `~/bin` with:
 ```bash
