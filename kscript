@@ -6,7 +6,8 @@ KSCRIPT_VERSION=1.1
 ## Show basic CLI description if no arguments are provided
 if [ $# == 0 ]  || [ $1 == "-v" ] || [ $1 == "--version" ] || [ $1 == "-h" ] || [ $1 == "--help" ]; then
     echo "Usage     : kscript <scriptfile or - for stdin> [<script_args>]*" >&2
-    echo "Usage     : kscript --clear-jar-cache" >&2
+    echo "Usage     : kscript --clear-jar-cache"    # wipe cached script jars" >&2
+    echo "Usage     : kscript -i                    # ignores script but prepares interactive shell with DEPS" >&2
     echo "" >&2
     echo "Easy-to-use scripting support for Kotlin on *nix-based systems." >&2
     echo "" >&2
@@ -27,7 +28,7 @@ if [ $# == 0 ]  || [ $1 == "-v" ] || [ $1 == "--version" ] || [ $1 == "-h" ] || 
     exit 1;
 fi
 
-## optionally clear up jar cache
+## optionally clear up the jar cache
 if [ $1 == "--clear-jar-cache" ]; then
     echo "Cleaning up jar cache..."
     rm -f ${TMPDIR}/.kscript*jar
@@ -44,6 +45,12 @@ if [ $1 == "--self-update" ]; then
     echo "You're now running kscript "$(kscript --help 2>&1| grep Version | cut -f2- | tr -d ':')
 
     exit 0
+fi
+
+## check if interactive mode should be used
+if [[ $1 == "-i" ]]; then
+    is_interactive=true;
+    shift
 fi
 
 ## ... or use a cached version of it if possible
@@ -94,6 +101,15 @@ kotlin_opts=$(grep -F "//KOTLIN_OPTS" ${scriptFile} | head -n1 | cut -f2- -d' ')
 if [ -n "$dependencies" ]; then
     classpath=$(expandcp.kts ${dependencies})
     if [ $? -eq 1 ]; then exit 1; fi
+fi
+
+## optionally enter interactive mode
+if [ "$is_interactive" = true ]; then
+    echo "running interactive mode..."
+    echo "kotlinc ${kotlin_opts} -classpath $(expandcp.kts ${dependencies})"
+#    exec kotlinc ${kotlin_opts} -classpath $(expandcp.kts ${dependencies})
+#        echo " done running interactive mode..."
+    exit 0
 fi
 
 #echo "used classpath is ${classpath}"
