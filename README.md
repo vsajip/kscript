@@ -107,6 +107,25 @@ kscript - arg1 arg2 arg3 <(echo 'println("k-onliner")')
 Inlined _kscripts_ are also cached based on `md5` checksum, so running the same snippet again will use a cached jar (sitting in `$TMPDIR`).
 
 
+Tool repositories
+=================
+
+To support remote scriplet repositories, `kscript` can also work with URLs. Consider the following [hello-world-gist-scriptlet](https://github.com/holgerbrandl/kscript/blob/master/examples/url_example.kts) which is hosted on github (but any URL would work). To run it locally as a tool simply refer to it (here using the shortened [raw-URL](https://raw.githubusercontent.com/holgerbrandl/kscript/master/examples/url_example.kts) of the script for better readability)
+
+```bash
+kscript https://git.io/v1cG6 my argu ments 
+```
+
+To streamline the usage, the first part could be even aliased:
+```bash
+alias hello_kscript="kscript https://git.io/v1cG6"
+hello_kscript my argu ments
+```
+Via this mechanism, `kscript` allows for easy integration of remotely hosted (mini) programs into data workflows.
+
+URL-scripts are cached locally to speed up processing, and `kscript --clear-cache` can be used to wipe the cache if needed.
+
+
 References
 ============
 
