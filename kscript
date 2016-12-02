@@ -4,9 +4,9 @@ KSCRIPT_VERSION=1.1
 
 
 ## Show basic CLI description if no arguments are provided
-if [ $# == 0 ]  || [ $1 == "-v" ] || [ $1 == "--version" ] || [ $1 == "-h" ] || [ $1 == "--help" ]; then
-    echo "Usage     : kscript <scriptfile or - for stdin> [<script_args>]*" >&2
-    echo "Usage     : kscript --clear-jar-cache"    # wipe cached script jars" >&2
+if [ $# == 0 ]  || [ "$1" == "-v" ] || [ "$1" == "--version" ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+    echo "Usage     : kscript <scriptfile, script-url or - for stdin> [<script_args>]*" >&2
+    echo "Usage     : kscript --clear-cache"    # wipe cached script jars and urls" >&2
     echo "Usage     : kscript -i                    # ignores script but prepares interactive shell with DEPS" >&2
     echo "" >&2
     echo "Easy-to-use scripting support for Kotlin on *nix-based systems." >&2
@@ -29,15 +29,16 @@ if [ $# == 0 ]  || [ $1 == "-v" ] || [ $1 == "--version" ] || [ $1 == "-h" ] || 
 fi
 
 ## optionally clear up the jar cache
-if [ $1 == "--clear-jar-cache" ]; then
+if [ "$1" == "--clear-cache" ]; then
     echo "Cleaning up jar cache..."
     rm -f ${TMPDIR}/.kscript*jar
+    rm -f ${TMPDIR=/tmp}/kscript_urlkts_cache*
     exit 0
 fi
 
 
 ## optionally self-update kscript ot the newest version
-if [ $1 == "--self-update" ]; then
+if [ "$1" == "--self-update" ]; then
     echo "Installing latest version of kscript..."
     curl -L -o $(which kscript) https://git.io/vaoNi 2>/dev/null && chmod u+x $(which kscript)
     curl -L -o $(which expandcp.kts) https://git.io/v6tI7 2>/dev/null && chmod u+x $(which expandcp.kts)
@@ -48,14 +49,14 @@ if [ $1 == "--self-update" ]; then
 fi
 
 ## check if interactive mode should be used
-if [[ $1 == "-i" ]]; then
+if [[ "$1" == "-i" ]]; then
     is_interactive=true;
     shift
 fi
 
 ## ... or use a cached version of it if possible
 #scriptFile="./test.kts"
-scriptFile=$1
+scriptFile="$1"
 shift
 
 
@@ -66,7 +67,24 @@ if [ "${OSTYPE//[0-9.]/}" == "darwin" ]; then md5sum(){ md5 -r $1; }; fi
 ## If script is provided from stdin create a temporary file
 ## note we cannot  support empty args list here because this would confuse with actual script args
 if [ "$scriptFile" == "-" ]; then scriptFile="/dev/stdin"; fi
+
 #if [ "$scriptFile"=="/dev/stdin" ]; then
+
+## also suppor urls as script files
+## http://stackoverflow.com/questions/2172352/in-bash-how-can-i-check-if-a-string-begins-with-some-value
+if [[ "$scriptFile" == "http://"* ]] || [[ "$scriptFile" == "https://"* ]]; then
+#    tmpScript=${TMPDIR=/tmp}/kscript_stdin_${RANDOM}${RANDOM}.kts # odd but works on macos as well
+
+    urlHash=$(echo "$scriptFile" | md5sum)
+    tmpScript=${TMPDIR=/tmp}/kscript_urlkts_cache_${urlHash}.kts
+
+    if [ ! -f "$tmpScript" ]; then
+#        echo "fetching kscript from url $scriptFile into ${tmpScript}..."
+        curl -L ${scriptFile} 2>/dev/null > ${tmpScript}
+    fi
+
+    scriptFile=${tmpScript}
+fi
 
 ## Rather Test if script ends with kts to also support process substitution here. Wrap stdin
 # http://serverfault.com/questions/52034/what-is-the-difference-between-double-and-single-square-brackets-in-bash
