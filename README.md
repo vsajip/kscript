@@ -125,6 +125,8 @@ Via this mechanism, `kscript` allows for easy integration of remotely hosted (mi
 
 URL-scripts are cached locally to speed up processing, and `kscript --clear-cache` can be used to wipe the cache if needed.
 
+See this [blogpost](http://holgerbrandl.github.io/kotlin/2016/12/02/mini_programs_with_kotlin.html) for a more extensive overview about URL support in `kscript`.
+
 
 References
 ============
