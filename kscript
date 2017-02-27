@@ -70,7 +70,7 @@ if [ "$scriptFile" == "-" ]; then scriptFile="/dev/stdin"; fi
 
 #if [ "$scriptFile"=="/dev/stdin" ]; then
 
-## also suppor urls as script files
+## Support URLs as script files
 ## http://stackoverflow.com/questions/2172352/in-bash-how-can-i-check-if-a-string-begins-with-some-value
 if [[ "$scriptFile" == "http://"* ]] || [[ "$scriptFile" == "https://"* ]]; then
 #    tmpScript=${TMPDIR=/tmp}/kscript_stdin_${RANDOM}${RANDOM}.kts # odd but works on macos as well
