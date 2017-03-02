@@ -2,7 +2,10 @@
 
 ## v1.2 
 
-* fixed compatiblity with kotlin 1.1
+* Fixed compatibility with kotlin v1.1 (fixes #15)
+* Added `-i` to dump interactive console command incl deps (fixes #10)
+* Compile jars should go to TEMP (fixes #13)
+* started test-suite 
 
 ## v1.1
 

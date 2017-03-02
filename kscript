@@ -1,6 +1,6 @@
 #!/bin/bash
 
-KSCRIPT_VERSION=1.1
+KSCRIPT_VERSION=1.2
 
 
 ## Show basic CLI description if no arguments are provided
