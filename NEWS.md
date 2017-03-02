@@ -1,5 +1,9 @@
 
 
+## v1.2 
+
+* fixed compatiblity with kotlin 1.1
+
 ## v1.1
 
 * Support for stdin and process substitution as script source. See [examples](examples/unit_tests.sh)
@@ -10,4 +14,5 @@
 * Added option to clear dependency lookup cache: `expandcp.kts --clear-cache`
 
 ## v1.0
+
 Initial Release

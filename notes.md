@@ -53,6 +53,13 @@ https://kotlinlang.org/docs/tutorials/command-line.html#using-the-command-line-t
 kotlinc -script list_folders.kts
 
 
+
+## Changes in Kotlin v1.1
+
+Additional kotlin-script-runtime.jar is needed 
+* https://youtrack.jetbrains.com/issue/KT-16562
+* https://github.com/Kotlin/KEEP/blob/master/proposals/script-definition-template.md
+
 ## Misc
 
 for dependency resolution also consider

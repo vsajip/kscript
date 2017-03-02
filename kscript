@@ -190,4 +190,4 @@ fi
 #jar ufm ${jarFile} ${mainJava}.manimain
 #jar tf ${jarFile}
 
-exec kotlin ${kotlin_opts} -classpath ${jarFile}:"$classpath" Main_${className} "$@"
+exec kotlin ${kotlin_opts} -classpath ${jarFile}:${KOTLIN_HOME}/lib/kotlin-script-runtime.jar:"$classpath" Main_${className} "$@"
