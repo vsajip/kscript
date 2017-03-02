@@ -16,6 +16,7 @@ To use `kscript` just `kotlinc` is required. To [install Kotlin](https://kotlinl
 curl -s "https://get.sdkman.io" | bash  # install sdkman
 source ~/.bash_profile                  # add sdkman to PATH
 sdk install kotlin                      # install kotlin
+sdk install maven                       # install maven
 ```
 
 Once kotlin is installed, simply download [kscript](kscript)  to your `~/bin` with:
