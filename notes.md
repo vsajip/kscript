@@ -52,7 +52,10 @@ https://kotlinlang.org/docs/tutorials/command-line.html#using-the-command-line-t
 
 kotlinc -script list_folders.kts
 
+## misc
 
+tmp dir on all platforms : http://unix.stackexchange.com/questions/174817/finding-the-correct-tmp-dir-on-multiple-platforms
+> Just use ${TMPDIR-/tmp} on Unix-likes. TMPDIR is there (by the system or administrator or user) to tell you when not to use /tmp for temporary files
 
 ## Changes in Kotlin v1.1
 
