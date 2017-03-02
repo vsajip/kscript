@@ -5,7 +5,7 @@ import java.io.File
 import java.io.InputStreamReader
 import kotlin.system.exitProcess
 
-if (args.size == 0 || listOf("--help", "-help", "-h").contains(args[0])) {
+if (args.size > 0 && listOf("--help", "-help", "-h").contains(args[0])) {
     System.err.println("""expandcp.kts resolves a space separated list of gradle-style resource locators into a
 classpath suitable for use with 'java -cp' or 'kotlin -cp'. expandcp.kts will use maven to resolve dependencies.
 
@@ -43,6 +43,13 @@ if (args.size == 1 && args[0] == "--clear-cache") {
 
 
 val depIds = args
+
+
+// if no dependencies were provided we stop here
+if (depIds.size == 0) {
+    exitProcess(0)
+}
+
 val depsHash = depIds.joinToString(";")
 
 

@@ -122,14 +122,10 @@ fi
 
 ## optionally enter interactive mode
 if [ "$is_interactive" = true ]; then
-    echo "running interactive mode..."
-    echo "kotlinc ${kotlin_opts} -classpath $(expandcp.kts ${dependencies})"
-#    exec kotlinc ${kotlin_opts} -classpath $(expandcp.kts ${dependencies})
-#        echo " done running interactive mode..."
+    echo "To create a shell with script dependencies run:"
+    echo "kotlinc ${kotlin_opts} -classpath '$(expandcp.kts ${dependencies})'"
     exit 0
 fi
-
-#echo "used classpath is ${classpath}"
 
 scriptCheckSum=$(md5sum $scriptFile | cut -c1-6)
 
