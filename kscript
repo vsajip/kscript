@@ -156,6 +156,7 @@ if [ ! -f "${jarFile}" ]; then
     fi
 
 
+    # fixme xxxx placeholder does not work on macos
     mainJava=$(mktemp -dt kscript.XXXXXX)/Main_${className}.java
 
     echo '
@@ -186,4 +187,6 @@ fi
 #jar ufm ${jarFile} ${mainJava}.manimain
 #jar tf ${jarFile}
 
+# http://stackoverflow.com/questions/3706689/java-class-files-in-current-directory
+# also see https://youtrack.jetbrains.com/issue/KT-17100
 exec kotlin ${kotlin_opts} -classpath ${jarFile}:${KOTLIN_HOME}/lib/kotlin-script-runtime.jar:"$classpath" Main_${className} "$@"
