@@ -18,19 +18,19 @@ To run the tests, just run the [`test_suite.sh`](test_suite.sh)
 export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"
 ## change into this/test directory
 
-cd ${KSCRIPT_HOME}
-
 ## make sure to use devel-version
 export PATH=${KSCRIPT_HOME}:${PATH}
 
+cd ${KSCRIPT_HOME}/test
+
 ## clean up the environment
-sdk use kotlin 1.1-RC
+#sdk use kotlin 1.1-RC
 kscript --clear-cache
 
 ./test_suite.sh
 
 # run again with kotlin 1.0.X
-sdk use kotlin 1.0.6
+#sdk use kotlin 1.0.6
 ./test_suite.sh
 
 

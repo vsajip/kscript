@@ -35,3 +35,10 @@ assert "kscript -i " "To create a shell with script dependencies run:\nkotlinc  
 
 
 assert_end cli_helper_tests
+
+
+
+assert "unset KOTLIN_HOME; echo 'println(99)' | kscript -" "99"
+
+
+assert_end environment_tests

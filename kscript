@@ -187,6 +187,19 @@ fi
 #jar ufm ${jarFile} ${mainJava}.manimain
 #jar tf ${jarFile}
 
+
+# Infer KOTLIN_HOME from kotlinc if not set
+if [ -z "$KOTLIN_HOME" ]; then
+    KOTLIN_HOME="$(dirname $(which kotlinc))/.."
+fi
+
+## fail if KOTLIN_HOME is still unknown or does not exist
+if [ ! -d "$KOTLIN_HOME" ]; then
+    echo "ERROR: KOTLIN_HOME is not set and could not be inferred from context" >&2
+    exit 1;
+fi
+
+
 # http://stackoverflow.com/questions/3706689/java-class-files-in-current-directory
 # also see https://youtrack.jetbrains.com/issue/KT-17100
 exec kotlin ${kotlin_opts} -classpath ${jarFile}:${KOTLIN_HOME}/lib/kotlin-script-runtime.jar:"$classpath" Main_${className} "$@"
