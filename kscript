@@ -132,10 +132,10 @@ scriptCheckSum=$(md5sum $scriptFile | cut -c1-6)
 ## we can use readlink here which is not functional on macos, thus:
 # http://stackoverflow.com/questions/3915040/bash-fish-command-to-print-absolute-path-to-a-file
 #abspath() { echo "$(cd "$(dirname "$1")"; pwd)/$(basename "$1")"; }
-abspath() {
-    if [[ $OSTYPE != darwin* ]]; then minusFarg="-f"; fi
-    echo "$(readlink ${minusFarg} $1)";
-}
+#abspath() {
+#    if [[ $OSTYPE != darwin* ]]; then minusFarg="-f"; fi
+#    echo "$(readlink ${minusFarg} $1)";
+#}
 
 # see https://github.com/holgerbrandl/kscript/issues/5
 #jarDir=$(dirname $(abspath  ${scriptFile}))
@@ -195,7 +195,8 @@ fi
 
 # Infer KOTLIN_HOME from kotlinc if not set
 if [ -z "$KOTLIN_HOME" ]; then
-    KOTLIN_HOME="$(dirname $(abspath $(which kotlinc)))/.."
+#    KOTLIN_HOME="$(dirname $(abspath $(which kotlinc)))/.."
+    KOTLIN_HOME=$(dirname $(dirname $(JAVACMD=echo kotlin  |  awk 'NR>1' RS=' ' | grep kotlin-runner)))
 #    ls -la ${KOTLIN_HOME}/lib/kotlin-script-runtime.jar
 fi
 
