@@ -195,8 +195,8 @@ fi
 
 # Infer KOTLIN_HOME from kotlinc if not set
 if [ -z "$KOTLIN_HOME" ]; then
-#    KOTLIN_HOME="$(dirname $(abspath $(which kotlinc)))/.."
-    KOTLIN_HOME=$(dirname $(dirname $(JAVACMD=echo kotlin  |  awk 'NR>1' RS=' ' | grep kotlin-runner)))
+    ## see discussion on https://github.com/holgerbrandl/kscript/issues/15
+    KOTLIN_HOME=$(KOTLIN_RUNNER=1 JAVACMD=echo kotlinc | awk 'NR>1' RS=' ' | grep -F kotlin.home= | cut -d= -f2)
 #    ls -la ${KOTLIN_HOME}/lib/kotlin-script-runtime.jar
 fi
 
