@@ -110,17 +110,29 @@ if ! which expandcp.kts &> /dev/null; then
     chmod u+x ${installDir}/expandcp.kts
 fi
 
-dependencies=$(grep -F "//DEPS" ${scriptFile} | cut -f2- -d' ' | tr ',;\n' ' ')
-kotlin_opts=$(grep -F "//KOTLIN_OPTS" ${scriptFile} | head -n1 | cut -f2- -d' ')
+## Extract dependencies from script
+#scriptFile=/Users/brandl/projects/kotlin/kscript/test/resources/multi_line_deps.kts
+trim() { while read -r line; do echo "$line"; done; }
+dependencies=$(grep -F "//DEPS" ${scriptFile} | cut -f2- -d' ' | trim | tr ',;\n' ' ')
 
-#dependencies=" org.docopt:docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14 "
 
+## First try dependency cache directly to avoid jvm launch for expandcp.kts
 if [ -n "$dependencies" ]; then
+    classpath=$(grep -F $(echo ${dependencies} | tr ' ' ';')" " /tmp/kscript_deps_cache.txt | cut -d' ' -f2)
+fi
+
+## If there are dependencies but cache-lookup failed we run expandcp.kts
+if [ -n "$dependencies" ] && [ -z "$classpath" ];then
+echo running expandcp
     classpath=$(expandcp.kts ${dependencies})
     if [ $? -eq 1 ]; then exit 1; fi
 fi
 
-## optionally enter interactive mode
+## Extract kotlin arguments
+kotlin_opts=$(grep -F "//KOTLIN_OPTS" ${scriptFile} | head -n1 | cut -f2- -d' ')
+
+
+## Optionally enter interactive mode
 if [ "$is_interactive" = true ]; then
     echo "To create a shell with script dependencies run:"
     echo "kotlinc ${kotlin_opts} -classpath '$(expandcp.kts ${dependencies})'"
