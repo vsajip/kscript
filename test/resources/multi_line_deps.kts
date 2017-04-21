@@ -1,6 +1,6 @@
 #!/usr/bin/env kscript
 
-//DEPS org.docopt:docopt:0.6.0-SNAPSHOT
+//DEPS  org.docopt:docopt:0.6.0-SNAPSHOT
 //DEPS log4j:log4j:1.2.14
 
 import org.docopt.Docopt

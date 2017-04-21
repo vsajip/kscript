@@ -30,9 +30,8 @@ kscript --clear-cache
 ./test_suite.sh
 
 # run again with kotlin 1.0.X
-#sdk use kotlin 1.0.6
+sdk use kotlin 1.0.6
 ./test_suite.sh
-
 
 ```
 
