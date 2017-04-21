@@ -1,5 +1,6 @@
 ## kscript - Having fun with Kotlin scripting
 
+[![Build Status](https://travis-ci.org/holgerbrandl/kscript.svg?branch=master)](https://travis-ci.org/holgerbrandl/kscript)
 
 Easy-to-use scripting support for [Kotlin](https://kotlinlang.org/) on *nix-based systems.
 
