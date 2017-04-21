@@ -2,7 +2,7 @@
 
 export DEBUG="--verbose"
 
-. ~/bin/assert.sh
+. assert.sh
 
 
 
@@ -16,13 +16,13 @@ export DEBUG="--verbose"
 assert "echo 'println(1+1)' | kscript -" "2"
 
 ## make sure that heredoc is accepted as argument
-assert "source resources/here_doc_test.sh" "hello kotlin"
+assert "source ${KSCRIPT_HOME}/test/resources/here_doc_test.sh" "hello kotlin"
 
 ## make sure that it runs with local script files
-assert "source resources/local_script_file.sh" "kscript rocks!"
+assert "source ${KSCRIPT_HOME}/test/resources/local_script_file.sh" "kscript rocks!"
 
 ## make sure that it runs with local script files
-assert "kscript resources/multi_line_deps.kts" "kscript is  cool!"
+assert "kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts" "kscript is  cool!"
 
 ## todo test what happens if kotlin is not in PATH
 
@@ -40,7 +40,7 @@ assert "kscript -i " "To create a shell with script dependencies run:\nkotlinc  
 assert_end cli_helper_tests
 
 
-
+## make sure that KOTLIN_HOME can be guessed from kotlinc correctly
 assert "unset KOTLIN_HOME; echo 'println(99)' | kscript -" "99"
 
 

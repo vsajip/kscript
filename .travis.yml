@@ -1,0 +1,23 @@
+language: bash
+
+jdk: oraclejdk8
+
+
+install:
+  - sudo apt-get install -y curl unzip zip wget
+
+  ## install sdkman (see http://sdkman.io/install.html)
+  - bash -c "curl -s "https://get.sdkman.io" | bash"
+  - source "/root/.sdkman/bin/sdkman-init.sh"
+
+  ## install kotlin and maven
+  - sdk install maven
+  - sdk install kotlin
+
+  ## install assert.h
+  - wget https://raw.github.com/lehmannro/assert.sh/v1.1/assert.sh && chmod +x assert.sh
+
+  - export KSCRIPT_HOME="."
+
+script: ./test/test_suite.sh
+

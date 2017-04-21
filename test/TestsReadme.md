@@ -21,17 +21,20 @@ export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"
 ## make sure to use devel-version
 export PATH=${KSCRIPT_HOME}:${PATH}
 
-cd ${KSCRIPT_HOME}/test
+## make sure assert.h is in PATH
+which assert.sh || exit 1
+
+cd ${KSCRIPT_HOME}
 
 ## clean up the environment
 #sdk use kotlin 1.1-RC
 kscript --clear-cache
 
-./test_suite.sh
+./test/test_suite.sh
 
 # run again with kotlin 1.0.X
 sdk use kotlin 1.0.6
-./test_suite.sh
+./test/test_suite.sh
 
 ```
 
