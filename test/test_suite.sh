@@ -21,6 +21,9 @@ assert "source resources/here_doc_test.sh" "hello kotlin"
 ## make sure that it runs with local script files
 assert "source resources/local_script_file.sh" "kscript rocks!"
 
+## make sure that it runs with local script files
+assert "kscript resources/multi_line_deps.kts" "kscript is  cool!"
+
 ## todo test what happens if kotlin is not in PATH
 
 assert_end pipe_tests

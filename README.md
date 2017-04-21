@@ -63,7 +63,7 @@ val doArgs = Docopt(usage).parse(args.toList())
 println("Hello from Kotlin!")
 println("Parsed script arguments are: \n" + doArgs.joinToString())
 ```
-`kscript` will read dependencies from the *first* line in a script starting with `//DEPS` (if any). Multiple dependencies can be split by comma, space or semicolon.
+`kscript` will read dependencies from all lines in a script that start with `//DEPS` (if any). Multiple dependencies can be split by comma, space or semicolon.
 
 Note: It might feel more intuitive to provide  dependencies as an argument to `kscript`, however because of the way the shebang line works on Linux this is not possible.
 
