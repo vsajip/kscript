@@ -1,5 +1,15 @@
 
 
+## v1.3
+
+* Dramatically reduced overhead by using dependency lookup cache more efficiently. After the initially scriptlet-jar-building, `kscript` runs with almost zero overhead now (fixes  [#4](https://github.com/holgerbrandl/kscript/issues/4))
+* Dependencies can now declared in multiple lines for better readability (fixes [#2](https://github.com/holgerbrandl/kscript/issues/2))
+
+Developer News:
+* To ensure long-term stability of `kscript` we've added a suite of unit test. The repository tested continuously by Travis CI
+* 
+
+
 ## v1.2 
 
 * Fixed compatibility with kotlin v1.1 (fixes #15)
