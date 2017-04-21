@@ -1,5 +1,7 @@
 language: bash
 
+dist: trusty
+
 jdk: oraclejdk8
 
 install:
@@ -7,7 +9,7 @@ install:
 
   ## install sdkman (see http://sdkman.io/install.html)
   - bash -c "curl -s "https://get.sdkman.io" | bash"
-  - source "/root/.sdkman/bin/sdkman-init.sh"
+  - source "/home/travis/.sdkman/bin/sdkman-init.sh"
 
   ## install kotlin and maven
   - sdk install maven
