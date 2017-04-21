@@ -2,7 +2,6 @@ language: bash
 
 jdk: oraclejdk8
 
-
 install:
   - sudo apt-get install -y curl unzip zip wget
 
