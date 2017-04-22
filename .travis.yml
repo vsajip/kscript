@@ -21,9 +21,14 @@ install:
   - export KSCRIPT_HOME="/home/travis/build/holgerbrandl/kscript"
   - pwd
   - export PATH=$KSCRIPT_HOME::$PATH
+
   - which kscript
   - which expandcp.kts
+  - which assert.sh
+
+  ## does it run outside of test-suite?
   - kscript --help
+  - kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts
 
 script: ./test/test_suite.sh
 
