@@ -19,6 +19,7 @@ install:
   - wget https://raw.github.com/lehmannro/assert.sh/v1.1/assert.sh && chmod +x assert.sh
 
   - export KSCRIPT_HOME="."
+  - export PATH="/home/travis/":$PATH
 
 script: ./test/test_suite.sh
 
