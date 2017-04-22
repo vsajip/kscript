@@ -2,7 +2,10 @@ language: bash
 
 dist: trusty
 
-jdk: oraclejdk8
+#jdk: oraclejdk8
+#https://github.com/travis-ci/travis-ci/issues/6371
+before_install:
+  - jdk_switcher use oraclejdk8
 
 install:
   - sudo apt-get install -y curl unzip zip wget
