@@ -20,6 +20,10 @@ install:
 
   - export KSCRIPT_HOME="."
   - export PATH="/home/travis/":$PATH
+  - pwd
+  - which kscript
+  - which expand.kts
+  - kscript --help
 
 script: ./test/test_suite.sh
 
