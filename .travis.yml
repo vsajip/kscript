@@ -1,6 +1,7 @@
 language: bash
 
 dist: trusty
+sudo: required
 
 #jdk: oraclejdk8
 #https://github.com/travis-ci/travis-ci/issues/6371
