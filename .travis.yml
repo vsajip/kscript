@@ -22,7 +22,7 @@ install:
   - pwd
   - export PATH=$KSCRIPT_HOME::$PATH
   - which kscript
-  - which expand.kts
+  - which expandcp.kts
   - kscript --help
 
 script: ./test/test_suite.sh
