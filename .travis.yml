@@ -18,9 +18,9 @@ install:
   ## install assert.h
   - wget https://raw.github.com/lehmannro/assert.sh/v1.1/assert.sh && chmod +x assert.sh
 
-  - export KSCRIPT_HOME="."
-  - export PATH="/home/travis/":$PATH
+  - export KSCRIPT_HOME="/home/travis/build/holgerbrandl/kscript"
   - pwd
+  - export PATH=$KSCRIPT_HOME::$PATH
   - which kscript
   - which expand.kts
   - kscript --help
