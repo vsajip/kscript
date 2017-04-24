@@ -3,13 +3,18 @@ language: bash
 sudo: required
 dist: trusty
 
+addons:
+  apt:
+    packages:
+      - oracle-java8-set-default
+
 #jdk: oraclejdk8
 #https://github.com/travis-ci/travis-ci/issues/6371
 before_install:
   - jdk_switcher use oraclejdk8
 
 install:
-  - sudo apt-get install oracle-java8-set-default
+#  - sudo apt-get install oracle-java8-set-default
   - sudo apt-get install -y curl unzip zip wget
 
   ## install sdkman (see http://sdkman.io/install.html)
