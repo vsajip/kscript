@@ -9,6 +9,7 @@ before_install:
   - jdk_switcher use oraclejdk8
 
 install:
+  - sudo apt-get install oracle-java8-set-default
   - sudo apt-get install -y curl unzip zip wget
 
   ## install sdkman (see http://sdkman.io/install.html)
