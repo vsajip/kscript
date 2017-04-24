@@ -46,6 +46,9 @@ install:
 
   ## does it run outside of test-suite?
   - kscript --help
+  - java  -version
+  - mvn --version
+  - expandcp.kts org.docopt:docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14
   - kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts
 
 script: ./test/test_suite.sh

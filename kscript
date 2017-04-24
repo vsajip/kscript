@@ -124,7 +124,6 @@ fi
 
 ## If there are dependencies but cache-lookup failed we run expandcp.kts
 if [ -n "$dependencies" ] && [ -z "$classpath" ];then
-echo running expandcp
     classpath=$(expandcp.kts ${dependencies})
     if [ $? -eq 1 ]; then exit 1; fi
 fi
