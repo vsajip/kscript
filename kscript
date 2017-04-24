@@ -117,7 +117,8 @@ dependencies=$(grep -F "//DEPS" ${scriptFile} | cut -f2- -d' ' | trim | tr ',;\n
 
 
 ## First try dependency cache directly to avoid jvm launch for expandcp.kts
-if [ -n "$dependencies" ]; then
+dependency_cache="/tmp/kscript_deps_cache.txt"
+if [ -n "$dependencies" ] && [ -f "$dependency_cache" ]; then
     classpath=$(grep -F $(echo ${dependencies} | tr ' ' ';')" " /tmp/kscript_deps_cache.txt | cut -d' ' -f2)
 fi
 
