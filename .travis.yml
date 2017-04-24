@@ -16,10 +16,10 @@ dist: trusty
 install:
 #  - sudo apt-get install oracle-java8-set-default
 
-  - sudo apt-get install python-software-properties
+  - sudo apt-get install -y python-software-properties
   - sudo add-apt-repository ppa:webupd8team/java
   - sudo apt-get update
-  - sudo apt-get install oracle-java8-installer
+  - sudo apt-get install -y oracle-java8-installer
   - sudo apt-get install -y curl unzip zip wget
 
   ## install sdkman (see http://sdkman.io/install.html)
