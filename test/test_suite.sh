@@ -45,3 +45,21 @@ assert "unset KOTLIN_HOME; echo 'println(99)' | kscript -" "99"
 
 
 assert_end environment_tests
+
+#export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"
+#export PATH=${KSCRIPT_HOME}:${PATH}
+
+assert "expandcp.kts log4j:log4j:1.2.14" "${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar"
+assert_raises "expandcp.kts log4j:log4j:9.8.76" 1
+
+## one good one wrong
+assert_raises "expandcp.kts org.docopt:docopt:0.9.0-SNAPSHOT log4j:log4j:9.2.14" 1
+
+#expandcp.kts org.docopt:docopt:0.99.0-SNAPSHOTlog4j:log4j:1.2.14 org.docopt:docopt:0.10expandcp.kts org.docopt:docopt:0.99.0-SNAPSHOT log4j:log4j:1.2.14 org.docopt:docopt:0.10
+#
+#expandcp.kts org.docopt:docopt:0.99.0-SNAPSHOTlog4j:log4j:1.2.14 org.docopt:docopt:0.10expandcp.kts org.docopt:docopt:0.99.0-SNAPSHOT", "log4j:log4j:1.2.14", "org.docopt:docopt:0.10
+#
+
+assert_end dependency_lookup
+
+

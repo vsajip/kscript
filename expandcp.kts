@@ -5,7 +5,9 @@ import java.io.File
 import java.io.InputStreamReader
 import kotlin.system.exitProcess
 
-if (args.size > 0 && listOf("--help", "-help", "-h").contains(args[0])) {
+//val args = arrayOf("org.docopt:docopt:0.6.0-SNAPSHOT", "log4j:log4j:1.2.14")
+
+if (args.isNotEmpty() && listOf("--help", "-help", "-h").contains(args[0])) {
     System.err.println("""expandcp.kts resolves a space separated list of gradle-style resource locators into a
 classpath suitable for use with 'java -cp' or 'kotlin -cp'. expandcp.kts will use maven to resolve dependencies.
 
@@ -32,7 +34,7 @@ https://github.com/holgerbrandl/kscript
 
 
 // Use cached classpath from previous run if present
-val DEP_LOOKUP_CACHE_FILE = File("/tmp/kscript_deps_cache.txt")
+val DEP_LOOKUP_CACHE_FILE = File("/tmp/.kscript_deps_cache.txt")
 
 
 if (args.size == 1 && args[0] == "--clear-cache") {
@@ -46,7 +48,7 @@ val depIds = args
 
 
 // if no dependencies were provided we stop here
-if (depIds.size == 0) {
+if (depIds.isEmpty()) {
     exitProcess(0)
 }
 
@@ -68,7 +70,6 @@ if (DEP_LOOKUP_CACHE_FILE.isFile()) {
 val depTags = depIds.map {
     val splitDepId = it.split(":")
     require(listOf(3, 4).contains(splitDepId.size)) { "invalid dependency id: ${it}" }
-
     """
     <dependency>
             <groupId>${splitDepId[0]}</groupId>
@@ -87,7 +88,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>resdep_template</groupId>
+    <groupId>kscript_mvn_template</groupId>
     <artifactId>resdep_template</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -109,16 +110,17 @@ fun runMaven(pom: String, goal: String): Iterable<String> {
     val temp = File.createTempFile("__expandcp__temp__", "_pom.xml")
     temp.writeText(pom)
     val exec = Runtime.getRuntime().exec("mvn -f ${temp.absolutePath} ${goal}")
-
     return BufferedReader(InputStreamReader(exec.inputStream)).
             lines().toArray().map { it.toString() }
 }
 
 val mavenResult = runMaven(pom, "dependency:build-classpath")
 
+//println(mavenResult.joinToString("\n"))
+
 
 // Check for errors (e.g. when using non-existing deps expandcp.kts log4j:log4j:1.2.14 org.docopt:docopt:22.3-MISSING)
-mavenResult.filter { it.startsWith("[ERROR]") }.find { it.contains("Failure to find") }?.let {
+mavenResult.filter { it.startsWith("[ERROR]") }.find { it.contains("Could not resolve dependencie") }?.let {
     val failedDep = "Failure to find ([^ ]*)".toRegex().find(it)!!.groupValues[1]
     System.err.println("Failed to resolve: ${failedDep}")
 
@@ -127,7 +129,12 @@ mavenResult.filter { it.startsWith("[ERROR]") }.find { it.contains("Failure to f
 
 
 // Extract the classpath from the maven output
-val classPath = mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies classpath:") }.drop(1).first()
+val classPath = mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies classpath:") }.drop(1).firstOrNull()
+
+if (classPath == null) {
+    System.err.println("Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript")
+    exitProcess(1)
+}
 
 
 // Add classpath to cache
