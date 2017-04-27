@@ -11,6 +11,8 @@ if (args.isNotEmpty() && listOf("--help", "-help", "-h").contains(args[0])) {
     System.err.println("""expandcp.kts resolves a space separated list of gradle-style resource locators into a
 classpath suitable for use with 'java -cp' or 'kotlin -cp'. expandcp.kts will use maven to resolve dependencies.
 
+For details see https://github.com/holgerbrandl/kscript
+
 ## Example
 
 expandcp.kts org.apache.commons:commons-csv:1.3 log4j:log4j:1.2.14
@@ -23,10 +25,9 @@ expandcp.kts org.apache.commons:commons-csv:1.3 log4j:log4j:1.2.14
 
 ## Copyright
 
-Inspired by mvncp created by Andrew O'Malley
+2017 Holger Brandl
 
-Written be Holger Brandl 2016
-https://github.com/holgerbrandl/kscript
+Inspired by mvncp created by Andrew O'Malley
 """)
 
     exitProcess(0)

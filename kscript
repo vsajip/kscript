@@ -11,8 +11,8 @@ if [ $# == 0 ]  || [ "$1" == "-v" ] || [ "$1" == "--version" ] || [ "$1" == "-h"
     echo "" >&2
     echo "Easy-to-use scripting support for Kotlin on *nix-based systems." >&2
     echo "" >&2
-    echo "Copyright : 2016 Holger Brandl"
-    echo "License   : Simplified BSD" >&2
+    echo "Copyright : 2017 Holger Brandl"
+    echo "License   : MIT" >&2
     echo "Version   : v$KSCRIPT_VERSION" >&2
     echo "Website   : https://github.com/holgerbrandl/kscript" >&2
 
