@@ -112,8 +112,11 @@ fi
 
 ## Extract dependencies from script
 #scriptFile=/Users/brandl/projects/kotlin/kscript/test/resources/multi_line_deps.kts
+if [ $(grep "^// DEPS" ${scriptFile} | wc -l) -gt 0 ]; then
+    echo "[ERROR] Dependencies must be declared by using the line prefix //DEPS" 1>&2; exit 1;
+fi
 trim() { while read -r line; do echo "$line"; done; }
-dependencies=$(grep -F "//DEPS" ${scriptFile} | cut -f2- -d' ' | trim | tr ',;\n' ' ')
+dependencies=$(grep "^//DEPS" ${scriptFile} | cut -f2- -d' ' | trim | tr ',;\n' ' ')
 
 
 ## First try dependency cache directly to avoid jvm launch for expandcp.kts
