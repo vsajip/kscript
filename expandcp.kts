@@ -69,7 +69,13 @@ if (DEP_LOOKUP_CACHE_FILE.isFile()) {
 
 val depTags = depIds.map {
     val splitDepId = it.split(":")
-    require(listOf(3, 4).contains(splitDepId.size)) { "invalid dependency id: ${it}" }
+
+    if (!listOf(3, 4).contains(splitDepId.size)) {
+        System.err.println("invalid dependency locator: ${it}")
+        System.err.println("Expected format is groupId:artifactId:version[:classifier]")
+        exitProcess(1)
+    }
+
     """
     <dependency>
             <groupId>${splitDepId[0]}</groupId>
@@ -88,9 +94,9 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>kscript_mvn_template</groupId>
-    <artifactId>resdep_template</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <groupId>kscript</groupId>
+    <artifactId>maven_template</artifactId>
+    <version>1.0</version>
 
      <repositories>
         <repository>
@@ -116,13 +122,19 @@ fun runMaven(pom: String, goal: String): Iterable<String> {
 
 val mavenResult = runMaven(pom, "dependency:build-classpath")
 
+//println(pom)
 //println(mavenResult.joinToString("\n"))
 
+// The following artifacts could not be resolved: log4ja:log4ja:jar:9.8.87, log4j:log4j:jar:9.8.105: Could not
 
 // Check for errors (e.g. when using non-existing deps expandcp.kts log4j:log4j:1.2.14 org.docopt:docopt:22.3-MISSING)
 mavenResult.filter { it.startsWith("[ERROR]") }.find { it.contains("Could not resolve dependencie") }?.let {
-    val failedDep = "Failure to find ([^ ]*)".toRegex().find(it)!!.groupValues[1]
-    System.err.println("Failed to resolve: ${failedDep}")
+    System.err.println("Failed to lookup dependencies. Maven reported the following error:")
+    System.err.println(it)
+    //    val matchResult = "Failure to find ([^ ]*)".toRegex().find(it)
+    //    println(matchResult.toString())
+    //    val failedDep = matchResult !!.groupValues[1]
+    //    System.err.println("Failed to resolve: ${failedDep}")
 
     exitProcess(1)
 }
