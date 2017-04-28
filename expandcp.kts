@@ -146,6 +146,7 @@ val classPath = mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies clas
 
 if (classPath == null) {
     System.err.println("Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript")
+    System.err.println(mavenResult)
     exitProcess(1)
 }
 
