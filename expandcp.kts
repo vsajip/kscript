@@ -143,7 +143,9 @@ mavenResult.filter { it.startsWith("[ERROR]") }.find { it.contains("Could not re
 
 // Extract the classpath from the maven output
 System.err.println(mavenResult)
-mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies classpath:") }.forEach { "info: ${it}" }
+
+mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies classpath:") }.forEach { println(">>>> ${it}") }
+
 val classPath = mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies classpath:") }.drop(1).firstOrNull()
 
 if (classPath == null) {
