@@ -142,11 +142,10 @@ mavenResult.filter { it.startsWith("[ERROR]") }.find { it.contains("Could not re
 
 
 // Extract the classpath from the maven output
-System.err.println(mavenResult)
+//System.err.println(mavenResult)
+//mavenResult.dropWhile { !it.contains("Dependencies classpath:") }.forEach { println(">>>> ${it}") }
 
-mavenResult.dropWhile { !it.contains("Dependencies classpath:") }.forEach { println(">>>> ${it}") }
-
-val classPath = mavenResult.dropWhile { !it.startsWith("[INFO] Dependencies classpath:") }.drop(1).firstOrNull()
+val classPath = mavenResult.dropWhile { !it.contains("Dependencies classpath:") }.drop(1).firstOrNull()
 
 if (classPath == null) {
     System.err.println("Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript")
