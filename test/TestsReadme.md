@@ -41,3 +41,6 @@ sdk use kotlin 1.0.6
 
 For more examples see https://github.com/lehmannro/assert.sh/blob/master/tests.sh
 
+## Notes
+
+how to modulate PATH? See http://stackoverflow.com/questions/370047/what-is-the-most-elegant-way-to-remove-a-path-from-the-path-variable-in-bash

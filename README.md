@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/holgerbrandl/kscript.svg?branch=master)](https://travis-ci.org/holgerbrandl/kscript)
 
-Easy-to-use scripting support for [Kotlin](https://kotlinlang.org/) on *nix-based systems.
+Enhanced scripting support for [Kotlin](https://kotlinlang.org/) on *nix-based systems.
 
 Kotlin has a limited support for scripting already but it's not (yet) feature-rich enough to be fun.
 
@@ -12,12 +12,12 @@ In particular this wrapper around `kotlinc-jvm -script` adds
 
 ## Installation
 
-To use `kscript` just `kotlinc` is required. To [install Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html) we recommend [sdkman](http://sdkman.io/install.html):  
+To use `kscript` just Kotlin and Maven are required. To [install Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html) we recommend [sdkman](http://sdkman.io/install.html):
 ```
 curl -s "https://get.sdkman.io" | bash  # install sdkman
 source ~/.bash_profile                  # add sdkman to PATH
-sdk install kotlin                      # install kotlin
-sdk install maven                       # install maven
+sdk install kotlin                      # install Kotlin
+sdk install maven                       # install Maven
 ```
 
 Once kotlin is installed, simply download [kscript](kscript)  to your `~/bin` with:

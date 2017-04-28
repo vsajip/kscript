@@ -2,14 +2,29 @@
 
 KSCRIPT_VERSION=1.2
 
+## make sure that all requirements (java, kotlinc, maven) to run kscript are met
+assertInPath(){ if [ -z "$(which $1)" ]; then echo "[ERROR] Could not locate '$1'" 1>&2; exit 1; fi }
+
+assertInPath kotlinc
+assertInPath mvn
+
+## prefer JAVA_HOME over PATH for javac and jar (to stay in sync with kotlinc; see  #6)
+if [ -n "$JAVA_HOME" -a -x "$JAVA_HOME/bin/java" ]; then
+    JAVAC_CMD="$JAVA_HOME/bin/javac"
+    JAR_CMD="$JAVA_HOME/bin/jar"
+fi
+
+assertInPath ${JAVAC_CMD:=javac}
+assertInPath ${JAR_CMD:=jar}
+
 
 ## Show basic CLI description if no arguments are provided
 if [ $# == 0 ]  || [ "$1" == "-v" ] || [ "$1" == "--version" ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
-    echo "Usage     : kscript <scriptfile, script-url or - for stdin> [<script_args>]*" >&2
-    echo "Usage     : kscript --clear-cache"    # wipe cached script jars and urls" >&2
-    echo "Usage     : kscript -i                    # ignores script but prepares interactive shell with DEPS" >&2
+    echo "kscript - Enhanced scripting support for Kotlin on *nix-based systems." >&2
     echo "" >&2
-    echo "Easy-to-use scripting support for Kotlin on *nix-based systems." >&2
+    echo "Usage     : kscript <scriptfile, script-url, - for stdin, some kotlin code> [<script_args>]*" >&2
+    echo "Usage     : kscript --clear-cache     # wipe cached script jars and urls" >&2
+    echo "Usage     : kscript -i                # interactive shell with DEPS as declared in script" >&2
     echo "" >&2
     echo "Copyright : 2017 Holger Brandl"
     echo "License   : MIT" >&2
@@ -188,11 +203,6 @@ if [ ! -f "${jarFile}" ]; then
     }
     '> ${mainJava}
 
-    ## prefer JAVA_HOME over PATH for javac and jar (to stay in sync with kotlinc; see  #6)
-    if [ -n "$JAVA_HOME" -a -x "$JAVA_HOME/bin/java" ]; then
-        JAVAC_CMD="$JAVA_HOME/bin/javac"
-        JAR_CMD="$JAVA_HOME/bin/jar"
-    fi
 
     ${JAVAC_CMD:=javac} ${mainJava}  2> /dev/null
 
@@ -217,7 +227,7 @@ fi
 
 ## fail if KOTLIN_HOME is still unknown or does not exist
 if [ ! -d "$KOTLIN_HOME" ]; then
-    echo "ERROR: KOTLIN_HOME is not set and could not be inferred from context" >&2
+    echo "[ERROR] KOTLIN_HOME is not set and could not be inferred from context" >&2
     exit 1;
 fi
 
