@@ -131,10 +131,10 @@ Support API
 
 `kscript` is complemented by a support library to ease the writing of Kotlin scriptlets. The latter includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the development of kscript applications.
 
-When using the direct script arguments the methods in the the `kscript.*` namespace are automatically imported by convention. This allows sed.for constructs like
+When using the direct script arguments the methods in the the `kscript.*` namespace are automatically imported by convention. This allows for  sed-like constructs like
 
 ```bash
-cat some_big_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.forEach{it::println}'
+cat some_big_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.map { it + "foo:" }.print()'
 ```
 
 
