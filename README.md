@@ -128,10 +128,9 @@ Support API
 -----------
 
 
+`kscript` is complemented by a [support library](https://github.com/holgerbrandl/kscript-support-api) to ease the writing of Kotlin scriptlets. The latter includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the development of kscript applications.
 
-`kscript` is complemented by a support library to ease the writing of Kotlin scriptlets. The latter includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the development of kscript applications.
-
-When using the direct script arguments the methods in the the `kscript.*` namespace are automatically imported by convention. This allows for  sed-like constructs like
+When using the direct script arguments (like in the example below) the methods in the the `kscript.*` namespace and the corresponding dependency `de.mpicbg.scicomp:kscript:1.0` are automatically added as prefix to the script by convention. This allows for  sed-like constructs like
 
 ```bash
 cat some_big_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.map { it + "foo:" }.print()'
@@ -176,7 +175,7 @@ FAQ
 ---
 
 
-### How to adjust the memory the JVM running my scriptlets?
+### How to adjust the memory settings for the JVM in my scriptlet?
 
 `kscript` allows to provide a `//KOTLIN_OPTS` line followed by parameters passed on to `kotlin` similar to how dependencies are defined:
 ```kotlin
