@@ -47,6 +47,7 @@ fi
 ## optionally clear up the jar cache
 if [ "$1" == "--clear-cache" ]; then
     echo "Cleaning up cache..."
+    rm -f ${TMPDIR=/tmp}/.kscript_* ## legacy cleanup will be removed with 1.5
     rm -f ${TMPDIR=/tmp}/kscript_*
     exit 0
 fi
@@ -193,7 +194,7 @@ scriptCheckSum=$(md5sum $scriptFile | cut -c1-6)
 
 # see https://github.com/holgerbrandl/kscript/issues/5
 #jarDir=$(dirname $(abspath  ${scriptFile}))
-jarFile=${TMPDIR=/tmp}/.kscript_$(basename ${scriptFile} .kts).${scriptCheckSum}.jar
+jarFile=${TMPDIR=/tmp}/kscript_$(basename ${scriptFile} .kts).${scriptCheckSum}.jar
 
 
 ## capitalize first letter (since this is what kotlin compiler is doing for the wrapper
