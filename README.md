@@ -2,8 +2,6 @@
 
 [![Build Status](https://travis-ci.org/holgerbrandl/kscript.svg?branch=master)](https://travis-ci.org/holgerbrandl/kscript)
 
-https://camo.githubusercontent.com/a621e66fb7b34aa4cfc268450b9c837b99cffd92/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6b6f746c696e2d312e302e322d626c75652e737667
-
 Enhanced scripting support for [Kotlin](https://kotlinlang.org/) on *nix-based systems.
 
 Kotlin has some built-in support for scripting already but it is not yet feature-rich enough to be a viable alternative in the shell.
