@@ -6,7 +6,7 @@ Enhanced scripting support for [Kotlin](https://kotlinlang.org/) on *nix-based s
 
 Kotlin has some built-in support for scripting already but it is not yet feature-rich enough to be a viable alternative in the shell.
 
-In particular this wrapper around `kotlinc-jvm -script` adds
+In particular this wrapper around `kotlinc` adds
 * Compiled script caching (using md5 checksums)
 * Dependency declarations using gradle-style resource locators and automatic dependency resolution with maven
 * More options to provide scripts including interpreter mode, reading from stdin, local files or URLs
@@ -182,7 +182,7 @@ FAQ
 #!/usr/bin/env kscript
 //KOTLIN_OPTS -J-Xmx5g  -J-server
 
-println("Hello from Kotlin with 5g of heap memory in server mode!")
+println("Hello from Kotlin with 5g of heap memory running in server mode!")
 ```
 
 

@@ -128,7 +128,11 @@ fi
 ## if scriptFile is still not a file we assume the input to be a kotlin program directly
 ## note: -e also supports non-regular files in contrast to -f
 if [[ "$scriptFile" != *kts ]] && [[ ! -e ${scriptFile} ]]; then
-#    echo "processing direct script argument"
+    ## auto-prefix one-liners with kscript-support api
+    if [[ $(echo "${scriptFile}" | wc -l) -eq 1 ]]; then
+        scriptFile=$'//DEPS de.mpicbg.scicomp:kscript:1.0\nimport kscript.*\n'$scriptFile
+    fi
+
     scriptHash=$(kscript_md5 <(echo "$scriptFile"))
 
     # http://unix.stackexchange.com/questions/174817/finding-the-correct-tmp-dir-on-multiple-platforms

@@ -6,14 +6,18 @@ export DEBUG="--verbose"
 
 
 ## define test helper, see https://github.com/lehmannro/assert.sh/issues/24
-assert_statment(){
+assert_statement(){
     # usage cmd exp_stout exp_stder exp_exit_code
     assert "$1" "$2"
     assert "( $1 ) 2>&1 >/dev/null" "$3"
     assert_raises "$1" "$4"
 }
-
 #assert_statment "echo foo; echo bar  >&2; exit 1" "foo" "bar" 1
+
+
+#http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
+#http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
+export NL=$'\n'
 
 
 
@@ -52,13 +56,16 @@ assert_end script_input_modes
 ## interactive mode without dependencies
 assert "echo '' | kscript -i -" "To create a shell with script dependencies run:\nkotlinc  -classpath ''"
 
-assert "kscript -i '//DEPS log4j:log4j:1.2.14'" "To create a shell with script dependencies run:\nkotlinc  -classpath '${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar'"
+
+## first version is disabled because support-auto-prefixing kicks in
+#assert "kscript -i '//DEPS log4j:log4j:1.2.14'" "To create a shell with script dependencies run:\nkotlinc  -classpath '${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar'"
+assert "kscript -i <(echo '//DEPS log4j:log4j:1.2.14')" "To create a shell with script dependencies run:\nkotlinc  -classpath '${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar'"
 
 assert_end cli_helper_tests
 
 
 ## do not run interactive mode prep without script argument
-assert_statment "kscript -i" "" "[ERROR] Script argument for interactive mode preparation is missing" 1
+assert_statement "kscript -i" "" "[ERROR] Script argument for interactive mode preparation is missing" 1
 
 ## make sure that KOTLIN_HOME can be guessed from kotlinc correctly
 assert "unset KOTLIN_HOME; echo 'println(99)' | kscript -" "99"
@@ -86,6 +93,13 @@ assert "expandcp.kts log4j:::1.0 2>&1" "Failed to lookup dependencies. Check dep
 
 ## one good dependency,  one wrong
 assert_raises "expandcp.kts org.docopt:docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
+
+
+
+## make sure that one-liners include support-api
+assert 'echo "foo${NL}bar" | kscript "stdin.print()"' $'foo\nbar'
+#echo "$'foo\nbar' | kscript 'stdin.print()'
+
 
 assert_end dependency_lookup
 
