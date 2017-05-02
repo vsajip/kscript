@@ -159,17 +159,6 @@ URL-scripts are cached locally to speed up processing, and `kscript --clear-cach
 See this [blogpost](http://holgerbrandl.github.io/kotlin/2016/12/02/mini_programs_with_kotlin.html) for a more extensive overview about URL support in `kscript`.
 
 
-References
-----------
-
-
-The initial version of `kscript` was kindly contributed by Oscar Gonzalez.
-
-`kscript` is inspired by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way to do scripting in Kotlin. `kotlin-script` has more options compared to `kscript`, but the latter is conceptually cleaner (no code wrapping) and more simplistic.
-
-
-`kscript` works better with [Intellij](https://www.jetbrains.com/idea/), since extended multi-line shebang-headers are not (yet?) supported by Intellij's' Kotlin plugin (even if the kotlin-script parser seems to be able to handle them).  However,  for dependency resolution, `kotlin script` relies on such mutli-line shebang headers (see [here](https://github.com/andrewoma/kotlin-script#mvncp)). In contrast, since `kscript` just works with just a standard shebang line, code parsing works very well in Intellij.
-
 
 FAQ
 ---
@@ -189,14 +178,13 @@ println("Hello from Kotlin with 5g of heap memory running in server mode!")
 Issues
 ------
 
-Feel welcome to submit ideas and suggestions.
+Feel welcome to post ideas and suggestions to our [tracker](https://github.com/holgerbrandl/kscript/issues).
 
 
-Related Projects
+Acknowledgements
 ----------------
 
-* [coursier](https://github.com/alexarchambault/coursier) - Pure Scala Artifact Fetching. Potential more powerful replacement for `expandcp.kts`
-* [kotlin-script](https://github.com/andrewoma/kotlin-script) - Support for using Kotlin as a scripting language
+The initial version of `kscript` was kindly contributed by [Oscar Gonzalez](https://github.com/oskargb).
 
-
+`kscript` was inspired by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way to do scripting in Kotlin.
 
