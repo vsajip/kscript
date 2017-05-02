@@ -15,6 +15,10 @@ chmod u+x assert.sh
 
 To run the tests, just run the [`test_suite.sh`](test_suite.sh)
 ```bash
+# scp /Users/brandl/projects/kotlin/kscript/kscript bioinfo:/home/brandl/bin/test/kscript/kscript
+
+#git clone https://github.com/holgerbrandl/kscript ; export KSCRIPT_HOME=$(pwd)/kscript
+
 export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"
 ## change into this/test directory
 
@@ -43,4 +47,6 @@ For more examples see https://github.com/lehmannro/assert.sh/blob/master/tests.s
 
 ## Notes
 
-how to modulate PATH? See http://stackoverflow.com/questions/370047/what-is-the-most-elegant-way-to-remove-a-path-from-the-path-variable-in-bash
+How to modulate PATH?
+
+See http://stackoverflow.com/questions/370047/what-is-the-most-elegant-way-to-remove-a-path-from-the-path-variable-in-bash

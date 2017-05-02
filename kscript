@@ -81,13 +81,16 @@ shift
 
 ## work around missing md5sum on mac
 if [ "${OSTYPE//[0-9.]/}" == "darwin" ]; then md5sum(){ md5 -r $1; }; fi
+## use just 16 character checksum and make more platform independent
+kscript_md5(){ md5sum $1 | cut -c1-16; }
 
 
 
 ## Support URLs as script files
 ## http://stackoverflow.com/questions/2172352/in-bash-how-can-i-check-if-a-string-begins-with-some-value
 if [[ "$scriptFile" == "http://"* ]] || [[ "$scriptFile" == "https://"* ]]; then
-    urlHash=$(echo "$scriptFile" | md5sum)
+    # scriptFile=https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/url_test.kts
+    urlHash=$(kscript_md5 <(echo "$scriptFile"))
 
     # http://unix.stackexchange.com/questions/174817/finding-the-correct-tmp-dir-on-multiple-platforms
     urlCache=${TMPDIR=/tmp}/kscript_urlkts_cache_${urlHash}.kts
@@ -106,36 +109,36 @@ fi
 ## remap - to the standard input file-descriptor
 if [ "$scriptFile" == "-" ]; then scriptFile="/dev/stdin"; fi
 
-
-## if scriptFile is still not a file we assume the input to be a kotlin program directly
-## note: -e also supports non-regular files in contrast to -f
-if [[ ! -e ${scriptFile} ]] && [[ "$scriptFile" != *kts ]]; then
-#    echo "processing direct script argument"
-    urlHash=$(echo "$scriptFile" | md5sum)
-
-    # http://unix.stackexchange.com/questions/174817/finding-the-correct-tmp-dir-on-multiple-platforms
-    urlCache=${TMPDIR=/tmp}/kscript_scriptarg_cache_${urlHash}.kts
-
-    echo "$scriptFile" > $urlCache
-
-    scriptFile=${urlCache}
-fi
-
-
 ## Support for support process substitution and stdin.
 # http://serverfault.com/questions/52034/what-is-the-difference-between-double-and-single-square-brackets-in-bash
 # https://viewsby.wordpress.com/2013/09/06/bash-string-ends-with/
-if [[ "$scriptFile" != *kts ]]; then
-    urlCache=${TMPDIR=/tmp}/kscript_stdinbuffer_${RANDOM}${RANDOM}.kts # odd but works on macos as well
-    cat "${scriptFile}" > ${urlCache}
+if [[ "$scriptFile" != *kts ]] && [[ -e ${scriptFile} ]] ; then
+    stdinCache=${TMPDIR=/tmp}/kscript_stdinbuffer_${RANDOM}${RANDOM}.kts # odd but works on macos as well
+    cat "${scriptFile}" > ${stdinCache}
 
     ## rename to use checksum as name to allow for jar-caching also when using stdin
-    stdinMD5=$(md5sum ${urlCache} | cut -c1-6)
+    stdinMD5=$(kscript_md5 ${stdinCache})
 
     ## replace script file with md5 hash file copy of stdin
-    scriptFile=$(dirname ${urlCache})/kscript_stdin_${stdinMD5}.kts
-    mv ${urlCache} $scriptFile
+    scriptFile=$(dirname ${stdinCache})/kscript_stdin_${stdinMD5}.kts
+    mv ${stdinCache} $scriptFile
 fi
+
+
+## if scriptFile is still not a file we assume the input to be a kotlin program directly
+## note: -e also supports non-regular files in contrast to -f
+if [[ "$scriptFile" != *kts ]] && [[ ! -e ${scriptFile} ]]; then
+#    echo "processing direct script argument"
+    scriptHash=$(kscript_md5 <(echo "$scriptFile"))
+
+    # http://unix.stackexchange.com/questions/174817/finding-the-correct-tmp-dir-on-multiple-platforms
+    cachedScript=${TMPDIR=/tmp}/kscript_scriptarg_cache_${scriptHash}.kts
+
+    echo "$scriptFile" > $cachedScript
+
+    scriptFile=${cachedScript}
+fi
+
 
 ## just proceed if the script file is a regular file at this point
 #echo "scriptfile is $scriptFile and interactive $is_interactive"
@@ -186,7 +189,7 @@ if [ "$is_interactive" = true ]; then
     exit 0
 fi
 
-scriptCheckSum=$(md5sum $scriptFile | cut -c1-6)
+scriptCheckSum=$(kscript_md5 ${scriptFile})
 
 ## we can use readlink here which is not functional on macos, thus:
 # http://stackoverflow.com/questions/3915040/bash-fish-command-to-print-absolute-path-to-a-file
