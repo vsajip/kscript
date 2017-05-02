@@ -5,14 +5,11 @@ export DEBUG="--verbose"
 . assert.sh
 
 
-
-# `echo test` is expected to write "test" on stdout
-#assert "echo test" "test2"
-
-# expect `exit 127` to terminate with code 128
-#assert_raises "exit 127" 128
-
 ## make sure that scripts can be piped into kscript
+assert 'kscript "println(\\'kotlin rocks\\')"' "kotlin rocks"
+
+
+## provide script via stidin
 assert "echo 'println(1+1)' | kscript -" "2"
 
 ## make sure that heredoc is accepted as argument
@@ -24,10 +21,11 @@ assert "source ${KSCRIPT_HOME}/test/resources/local_script_file.sh" "kscript roc
 ## make sure that it runs with local script files
 assert "kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts" "kscript is  cool!"
 
-## todo test what happens if kotlin is not in PATH
+## make sure that it runs with remote URLs
+assert "kscript https://github.com/holgerbrandl/kscript/blob/master/test/resources/url_test.kts.kt" "I came from the internet"
 
-assert_end pipe_tests
 
+assert_end script_input_modes
 
 
 ## interactive mode without dependencies
@@ -67,4 +65,5 @@ assert_raises "expandcp.kts org.docopt:docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14"
 
 assert_end dependency_lookup
 
+## todo test what happens if kotlin/kotlinc/java/maven is not in PATH
 
