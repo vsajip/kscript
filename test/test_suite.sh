@@ -5,8 +5,23 @@ export DEBUG="--verbose"
 . assert.sh
 
 
+## define test helper, see https://github.com/lehmannro/assert.sh/issues/24
+assert_statment(){
+    # usage cmd exp_stout exp_stder exp_exit_code
+    assert "$1" "$2"
+    assert "( $1 ) 2>&1 >/dev/null" "$3"
+    assert_raises "$1" "$4"
+}
+
+#assert_statment "echo foo; echo bar  >&2; exit 1" "foo" "bar" 1
+
+
+
 ## make sure that scripts can be piped into kscript
 assert "source ${KSCRIPT_HOME}/test/resources/direct_script_arg.sh" "kotlin rocks"
+
+## also allow for empty programs
+assert "kscript ''" ""
 
 ## provide script via stidin
 assert "echo 'println(1+1)' | kscript -" "2"
@@ -35,14 +50,15 @@ assert_end script_input_modes
 
 
 ## interactive mode without dependencies
-assert "echo '' | kscript -i " "To create a shell with script dependencies run:\nkotlinc  -classpath ''"
+assert "echo '' | kscript -i -" "To create a shell with script dependencies run:\nkotlinc  -classpath ''"
 
-
-assert "kscript -i " "To create a shell with script dependencies run:\nkotlinc  -classpath ''"
-
+assert "kscript -i '//DEPS log4j:log4j:1.2.14'" "To create a shell with script dependencies run:\nkotlinc  -classpath '${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar'"
 
 assert_end cli_helper_tests
 
+
+## do not run interactive mode prep without script argument
+assert_statment "kscript -i" "" "[ERROR] Script argument for interactive mode preparation is missing" 1
 
 ## make sure that KOTLIN_HOME can be guessed from kotlinc correctly
 assert "unset KOTLIN_HOME; echo 'println(99)' | kscript -" "99"
@@ -72,5 +88,4 @@ assert "expandcp.kts log4j:::1.0 2>&1" "Failed to lookup dependencies. Check dep
 assert_raises "expandcp.kts org.docopt:docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
 
 assert_end dependency_lookup
-
 

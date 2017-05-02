@@ -68,6 +68,9 @@ fi
 if [[ "$1" == "-i" ]]; then
     is_interactive=true;
     shift
+
+    ## make sure to have at least one more argument for the script
+    if [[ $# -eq 0 ]]; then echo "[ERROR] Script argument for interactive mode preparation is missing" >&2;  exit 1; fi
 fi
 
 ## ... or use a cached version of it if possible
@@ -135,6 +138,7 @@ if [[ "$scriptFile" != *kts ]]; then
 fi
 
 ## just proceed if the script file is a regular file at this point
+#echo "scriptfile is $scriptFile and interactive $is_interactive"
 if [[ ! -f $scriptFile ]]; then
     echo "[ERROR] Could not open script file '$scriptFile'" 1>&2
     exit 1
