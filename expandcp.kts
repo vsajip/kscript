@@ -35,7 +35,7 @@ Inspired by mvncp created by Andrew O'Malley
 
 
 // Use cached classpath from previous run if present
-val DEP_LOOKUP_CACHE_FILE = File("/tmp/.kscript_deps_cache.txt")
+val DEP_LOOKUP_CACHE_FILE = File("/tmp/kscript_deps_cache.txt")
 
 
 if (args.size == 1 && args[0] == "--clear-cache") {

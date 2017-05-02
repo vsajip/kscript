@@ -109,3 +109,9 @@ echo kotlinc -script -classpath "$classpath" "$@"
 ## how does process substitution work?
 
 http://unix.stackexchange.com/questions/156084/why-does-process-substitution-result-in-a-file-called-dev-fd-63-which-is-a-pipe
+
+When you do `<(some_command)`, your shell executes the command inside the parentheses and replaces the whole thing with a file descriptor, that is connected to the command's stdout. So `/dev/fd/63` is a pipe containing the output of your ls call.
+
+
+
+https://unix.stackexchange.com/questions/153896/bash-process-substitution-and-stdin

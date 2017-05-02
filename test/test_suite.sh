@@ -6,7 +6,7 @@ export DEBUG="--verbose"
 
 
 ## make sure that scripts can be piped into kscript
-assert 'kscript "println(\\'kotlin rocks\\')"' "kotlin rocks"
+assert "source ${KSCRIPT_HOME}/test/resources/direct_script_arg.sh" "kotlin rocks"
 
 
 ## provide script via stidin
@@ -15,14 +15,21 @@ assert "echo 'println(1+1)' | kscript -" "2"
 ## make sure that heredoc is accepted as argument
 assert "source ${KSCRIPT_HOME}/test/resources/here_doc_test.sh" "hello kotlin"
 
+## make sure that command substitution works as expected
+assert "source ${KSCRIPT_HOME}/test/resources/cmd_subst_test.sh" "command substitution works as well"
+
 ## make sure that it runs with local script files
 assert "source ${KSCRIPT_HOME}/test/resources/local_script_file.sh" "kscript rocks!"
 
 ## make sure that it runs with local script files
 assert "kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts" "kscript is  cool!"
 
+## missing script
+assert_raises "kscript i_do_not_exist.kts" 1
+assert "kscript i_do_not_exist.kts 2>&1" "[ERROR] Could not open script file 'i_do_not_exist.kts'"
+
 ## make sure that it runs with remote URLs
-assert "kscript https://github.com/holgerbrandl/kscript/blob/master/test/resources/url_test.kts.kt" "I came from the internet"
+assert "kscript https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/url_test.kts" "I came from the internet"
 
 
 assert_end script_input_modes
@@ -40,6 +47,8 @@ assert_end cli_helper_tests
 
 ## make sure that KOTLIN_HOME can be guessed from kotlinc correctly
 assert "unset KOTLIN_HOME; echo 'println(99)' | kscript -" "99"
+
+## todo test what happens if kotlin/kotlinc/java/maven is not in PATH
 
 
 assert_end environment_tests
@@ -65,5 +74,4 @@ assert_raises "expandcp.kts org.docopt:docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14"
 
 assert_end dependency_lookup
 
-## todo test what happens if kotlin/kotlinc/java/maven is not in PATH
 

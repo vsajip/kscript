@@ -4,11 +4,17 @@
 
 Enhanced scripting support for [Kotlin](https://kotlinlang.org/) on *nix-based systems.
 
-Kotlin has a limited support for scripting already but it's not (yet) feature-rich enough to be fun.
+Kotlin has some built-in support for scripting already but it is not yet feature-rich enough to be a viable alternative in the shell.
 
 In particular this wrapper around `kotlinc-jvm -script` adds
 * Compiled script caching (using md5 checksums)
-* Automatic dependency resolution via gradle-style resource locators
+* Dependency declarations using gradle-style resource locators and automatic dependency resolution with maven
+* More options to provide scripts including interpreter mode, reading from stdin, local files or URLs
+* Embedded configuration for Kotlin runtime options
+* Support library to ease the writing of Kotlin scriptlets
+
+Taken all these features together, `kscript` provides an easy-to-use, very flexible, and almost zero-overhead solution to write self-contained mini-applications with Kotlin.
+
 
 ## Installation
 
@@ -27,9 +33,9 @@ curl -L -o ~/bin/kscript https://git.io/vaoNi && chmod u+x ~/bin/kscript
 
 
 
-## Usage
+## Interpreter Usage
 
-To use `kscript` just specify it in the shebang line of your Kotlin scripts:
+To use `kscript` for a script just point to it in the shebang line of your Kotlin scripts:
 
 ```kotlin
 #!/usr/bin/env kscript
@@ -64,32 +70,38 @@ val doArgs = Docopt(usage).parse(args.toList())
 println("Hello from Kotlin!")
 println("Parsed script arguments are: \n" + doArgs.joinToString())
 ```
+
 `kscript` will read dependencies from all lines in a script that start with `//DEPS` (if any). Multiple dependencies can be split by comma, space or semicolon.
 
-Note: It might feel more intuitive to provide  dependencies as an argument to `kscript`, however because of the way the shebang line works on Linux this is not possible.
+
+Inlined Usage
+=============
+
+To use `kscript` in a workflow without creating an additional script file, you can also use one its supported modes for _inlined useage_. The following modes are supported:
+
+* Directly provide a Kotlin scriptlet as argument
+```{bash}
+kscript 'println("hello world")'
+```
 
 
-
-Inline Usage
-============
-
-You can even inline `kscript` solutions into larger scripts, because `kscript` can read from stdin as well. So, depending on your preference you could simply pipe a kotlin snippet into `kscript`
+* Pipe a Kotlin snippet into `kscript` and instruct it to read from `stdin` by using `-` as script argument
 
 ```{bash}
 echo '
-println("hello kotlin")
+println("Hello Kotlin.")
 ' |  kscript -
 ```
 
 
-or do the same using `heredoc` (preferred solution) which gives you some more flexibility to also use single quotes in your script:
+* Using `heredoc` (preferred solution for inlining) which gives you some more flexibility to also use single quotes in your script:
 ```{bash}
 kscript - <<"EOF"
-println("hello kotlin and heredoc")
+println("It's a beautiful day!")
 EOF
 ```
 
-Since the piped content is considered as a regular script it can also have dependencies
+* Since the piped content is considered as a regular script it can also have dependencies
 ```{bash}
 kscript - <<"EOF"
 //DEPS com.offbytwo:docopt:0.6.0.20150202 log4j:log4j:1.2.14
@@ -101,12 +113,26 @@ println("hello again")
 EOF
 ```
 
-Finally (for sake of completeness) it also works with process substitution and for sure you can always provide additional arguments (exposed as `args : Array<String>` within the script)
+* Finally (for sake of completeness), it also works with process substitution and for sure you can always provide additional arguments (exposed as `args : Array<String>` within the script)
 ```{bash}
-kscript - arg1 arg2 arg3 <(echo 'println("k-onliner")')
+kscript <(echo 'println("k-onliner")') arg1 arg2 arg3 
 ```
 
 Inlined _kscripts_ are also cached based on `md5` checksum, so running the same snippet again will use a cached jar (sitting in `$TMPDIR`).
+
+
+Support API
+===========
+
+
+`kscript` is complemented by a support library to ease the writing of Kotlin scriptlets. The latter includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the development of kscript applications.
+
+When using the direct script arguments the methods in the the `kscript.*` namespace are automatically imported by convention. This allows sed.for constructs like
+
+```bash
+cat some_big_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.forEach{it::println}'
+```
+
 
 
 Tool repositories
