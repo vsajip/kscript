@@ -8,7 +8,6 @@ export DEBUG="--verbose"
 ## make sure that scripts can be piped into kscript
 assert "source ${KSCRIPT_HOME}/test/resources/direct_script_arg.sh" "kotlin rocks"
 
-
 ## provide script via stidin
 assert "echo 'println(1+1)' | kscript -" "2"
 

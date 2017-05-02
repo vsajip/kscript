@@ -1,6 +1,8 @@
-## kscript - Having fun with Kotlin scripting
+# kscript - Having fun with Kotlin scripting
 
 [![Build Status](https://travis-ci.org/holgerbrandl/kscript.svg?branch=master)](https://travis-ci.org/holgerbrandl/kscript)
+
+https://camo.githubusercontent.com/a621e66fb7b34aa4cfc268450b9c837b99cffd92/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6b6f746c696e2d312e302e322d626c75652e737667
 
 Enhanced scripting support for [Kotlin](https://kotlinlang.org/) on *nix-based systems.
 
@@ -16,7 +18,8 @@ In particular this wrapper around `kotlinc-jvm -script` adds
 Taken all these features together, `kscript` provides an easy-to-use, very flexible, and almost zero-overhead solution to write self-contained mini-applications with Kotlin.
 
 
-## Installation
+Installation
+------------
 
 To use `kscript` just Kotlin and Maven are required. To [install Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html) we recommend [sdkman](http://sdkman.io/install.html):
 ```
@@ -33,9 +36,10 @@ curl -L -o ~/bin/kscript https://git.io/vaoNi && chmod u+x ~/bin/kscript
 
 
 
-## Interpreter Usage
+Interpreter Usage
+-----------------
 
-To use `kscript` for a script just point to it in the shebang line of your Kotlin scripts:
+To use `kscript` as interpreter for a script just point to it in the shebang line of your Kotlin scripts:
 
 ```kotlin
 #!/usr/bin/env kscript
@@ -75,7 +79,8 @@ println("Parsed script arguments are: \n" + doArgs.joinToString())
 
 
 Inlined Usage
-=============
+-------------
+
 
 To use `kscript` in a workflow without creating an additional script file, you can also use one its supported modes for _inlined useage_. The following modes are supported:
 
@@ -122,7 +127,8 @@ Inlined _kscripts_ are also cached based on `md5` checksum, so running the same 
 
 
 Support API
-===========
+-----------
+
 
 
 `kscript` is complemented by a support library to ease the writing of Kotlin scriptlets. The latter includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the development of kscript applications.
@@ -136,7 +142,7 @@ cat some_big_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.
 
 
 Tool repositories
-=================
+-----------------
 
 To support remote scriplet repositories, `kscript` can also work with URLs. Consider the following [hello-world-gist-scriptlet](https://github.com/holgerbrandl/kscript/blob/master/examples/url_example.kts) which is hosted on github (but any URL would work). To run it locally as a tool simply refer to it (here using the shortened [raw-URL](https://raw.githubusercontent.com/holgerbrandl/kscript/master/examples/url_example.kts) of the script for better readability)
 
@@ -157,7 +163,8 @@ See this [blogpost](http://holgerbrandl.github.io/kotlin/2016/12/02/mini_program
 
 
 References
-============
+----------
+
 
 The initial version of `kscript` was kindly contributed by Oscar Gonzalez.
 
@@ -166,8 +173,10 @@ The initial version of `kscript` was kindly contributed by Oscar Gonzalez.
 
 `kscript` works better with [Intellij](https://www.jetbrains.com/idea/), since extended multi-line shebang-headers are not (yet?) supported by Intellij's' Kotlin plugin (even if the kotlin-script parser seems to be able to handle them).  However,  for dependency resolution, `kotlin script` relies on such mutli-line shebang headers (see [here](https://github.com/andrewoma/kotlin-script#mvncp)). In contrast, since `kscript` just works with just a standard shebang line, code parsing works very well in Intellij.
 
+
 FAQ
-============
+---
+
 
 ### How to adjust the memory the JVM running my scriptlets?
 
@@ -181,12 +190,13 @@ println("Hello from Kotlin with 5g of heap memory in server mode!")
 
 
 Issues
-=======
+------
 
 Feel welcome to submit ideas and suggestions.
 
+
 Related Projects
-================
+----------------
 
 * [coursier](https://github.com/alexarchambault/coursier) - Pure Scala Artifact Fetching. Potential more powerful replacement for `expandcp.kts`
 * [kotlin-script](https://github.com/andrewoma/kotlin-script) - Support for using Kotlin as a scripting language
