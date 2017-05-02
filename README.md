@@ -133,9 +133,12 @@ Support API
 When using the direct script arguments (like in the example below) the methods in the the `kscript.*` namespace and the corresponding dependency `de.mpicbg.scicomp:kscript:1.0` are automatically added as prefix to the script by convention. This allows for  sed-like constructs like
 
 ```bash
-cat some_big_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.map { it + "foo:" }.print()'
+cat some_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.map { it + "foo:" }.print()'
 ```
 
+The only element that comes from our support library is the `Sequence<String>` called `stdin` to process standard input. The rest of the example is stdlib Kotlin.
+
+ For more  examples using the support library see this [blog post](http://holgerbrandl.github.io/kotlin/2017/01/18/kscript_support_api.html).
 
 
 Tool repositories
