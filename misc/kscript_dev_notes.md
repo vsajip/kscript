@@ -15,8 +15,14 @@ git reset --hard
 
 git checkout releases
 cp ~/projects/kotlin/kscript/expandcp.kts ~/projects/kotlin/kscript/kscript .
+#git add -A 
+git commit -m "kscript_v1.3"
 
+git push origin releases
 ```
+
+
+
 
 4. create new version on jcenter
 

@@ -33,7 +33,7 @@ if [ $# == 0 ]  || [ "$1" == "-v" ] || [ "$1" == "--version" ] || [ "$1" == "-h"
     echo "Website   : https://github.com/holgerbrandl/kscript" >&2
 
     ## determine the latest version
-    latestVersion=$(curl -L https://git.io/vaoNi 2>/dev/null | grep '^KSCRIPT_VERSION' | cut -f2 -d'=')
+    latestVersion=$(curl -Ls https://git.io/v9R73 | grep '^KSCRIPT_VERSION' | cut -f2 -d'=')
 
     ## http://stackoverflow.com/questions/15224581/floating-point-comparison-with-variable-in-bash
     if [ $(echo " $latestVersion > $KSCRIPT_VERSION" | bc) -eq 1 ]; then
@@ -60,16 +60,26 @@ if [ "$1" == "--clear-cache" ]; then
 fi
 
 
+
+## auto-install expandcp.kts into same dir as kscript for automatic dependency resolution if not yet in PATH
+if ! which expandcp.kts &> /dev/null; then
+    installDir=$(dirname $(which kscript))
+    curl -Lso ${installDir}/expandcp.kts https://git.io/v9R7n
+    chmod u+x ${installDir}/expandcp.kts
+fi
+
+
 ## optionally self-update kscript ot the newest version
 if [ "$1" == "--self-update" ]; then
     echo "Installing latest version of kscript..."
-    curl -L -o $(which kscript) https://git.io/vaoNi 2>/dev/null && chmod u+x $(which kscript)
-    curl -L -o $(which expandcp.kts) https://git.io/v6tI7 2>/dev/null && chmod u+x $(which expandcp.kts)
+    curl -Lso $(which kscript) https://git.io/v9R73 && chmod u+x $(which kscript)
+    curl -Lso $(which expandcp.kts) https://git.io/v9R7n && chmod u+x $(which expandcp.kts)
 
     echo "You're now running kscript "$(kscript --help 2>&1| grep Version | cut -f2- | tr -d ':')
 
     exit 0
 fi
+
 
 ## check if interactive mode should be used
 if [[ "$1" == "-i" ]]; then
@@ -109,8 +119,6 @@ if [[ "$scriptFile" == "http://"* ]] || [[ "$scriptFile" == "https://"* ]]; then
 
     scriptFile=${urlCache}
 fi
-
-
 
 
 ## remap - to the standard input file-descriptor
@@ -158,13 +166,6 @@ if [[ ! -f $scriptFile ]]; then
     exit 1
 fi
 
-
-### auto-install expandcp.kts into same dir as kscript for automatic dependency resolution if not yet in PATH
-if ! which expandcp.kts &> /dev/null; then
-    installDir=$(dirname $(which kscript))
-    curl -s https://raw.githubusercontent.com/holgerbrandl/kscript/master/expandcp.kts > ${installDir}/expandcp.kts
-    chmod u+x ${installDir}/expandcp.kts
-fi
 
 
 ## Extract dependencies from script
