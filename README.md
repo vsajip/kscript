@@ -29,7 +29,7 @@ sdk install maven                       # install Maven
 
 Once kotlin is installed, simply download [kscript](kscript)  to your `~/bin` with:
 ```bash
-curl -L -o ~/bin/kscript https://git.io/vaoNi && chmod u+x ~/bin/kscript
+curl -Lso ~/bin/kscript https://git.io/v9R73 && chmod u+x ~/bin/kscript
 ```
 
 

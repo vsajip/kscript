@@ -9,14 +9,15 @@
 #http://stackoverflow.com/questions/13969050/how-to-create-a-new-empty-branch-for-a-new-project
 git clone git@github.com:holgerbrandl/kscript.git kscript_releases
 cd kscript_releases
-git checkout --orphan releases
-git reset --hard
+#git checkout --orphan releases
+#git reset --hard
 #git rm --cached -r .
 
 git checkout releases
 cp ~/projects/kotlin/kscript/expandcp.kts ~/projects/kotlin/kscript/kscript .
-#git add -A 
-git commit -m "kscript_v1.3"
+git add -A 
+git status
+git commit -m "adjusted v1.3 self-update paths"
 
 git push origin releases
 ```
