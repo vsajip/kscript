@@ -32,7 +32,15 @@ Once kotlin is installed, simply download [kscript](kscript)  to your `~/bin` wi
 curl -Lso ~/bin/kscript https://git.io/v9R73 && chmod u+x ~/bin/kscript
 ```
 
+To test your installation simply run
+```bash
+kscript --help
+```
 
+`kscript` can update itself to its latest version by running
+```bash
+kscript --self-update
+```
 
 Interpreter Usage
 -----------------
