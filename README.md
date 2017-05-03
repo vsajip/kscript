@@ -80,7 +80,7 @@ Inlined Usage
 -------------
 
 
-To use `kscript` in a workflow without creating an additional script file, you can also use one its supported modes for _inlined useage_. The following modes are supported:
+To use `kscript` in a workflow without creating an additional script file, you can also use one of its supported modes for _inlined usage_. The following modes are supported:
 
 * Directly provide a Kotlin scriptlet as argument
 ```{bash}
@@ -138,7 +138,7 @@ cat some_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.map 
 
 The only element that comes from our support library is the `Sequence<String>` called `stdin` to process standard input. The rest of the example is stdlib Kotlin.
 
- For more  examples using the support library see this [blog post](http://holgerbrandl.github.io/kotlin/2017/01/18/kscript_support_api.html).
+ For more  examples using the support library see our [Support API Manual](docs/support_api.md).
 
 
 Tool repositories
@@ -178,10 +178,23 @@ println("Hello from Kotlin with 5g of heap memory running in server mode!")
 ```
 
 
-Issues
-------
+Support
+-------
 
 Feel welcome to post ideas and suggestions to our [tracker](https://github.com/holgerbrandl/kscript/issues).
+
+
+How to contribute?
+------------------
+
+We always welcome pull requests. :-)
+
+You could also show your support upvoting `kscript` here on github, or by voting for `kscript`-related issues in Intellij IDEA which impact the `kscript`ing. Here are our top 3 tickets/annoyances that we would love to see fixed:
+
+1. [KT-13347](https://youtrack.jetbrains.com/issue/KT-13347) Good code is red in injected kotlin language snippets
+2. [KT-16802](https://youtrack.jetbrains.com/issue/KT-16802) Good code is always red when editing kts-script files under Kotlin v1.1
+3. [KT-10368](https://youtrack.jetbrains.com/issue/KT-10368)  Kotlin scratch files not runnable?
+
 
 
 Acknowledgements
