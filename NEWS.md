@@ -4,11 +4,16 @@
 
 Major new features
 
-* Dramatically reduced overhead by using dependency lookup cache more efficiently. After the initially scriptlet-jar-building, `kscript` runs with almost zero overhead now (fixes  [#4](https://github.com/holgerbrandl/kscript/issues/4))
+* Dramatically reduced overhead by using dependency lookup cache more efficiently. After the initial scriptlet-jar-building, `kscript` runs with almost **zero overhead** now (fixes  [#4](https://github.com/holgerbrandl/kscript/issues/4))
 * Dependencies can now declared in multiple lines for better readability (fixes [#2](https://github.com/holgerbrandl/kscript/issues/2))
 * Automatic inclusion of support library for one-liners (fixes [#19](https://github.com/holgerbrandl/kscript/issues/19))
 * Direct script arguments `kscript 'println("hello kotlin")'` (fixes [#18](https://github.com/holgerbrandl/kscript/issues/18))
 * More robust dependency resolution with more informative error messages
+
+
+Support API improvements
+* Kotlin DocOpt helpers to build CLIs ([example](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/test/kotlin/kscript/test/DocOptTest.kt))
+* New [utilities](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/StreamUtil.kt) to automatically resolve arguments files and stdin to `Sequence<String` for by-line processing
 
 Other changes
 * Allow dependencies to be declared in multiple lines prefixed by `//DEPS` (fixes [#2](https://github.com/holgerbrandl/kscript/issues/2))
