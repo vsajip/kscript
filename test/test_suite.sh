@@ -94,12 +94,19 @@ assert "expandcp.kts log4j:::1.0 2>&1" "Failed to lookup dependencies. Check dep
 ## one good dependency,  one wrong
 assert_raises "expandcp.kts org.docopt:docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
 
+assert_end dependency_lookup
 
 
 ## make sure that one-liners include support-api
 assert 'echo "foo${NL}bar" | kscript "stdin.print()"' $'foo\nbar'
 #echo "$'foo\nbar' | kscript 'stdin.print()'
 
+assert 'echo "foo${NL}bar" | kscript "stdin.print()"' $'foo\nbar'
 
-assert_end dependency_lookup
+
+
+## requirement checkig using support api
+assert_statement 'kscript "stopIfNot(1==23){\"condition not met\"}"' "" "[ERROR] condition not met" 1
+
+assert_end support_api
 
