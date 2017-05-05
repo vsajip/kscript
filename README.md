@@ -129,7 +129,7 @@ EOF
 kscript <(echo 'println("k-onliner")') arg1 arg2 arg3 
 ```
 
-Inlined _kscripts_ are also cached based on `md5` checksum, so running the same snippet again will use a cached jar (sitting in `$TMPDIR`).
+Inlined _kscripts_ are also cached based on `md5` checksum, so running the same snippet again will use a cached jar (sitting in `~/.kscript`).
 
 
 Support API
@@ -144,7 +144,7 @@ When using the direct script arguments (like in the example below) the methods i
 cat some_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.map { it + "foo:" }.print()'
 ```
 
-The only element that comes from our support library is the `Sequence<String>` called `stdin` to process standard input. The rest of the example is stdlib Kotlin.
+The elements that come from our support library in the example are the [`stdin`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/StreamUtil.kt#L11) object of type `Sequence<String>` to iterate over the standard input, and the extension method [`print`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/StreamUtil.kt#L34) to print the lines to stdout. The rest is stdlib Kotlin.
 
  For more  examples using the support library see our [Support API Manual](docs/support_api.md).
 
@@ -197,7 +197,7 @@ How to contribute?
 
 We always welcome pull requests. :-)
 
-You could also show your support upvoting `kscript` here on github, or by voting for issues in Intellij IDEA which impact  `kscript`ing. Here are our top 3 tickets/annoyances that we would love to see fixed:
+You could also show your support by upvoting `kscript` here on github, or by voting for issues in Intellij IDEA which impact  `kscript`ing. Here are our top 3 tickets/annoyances that we would love to see fixed:
 
 1. [KT-13347](https://youtrack.jetbrains.com/issue/KT-13347) Good code is red in injected kotlin language snippets
 2. [KT-16802](https://youtrack.jetbrains.com/issue/KT-16802) Good code is always red when editing kts-script files under Kotlin v1.1

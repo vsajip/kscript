@@ -21,14 +21,14 @@ Other changes
 * Cache directory is now `~/.kscript`
 * More heuristics to guess `KOTLIN_HOME`
 * Cache cleanup `--clear-cache` now applies to jars, scripts, urls, and cached dependency lookups
-* Fixed compatibility with [Kotlin v1.1](https://kotlinlang.org/docs/reference/whatsnew11.html)
 
 
 ## v1.2 
 
-* Fixed compatibility with kotlin v1.1 (fixes #15)
-* Added `-i` to dump interactive console command incl deps (fixes #10)
-* Compile jars should go to TEMP (fixes #13)
+* Fixed compatibility with [Kotlin v1.1](https://kotlinlang.org/docs/reference/whatsnew11.html)
+ (fixes [#15](https://github.com/holgerbrandl/kscript/issues/15))
+* Added `-i` to dump interactive console command incl deps (fixes [#10](https://github.com/holgerbrandl/kscript/issues/10))
+* Compile jars should go to TEMP (fixes [#13](https://github.com/holgerbrandl/kscript/issues/13))
 * started test-suite 
 
 ## v1.1
