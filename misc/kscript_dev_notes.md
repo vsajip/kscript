@@ -1,10 +1,10 @@
 ## Release Checklist
 
-1. update version in `kscript`
+1. Increment version in `kscript`
+2. Make sure that support api version is up to date and available from jcenter
+3. push and create github release tag
+4. Update release branch
 
-2. push and create github release tag
-
-3. Update release branch
 ```bash
 #http://stackoverflow.com/questions/13969050/how-to-create-a-new-empty-branch-for-a-new-project
 git clone git@github.com:holgerbrandl/kscript.git kscript_releases
@@ -22,15 +22,12 @@ git commit -m "adjusted v1.3 self-update paths"
 git push origin releases
 ```
 
-
-
-
-4. create new version on jcenter
+5. create new version on jcenter
 
 * Upload artifacts from ~/.m2/repository/de/mpicbg/scicomp/kutils to:
 > https://bintray.com/holgerbrandl/mpicbg-scicomp/kutils
 
-5. Check for release status on
+1. Check for release status on
 https://jcenter.bintray.com/de/mpicbg/scicomp/
 
-6. Bump versions for new release cycle
+7. Bump versions for new release cycle
