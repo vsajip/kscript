@@ -51,8 +51,8 @@ kscript <(cat .test.kts)
 
 ## (4) KOTLIN_OPTS (
 
-kscript - <<"EOF" | grep "^-ea"
-//KOTLIN_OPTS -J-Xmx5g  -J-server -J-ea
+kscript - <<"EOF" #| grep "Xmx"
+//KOTLIN_OPTS -J-Xmx500m  -J-server -J-ea
 
 import java.lang.management.ManagementFactory
 import java.lang.management.RuntimeMXBean
