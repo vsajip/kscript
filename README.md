@@ -146,7 +146,7 @@ cat some_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.map 
 
 The elements that come from our support library in the example are the [`stdin`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/StreamUtil.kt#L11) object of type `Sequence<String>` to iterate over the standard input, and the extension method [`print`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/StreamUtil.kt#L34) to print the lines to stdout. The rest is stdlib Kotlin.
 
- For more  examples using the support library see our [Support API Manual](docs/support_api.md).
+ For more  examples using the support library see this [blog post](http://holgerbrandl.github.io/kotlin/2017/05/08/kscript_as_awk_substitute.html) or the [Support API Manual (in progress)](docs/support_api.md).
 
 
 Tool repositories
