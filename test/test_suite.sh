@@ -107,7 +107,7 @@ assert_statement 'echo "foo${NL}bar" | kscript "stdin.split().select(1, 2, -3)"'
 
 
 ## requirement checkig using support api
-assert_statement 'kscript "stopIfNot(1==23){\"condition not met\"}"' "" "[ERROR] condition not met" 1
+assert_statement 'kscript "kscript.stopIfNot(1==23){\"condition not met\"}"' "" "[ERROR] condition not met" 1
 
 assert_end support_api
 
