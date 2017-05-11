@@ -1,33 +1,18 @@
 # Scripting Tutorial
 
 
-# `sed`/`awk`-like streaming
+__{work in progress}__
 
+# `sed`/`awk`-like table processing
 
-Use `argMap` to abstract from file input argument
-```bash
+See see this [blog post](http://holgerbrandl.github.io/kotlin/2017/05/08/kscript_as_awk_substitute.html).
 
-## extract column
-kscript 'argMap(args[1]) { it.split("\t")[7] }' big-file.txt
-
-## also extract column but from stdin
-cat big-file.txt | kscript 'argMap(args[1]) { it.split("\t")[7] }' -
-        
+Perform grep-lik operations
+```kscript
+kscript 'lines.split().filter{ it[7] == "UA" }' src/test/resources/some_flights.txt
 ```
-
-Use `argFilter` to perform grep-lik operations
-```
-kscript 'argFilter(args[1]) { it.split("\t")[7] == "UA" }' src/test/resources/flights_head.txt
-```
-
-## Table processing
 
 For very general table processing, we recommend [csvkit](https://csvkit.readthedocs.io). For more specific table processing you should most likely push tables through R.
-
-However, for more typed dat
-We recommend [krangl] to crunch tables with `kscript`.
-
-
 
 
 ## Bioinformatics

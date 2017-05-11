@@ -102,6 +102,7 @@ assert 'echo "foo${NL}bar" | kscript "stdin.print()"' $'foo\nbar'
 #echo "$'foo\nbar' | kscript 'stdin.print()'
 
 assert 'echo "foo${NL}bar" | kscript "stdin.print()"' $'foo\nbar'
+assert_statement 'echo "foo${NL}bar" | kscript "stdin.split().select(1, 2, -3)"' "" "[ERROR] Can not mix positive and negative selections" 1
 
 
 
