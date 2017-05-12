@@ -1,5 +1,11 @@
 
 
+## v1.4
+
+Major new features
+* Redesigned [support library](https://github.com/holgerbrandl/kscript-support-api) for streamlined tabular data processing. See [here](http://holgerbrandl.github.io/kotlin/2017/05/08/kscript_as_awk_substitute.html) for an overview.
+
+
 ## v1.3
 
 Major new features

@@ -17,7 +17,7 @@ git checkout releases
 cp ~/projects/kotlin/kscript/expandcp.kts ~/projects/kotlin/kscript/kscript .
 git add -A 
 git status
-git commit -m "adjusted v1.3 self-update paths"
+git commit -m "v1.4 release"
 
 git push origin releases
 ```
