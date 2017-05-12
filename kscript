@@ -145,7 +145,7 @@ fi
 if [[ "$scriptFile" != *kts ]] && [[ ! -e ${scriptFile} ]]; then
     ## auto-prefix one-liners with kscript-support api
     if [[ $(echo "${scriptFile}" | wc -l) -eq 1 ]]; then
-        scriptFile=$'//DEPS de.mpicbg.scicomp:kscript:1.2\nimport kscript.text.*\nval lines = resolveArgFile(args)\n\n'${scriptFile}
+        scriptFile=$'//DEPS com.github.holgerbrandl:kscript:1.2\nimport kscript.text.*\nval lines = resolveArgFile(args)\n\n'${scriptFile}
     fi
 
     scriptHash=$(kscript_md5 <(echo "$scriptFile"))
