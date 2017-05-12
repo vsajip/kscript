@@ -102,14 +102,10 @@ assert 'echo "foo${NL}bar" | kscript "stdin.print()"' $'foo\nbar'
 #echo "$'foo\nbar' | kscript 'stdin.print()'
 
 assert 'echo "foo${NL}bar" | kscript "stdin.print()"' $'foo\nbar'
-
-## todo renable once support v1.3 is live on jcenter
-#assert_statement 'echo "foo${NL}bar" | kscript "stdin.split().select(1, 2, -3)"' "" "[ERROR] Can not mix positive and negative selections" 1
+assert 'kscript "println(1+1)"' '2'
 
 
-
-## requirement checkig using support api
-assert_statement 'kscript "kscript.stopIfNot(1==23){\"condition not met\"}"' "" "[ERROR] condition not met" 1
+assert_statement 'echo "foo${NL}bar" | kscript "stdin.split().select(1, 2, -3)"' "" "[ERROR] Can not mix positive and negative selections" 1
 
 assert_end support_api
 
