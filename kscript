@@ -136,7 +136,7 @@ if [[ "$scriptFile" != *kts ]] && [[ -e ${scriptFile} ]] ; then
 
     ## replace script file with md5 hash file copy of stdin
     scriptFile=$(dirname ${stdinCache})/stdin_${stdinMD5}.kts
-    mv ${stdinCache} $scriptFile
+    mv ${stdinCache} ${scriptFile}
 fi
 
 
@@ -145,7 +145,7 @@ fi
 if [[ "$scriptFile" != *kts ]] && [[ ! -e ${scriptFile} ]]; then
     ## auto-prefix one-liners with kscript-support api
     if [[ $(echo "${scriptFile}" | wc -l) -eq 1 ]]; then
-        scriptFile=$'//DEPS de.mpicbg.scicomp:kscript:1.1\nimport kscript.*\n'$scriptFile
+        scriptFile=$'//DEPS de.mpicbg.scicomp:kscript:1.2\nimport kscript.text.*\nval lines = resolveArgFile(args)\n\n'${scriptFile}
     fi
 
     scriptHash=$(kscript_md5 <(echo "$scriptFile"))
@@ -153,7 +153,7 @@ if [[ "$scriptFile" != *kts ]] && [[ ! -e ${scriptFile} ]]; then
     # http://unix.stackexchange.com/questions/174817/finding-the-correct-tmp-dir-on-multiple-platforms
     cachedScript=${KSCRIPT_CACHE_DIR}/scriptarg_cache_${scriptHash}.kts
 
-    echo "$scriptFile" > $cachedScript
+    echo "$scriptFile" > ${cachedScript}
 
     scriptFile=${cachedScript}
 fi
@@ -161,7 +161,7 @@ fi
 
 ## just proceed if the script file is a regular file at this point
 #echo "scriptfile is $scriptFile and interactive $is_interactive"
-if [[ ! -f $scriptFile ]]; then
+if [[ ! -f ${scriptFile} ]]; then
     echo "[ERROR] Could not open script file '$scriptFile'" 1>&2
     exit 1
 fi
@@ -181,7 +181,7 @@ dependencies=$(grep "^//DEPS" ${scriptFile} | cut -f2- -d' ' | trim | tr ',;\n' 
 # fix me more consistent use of ${TMPDIR}
 dependency_cache="${KSCRIPT_CACHE_DIR}/dependency_cache.txt"
 if [ -n "$dependencies" ] && [ -f "$dependency_cache" ]; then
-    classpath=$(grep -F $(echo ${dependencies} | tr ' ' ';')" " $dependency_cache | cut -d' ' -f2)
+    classpath=$(grep -F $(echo ${dependencies} | tr ' ' ';')" " ${dependency_cache} | cut -d' ' -f2)
 fi
 
 ## If there are dependencies but cache-lookup failed we run expandcp.kts
@@ -242,7 +242,7 @@ if [ ! -f "${jarFile}" ]; then
     echo '
     public class Main_'${className}' {
         public static void main(String... args) throws Exception {
-            Class script = Main_'${className}'.class.getClassLoader().loadClass("'$className'");
+            Class script = Main_'${className}'.class.getClassLoader().loadClass("'${className}'");
             script.getDeclaredConstructor(String[].class).newInstance((Object)args);
         }
     }
