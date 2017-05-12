@@ -1,6 +1,7 @@
 #!/bin/bash
 
-KSCRIPT_VERSION=1.4.1
+## note: always use a patch release even if it's 0
+KSCRIPT_VERSION=1.4.2
 
 ## make sure that all requirements (java, kotlinc, maven) to run kscript are met
 assertInPath(){ if [ -z "$(which $1)" ]; then echo "[ERROR] Could not locate '$1'" 1>&2; exit 1; fi }
@@ -36,10 +37,11 @@ if [ $# == 0 ]  || [ "$1" == "-v" ] || [ "$1" == "--version" ] || [ "$1" == "-h"
     echo "Website   : https://github.com/holgerbrandl/kscript" >&2
 
     ## determine the latest version
-    latestVersion=$(curl -Ls https://git.io/v9R73 | grep '^KSCRIPT_VERSION' | cut -f2 -d'=')
+    latestVersion=$(curl -Ls https://git.io/v9R73 | grep '^KSCRIPT_VERSION' | cut -f2 -d'=' | tr -d '.')
+    installedVersion=$(echo $KSCRIPT_VERSION | tr -d '.')
 
     ## http://stackoverflow.com/questions/15224581/floating-point-comparison-with-variable-in-bash
-    if [ $(echo " $latestVersion > $KSCRIPT_VERSION" | bc) -eq 1 ]; then
+    if [ $(echo " ${latestVersion} > ${installedVersion}" | bc) -eq 1 ]; then
         bold=$(tput bold); normal=$(tput sgr0)     ## http://stackoverflow.com/questions/2924697/how-does-one-output-bold-text-in-bash
         echo -e "\n${bold}A new version of kscript is available. Use 'kscript --self-update' to update your local kscript installation" >&2
     fi
