@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## note: always use a patch release even if it's 0
-KSCRIPT_VERSION=1.4.2
+KSCRIPT_VERSION=1.5.0
 
 ## make sure that all requirements (java, kotlinc, maven) to run kscript are met
 assertInPath(){ if [ -z "$(which $1)" ]; then echo "[ERROR] Could not locate '$1'" 1>&2; exit 1; fi }
@@ -11,7 +11,22 @@ trim() { while read -r line; do echo "$line"; done; }
 
 assertInPath kotlinc
 assertInPath mvn
-assertInPath curl
+
+
+## cheap curl replacement to avoid dependency on curl
+## https://superuser.com/questions/238987/how-does-unix-search-for-executable-files
+kurl(){
+kscript 'import java.io.*
+
+try {
+    BufferedReader(InputStreamReader(java.net.URL(args[0]).openStream())).useLines { it.forEach { println(it) } }
+}catch(e: Throwable){
+    System.err.println("[ERROR] Could not read from '" + e.message + "'")
+    kotlin.system.exitProcess(1)
+}
+' "$@"
+}
+# kurl https://git.io/v9R73
 
 ## prefer JAVA_HOME over PATH for javac and jar (to stay in sync with kotlinc; see  #6)
 if [ -n "$JAVA_HOME" -a -x "$JAVA_HOME/bin/java" ]; then
@@ -37,7 +52,7 @@ if [ $# == 0 ]  || [ "$1" == "-v" ] || [ "$1" == "--version" ] || [ "$1" == "-h"
     echo "Website   : https://github.com/holgerbrandl/kscript" >&2
 
     ## determine the latest version
-    latestVersion=$(curl -Ls https://git.io/v9R73 | grep '^KSCRIPT_VERSION' | cut -f2 -d'=' | tr -d '.')
+    latestVersion=$(kurl https://git.io/v9R73 | grep '^KSCRIPT_VERSION' | cut -f2 -d'=' | tr -d '.')
     installedVersion=$(echo $KSCRIPT_VERSION | tr -d '.')
 
     ## http://stackoverflow.com/questions/15224581/floating-point-comparison-with-variable-in-bash
@@ -64,24 +79,21 @@ if [ "$1" == "--clear-cache" ]; then
     exit 0
 fi
 
-
-
-## auto-install expandcp.kts into same dir as kscript for automatic dependency resolution if not yet in PATH
-if ! which expandcp.kts &> /dev/null; then
-    installDir=$(dirname $(which kscript))
-    curl -Lso ${installDir}/expandcp.kts https://git.io/v9R7n
-    chmod u+x ${installDir}/expandcp.kts
+## look up resdeps from repo unless we're having a full local test clone of it
+if [[ -z "$(which resdeps.kts)" ]]; then
+    resolve_script_deps(){ kscript "https://raw.githubusercontent.com/holgerbrandl/kscript/v${KSCRIPT_VERSION}/resdeps.kts" "$@"; }
+else
+    resolve_script_deps(){ resdeps.kts "$@"; }
 fi
+#resolve_script_deps log4j:log4j:1.2.14
 
 
-## optionally self-update kscript ot the newest version
-if [ "$1" == "--self-update" ]; then
+## optionally self-update kscript ot the newest version (if not local copy is not being maintained by sdkman)
+if [[ "$1" == "--self-update" ]] && [[ -z "$(which kotlin | grep .sdkman)" ]]; then
     echo "Installing latest version of kscript..."
-    curl -Lso $(which kscript) https://git.io/v9R73 && chmod u+x $(which kscript)
-    curl -Lso $(which expandcp.kts) https://git.io/v9R7n && chmod u+x $(which expandcp.kts)
+    kurl https://git.io/v9R73 > $(which kscript) && chmod u+x $(which kscript)
 
     echo "You're now running kscript "$(kscript --help 2>&1| grep Version | cut -f2- | tr -d ':')
-
     exit 0
 fi
 
@@ -119,7 +131,9 @@ if [[ "$scriptFile" == "http://"* ]] || [[ "$scriptFile" == "https://"* ]]; then
 
     if [ ! -f "$urlCache" ]; then
 #        echo "fetching kscript from url $scriptFile into ${tmpScript}..."
-        curl -L ${scriptFile} 2>/dev/null > ${urlCache}
+#        curl -L ${scriptFile} 2>/dev/null > ${urlCache}
+        kurl ${scriptFile} > ${urlCache}
+        if [ $? -eq 1 ]; then rm ${urlCache}; exit 1; fi
     fi
 
     scriptFile=${urlCache}
@@ -184,16 +198,16 @@ fi
 dependencies=$(grep "^//DEPS" ${scriptFile} | cut -f2- -d' ' | trim | tr ',;\n' ' ')
 
 
-## First try dependency cache directly to avoid jvm launch for expandcp.kts
+## First try dependency cache directly to avoid jvm launch for resdeps.kts
 # fix me more consistent use of ${TMPDIR}
 dependency_cache="${KSCRIPT_CACHE_DIR}/dependency_cache.txt"
 if [ -n "$dependencies" ] && [ -f "$dependency_cache" ]; then
     classpath=$(grep -F $(echo ${dependencies} | tr ' ' ';')" " ${dependency_cache} | cut -d' ' -f2)
 fi
 
-## If there are dependencies but cache-lookup failed we run expandcp.kts
+## If there are dependencies but cache-lookup failed we run resdeps.kts
 if [ -n "$dependencies" ] && [ -z "$classpath" ];then
-    classpath=$(expandcp.kts ${dependencies})
+    classpath=$(resolve_script_deps ${dependencies})
     if [ $? -eq 1 ]; then exit 1; fi
 fi
 
@@ -204,7 +218,7 @@ kotlin_opts=$(grep -F "//KOTLIN_OPTS" ${scriptFile} | head -n1 | cut -f2- -d' ')
 ## Optionally enter interactive mode
 if [ "$is_interactive" = true ]; then
     echo "To create a shell with script dependencies run:"
-    echo "kotlinc ${kotlin_opts} -classpath '$(expandcp.kts ${dependencies})'"
+    echo "kotlinc ${kotlin_opts} -classpath '$(resdeps.kts ${dependencies})'"
     exit 0
 fi
 

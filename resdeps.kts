@@ -8,19 +8,19 @@ import kotlin.system.exitProcess
 //val args = arrayOf("org.docopt:docopt:0.6.0-SNAPSHOT", "log4j:log4j:1.2.14")
 
 if (args.isNotEmpty() && listOf("--help", "-help", "-h").contains(args[0])) {
-    System.err.println("""expandcp.kts resolves a space separated list of gradle-style resource locators into a
-classpath suitable for use with 'java -cp' or 'kotlin -cp'. expandcp.kts will use maven to resolve dependencies.
+    System.err.println("""resdeps.kts resolves a space separated list of gradle-style resource locators into a
+classpath suitable for use with 'java -cp' or 'kotlin -cp'. resdeps.kts will use maven to resolve dependencies.
 
 For details see https://github.com/holgerbrandl/kscript
 
 ## Example
 
-expandcp.kts org.apache.commons:commons-csv:1.3 log4j:log4j:1.2.14
+resdeps.kts org.apache.commons:commons-csv:1.3 log4j:log4j:1.2.14
 
 ## Features
 
 * Support for transitive Maven dependencies
-* Caching of dependency requests (cached requests take just around 30ms). Use `expandcp.kts --clear-cache` to
+* Caching of dependency requests (cached requests take just around 30ms). Use `resdeps.kts --clear-cache` to
   clear this cache in case the dependency tree has changed
 
 ## Copyright
@@ -114,7 +114,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
 
 fun runMaven(pom: String, goal: String): Iterable<String> {
-    val temp = File.createTempFile("__expandcp__temp__", "_pom.xml")
+    val temp = File.createTempFile("__resdeps__temp__", "_pom.xml")
     temp.writeText(pom)
     val exec = Runtime.getRuntime().exec("mvn -f ${temp.absolutePath} ${goal}")
     return BufferedReader(InputStreamReader(exec.inputStream)).
@@ -128,7 +128,7 @@ val mavenResult = runMaven(pom, "dependency:build-classpath")
 
 // The following artifacts could not be resolved: log4ja:log4ja:jar:9.8.87, log4j:log4j:jar:9.8.105: Could not
 
-// Check for errors (e.g. when using non-existing deps expandcp.kts log4j:log4j:1.2.14 org.docopt:docopt:22.3-MISSING)
+// Check for errors (e.g. when using non-existing deps resdeps.kts log4j:log4j:1.2.14 org.docopt:docopt:22.3-MISSING)
 mavenResult.filter { it.startsWith("[ERROR]") }.find { it.contains("Could not resolve dependencie") }?.let {
     System.err.println("Failed to lookup dependencies. Maven reported the following error:")
     System.err.println(it)
