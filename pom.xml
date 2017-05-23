@@ -7,7 +7,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <kotlin.version>1.0.7</kotlin.version>
+        <kotlin.version>1.1.2-3</kotlin.version>
         <!-- updating here would render kscript incompatible with older versions of kotlins. do it carefully-->
         <!--<kotlin.version>1.1.1</kotlin.version>-->
     </properties>
@@ -22,11 +22,11 @@
         <dependency>
             <groupId>de.mpicbg.scicomp</groupId>
             <artifactId>kutils</artifactId>
-            <version>0.4</version>
+            <version>0.7</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib</artifactId>
+            <artifactId>kotlin-stdlib-jre8</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>
@@ -34,11 +34,6 @@
             <artifactId>kotlin-test</artifactId>
             <version>${kotlin.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-js-library</artifactId>
-            <version>${kotlin.version}</version>
         </dependency>
 
     </dependencies>
@@ -57,12 +52,6 @@
                             <goal>compile</goal>
                             <goal>js</goal>
                         </goals>
-                        <configuration>
-                            <sourceDirs>
-                                <source>examples</source>
-                                <source></source>
-                            </sourceDirs>
-                        </configuration>
                     </execution>
                     <execution>
                         <id>test-compile</id>
@@ -77,5 +66,11 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>jcenter</id>
+            <url>http://jcenter.bintray.com/</url>
+        </repository>
+    </repositories>
 
 </project>

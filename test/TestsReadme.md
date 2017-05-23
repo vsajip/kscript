@@ -34,13 +34,15 @@ cd ${KSCRIPT_HOME}
 #sdk use kotlin 1.1-RC
 kscript --clear-cache
 
-./test/test_suite.sh
+${KSCRIPT_HOME}/test/test_suite.sh
 
 # run again with kotlin 1.0.X
 sdk use kotlin 1.0.6
 ./test/test_suite.sh
 
 ```
+
+export PATH=`echo ${PATH} | awk -v RS=: -v ORS=: '/kscript/ {next} {print}'`
 
 
 For more examples see https://github.com/lehmannro/assert.sh/blob/master/tests.sh

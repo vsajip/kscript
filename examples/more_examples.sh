@@ -57,7 +57,7 @@ kscript -st '"huhu" + it'
 
 
 ## REPL test: Filter-Join fasta files by ID
-kotlinc -classpath $(expandcp.kts de.mpicbg.scicomp:kutils:0.2)
+kotlinc -classpath $(resdeps.kts de.mpicbg.scicomp:kutils:0.2)
 <<"EOF"
 import de.mpicbg.scicomp.kscript.*
 

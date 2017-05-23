@@ -77,22 +77,22 @@ assert_end environment_tests
 
 # export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"; export PATH=${KSCRIPT_HOME}:${PATH}
 
-assert "expandcp.kts log4j:log4j:1.2.14" "${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar"
+assert "resdeps.kts log4j:log4j:1.2.14" "${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar"
 
 ## impossible version
-assert_raises "expandcp.kts log4j:log4j:9.8.76" 1
+assert_raises "resdeps.kts log4j:log4j:9.8.76" 1
 
 ## wrong format should exit with 1
-assert_raises "expandcp.kts log4j:1.0" 1
+assert_raises "resdeps.kts log4j:1.0" 1
 
 ## wrong format should give meaningful error message
-assert "expandcp.kts log4j:1.0 2>&1" "invalid dependency locator: log4j:1.0\nExpected format is groupId:artifactId:version[:classifier]"
+assert "resdeps.kts log4j:1.0 2>&1" "invalid dependency locator: log4j:1.0\nExpected format is groupId:artifactId:version[:classifier]"
 
 ## other version of wrong format should die with useful error.
-assert "expandcp.kts log4j:::1.0 2>&1" "Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript"
+assert "resdeps.kts log4j:::1.0 2>&1" "Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript"
 
 ## one good dependency,  one wrong
-assert_raises "expandcp.kts org.docopt:docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
+assert_raises "resdeps.kts org.docopt:docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
 
 assert_end dependency_lookup
 
