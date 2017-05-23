@@ -8,7 +8,7 @@ export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript";
 export PATH=${KSCRIPT_HOME}:${PATH}
 export PATH=~/go/bin/:$PATH
 
-kscript_version=$(grep 'export KSCRIPT_VERSION' ${KSCRIPT_HOME}/kscript | cut -f2 -d'=')
+kscript_version=$(grep '^KSCRIPT_VERSION' ${KSCRIPT_HOME}/kscript | cut -f2 -d'=')
 echo "new version is $kscript_version" 
 ## see https://github.com/aktau/github-release
 
