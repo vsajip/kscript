@@ -1,5 +1,12 @@
 
 
+## v1.5.1
+
+* Fixed `--self-update`
+* More robust self-update on OSses with file-locking (e.g. windows)
+
+
+
 ## v1.5
 
 * removed `curl` dependency
