@@ -118,8 +118,6 @@ curl -X POST \
     -d '{"candidate": "kscript", "version": "'${kscript_version}'", "url": "https://github.com/holgerbrandl/kscript/releases/download/v'${kscript_version}'/kscript-'${kscript_version}'-bin.zip"}' \
     https://vendors.sdkman.io/release
 
-curl -X POST -H "Consumer-Key: ${SDKMAN_CONSUMER_KEY}" -H "Consumer-Token: ${SDKMAN_CONSUMER_TOKEN}" -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{"candidate": "kscript", "version": "1.5.1", "url": "https://github.com/holgerbrandl/kscript/releases/download/v1.5.1/kscript-1.5.1-bin.zip"}' https://vendors.sdkman.io/release
-
 
 ## Set existing Version as Default for Candidate
 
