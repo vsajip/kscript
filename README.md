@@ -23,14 +23,16 @@ To use `kscript` just Kotlin and Maven are required. To [install Kotlin](https:/
 ```
 curl -s "https://get.sdkman.io" | bash  # install sdkman
 source ~/.bash_profile                  # add sdkman to PATH
+
 sdk install kotlin                      # install Kotlin
 sdk install maven                       # install Maven
 ```
 
-Once kotlin is installed, simply download [kscript](kscript)  to your `~/bin` with:
-```bash
-curl -Lso ~/bin/kscript https://git.io/v9R73 && chmod u+x ~/bin/kscript
+Once Maven and Kotlin are ready, you can install `kscript` with
 ```
+sdk install kscript
+```
+
 
 To test your installation simply run
 ```bash
@@ -40,6 +42,14 @@ kscript --help
 `kscript` can update itself to its latest version by running
 ```bash
 kscript --self-update
+```
+
+#### Installation without `sdkman`
+
+If you have Kotlin and Maven already and you would like to install the latest `kscript` release to your `~/bin` without using `sdkman` you can do so with:
+
+```bash
+curl -Lso ~/bin/kscript https://git.io/v9R73 && chmod u+x ~/bin/kscript
 ```
 
 Interpreter Usage
