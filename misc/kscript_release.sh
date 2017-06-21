@@ -111,7 +111,7 @@ echo ${SDKMAN_CONSUMER_KEY} ${SDKMAN_CONSUMER_TOKEN} ${kscript_version}
 #kscript_version=1.5.1
 
 curl -X POST \
-    -H "'Consumer-Key: ${SDKMAN_CONSUMER_KEY}" \
+    -H "Consumer-Key: ${SDKMAN_CONSUMER_KEY}" \
     -H "Consumer-Token: ${SDKMAN_CONSUMER_TOKEN}" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
