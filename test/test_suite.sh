@@ -42,6 +42,10 @@ assert "source ${KSCRIPT_HOME}/test/resources/local_script_file.sh" "kscript roc
 ## make sure that it runs with local script files
 assert "kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts" "kscript is  cool!"
 
+## scripts with dashes in the file name should work as well
+assert "kscript ${KSCRIPT_HOME}/test/resources/dash-test.kts" "dash alarm!"
+
+
 ## missing script
 assert_raises "kscript i_do_not_exist.kts" 1
 assert "kscript i_do_not_exist.kts 2>&1" "[ERROR] Could not open script file 'i_do_not_exist.kts'"
