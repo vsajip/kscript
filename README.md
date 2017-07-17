@@ -175,7 +175,7 @@ When using the direct script arguments (like in the example below) the methods i
 cat some_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.map { it + "foo:" }.print()'
 ```
 
-The elements that come from our support library in the example are the [`stdin`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/StreamUtil.kt#L11) object of type `Sequence<String>` to iterate over the standard input, and the extension method [`print`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/StreamUtil.kt#L34) to print the lines to stdout. The rest is stdlib Kotlin.
+The elements that come from our [support library](https://github.com/holgerbrandl/kscript-support-api) in the example are the [`stdin`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/text/StreamUtil.kt#11) object of type `Sequence<String>` to iterate over the standard input, and the extension method [`print`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/text/StreamUtil.kt#L34) to print the lines to stdout. The rest is stdlib Kotlin.
 
  For more  examples using the support library see this [blog post](http://holgerbrandl.github.io/kotlin/2017/05/08/kscript_as_awk_substitute.html).
 
