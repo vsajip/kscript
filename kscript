@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## note: always use a patch release even if it's 0
-KSCRIPT_VERSION=1.5.2
+KSCRIPT_VERSION=1.5.3
 
 ## make sure that all requirements (java, kotlinc, maven) to run kscript are met
 assertInPath(){ if [ -z "$(which $1)" ]; then echo "[ERROR] Could not locate '$1'" 1>&2; exit 1; fi }
@@ -81,7 +81,7 @@ if [ "$1" == "--clear-cache" ]; then
 fi
 
 ## look up resdeps from repo unless we're having a full local test clone of it
-if [[ -z "$(which resdeps.kts)" ]]; then
+if [[ -z "$(which resdeps.kts 2>/dev/null)" ]]; then
     resolve_script_deps(){ kscript "https://raw.githubusercontent.com/holgerbrandl/kscript/v${KSCRIPT_VERSION}/resdeps.kts" "$@"; }
 else
     resolve_script_deps(){ resdeps.kts "$@"; }
@@ -231,9 +231,9 @@ kotlin_opts=$(grep -F "//KOTLIN_OPTS" ${scriptFile} | head -n1 | cut -f2- -d' ')
 
 ## Optionally enter interactive mode
 if [ "$is_interactive" = true ]; then
-    echo "To create a shell with script dependencies run:"
-    echo "kotlinc ${kotlin_opts} -classpath '$(resdeps.kts ${dependencies})'"
-    exit 0
+    echo "Creating REPL from ${scriptFile}" >&2
+    echo "kotlinc ${kotlin_opts} -classpath '${classpath}'" >&2
+    exec kotlinc ${kotlin_opts} -classpath "${classpath}"
 fi
 
 scriptCheckSum=$(kscript_md5 ${scriptFile})
