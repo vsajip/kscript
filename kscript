@@ -231,9 +231,9 @@ kotlin_opts=$(grep -F "//KOTLIN_OPTS" ${scriptFile} | head -n1 | cut -f2- -d' ')
 
 ## Optionally enter interactive mode
 if [ "$is_interactive" = true ]; then
-    echo "To create a shell with script dependencies run:"
-    echo "kotlinc ${kotlin_opts} -classpath '$(resdeps.kts ${dependencies})'"
-    exit 0
+    echo "Creating REPL from ${scriptFile}" >&2
+    echo "kotlinc ${kotlin_opts} -classpath '${classpath}'" >&2
+    exec kotlinc ${kotlin_opts} -classpath "${classpath}"
 fi
 
 scriptCheckSum=$(kscript_md5 ${scriptFile})
