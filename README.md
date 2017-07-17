@@ -198,7 +198,7 @@ println("Hello from Kotlin with 5g of heap memory running in server mode!")
 
 ### Scripts with a main method do not run with `kscript`?
 
-There is [no need](https://kotlinlang.org/docs/tutorials/command-line.html#using-the-command-line-to-run-scripts) for a main method in a Kotlin script. Kotlin kts scripts can be more simplistic compared regular kotlin `*.kt` source files and work without a main method by directly running the provided code. E.g.
+There is [no need](https://kotlinlang.org/docs/tutorials/command-line.html#using-the-command-line-to-run-scripts) for a main method in a Kotlin script. Kotlin `*.kts` scripts can be more simplistic compared to regular kotlin `*.kt` source files and work without a main method by directly running the provided code. E.g.
 ```
 print("hello kotlin!")
 ```

@@ -2,7 +2,7 @@
 
 # 1. Increment version in `kscript`
 # 2. Make sure that support api version is up to date and available from jcenter
-# 3. Push and create github release tag
+# 3. Push and wait for travis CI results
 
 export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript";
 export PATH=${KSCRIPT_HOME}:${PATH}
@@ -74,8 +74,8 @@ github-release upload \
 ### Update release branch
 
 #http://stackoverflow.com/questions/13969050/how-to-create-a-new-empty-branch-for-a-new-project
-git clone git@github.com:holgerbrandl/kscript.git kscript_releases
-cd kscript_releases
+git clone git@github.com:holgerbrandl/kscript.git kscript_releases_${kscript_version}
+cd kscript_releases_${kscript_version}
 #git checkout --orphan releases
 #git reset --hard
 #git rm --cached -r .
