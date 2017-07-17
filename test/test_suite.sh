@@ -58,7 +58,8 @@ assert_end script_input_modes
 
 
 ## interactive mode without dependencies
-assert "echo '' | kscript -i -" "To create a shell with script dependencies run:\nkotlinc  -classpath ''"
+#assert "kscript -i 'exitProcess(0)'" "To create a shell with script dependencies run:\nkotlinc  -classpath ''"
+#assert "echo '' | kscript -i -" "To create a shell with script dependencies run:\nkotlinc  -classpath ''"
 
 
 ## first version is disabled because support-auto-prefixing kicks in
