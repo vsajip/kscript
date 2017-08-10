@@ -45,6 +45,10 @@ assert "kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts" "kscript is 
 ## scripts with dashes in the file name should work as well
 assert "kscript ${KSCRIPT_HOME}/test/resources/dash-test.kts" "dash alarm!"
 
+## scripts with additional dots in the file name should work as well.
+## We also test innner uppercase letters in file name here by using .*T*est
+assert "kscript ${KSCRIPT_HOME}/test/resources/dot.Test.kts" "dot alarm!"
+
 
 ## missing script
 assert_raises "kscript i_do_not_exist.kts" 1
