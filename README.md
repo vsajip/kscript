@@ -88,7 +88,7 @@ Options:
 val doArgs = Docopt(usage).parse(args.toList())
 
 println("Hello from Kotlin!")
-println("Parsed script arguments are: \n" + doArgs.joinToString())
+println("Parsed script arguments are: \n" + doArgs)
 ```
 
 `kscript` will read dependencies from all lines in a script that start with `//DEPS` (if any). Multiple dependencies can be split by comma, space or semicolon.
@@ -169,7 +169,7 @@ Support API
 
 `kscript` is complemented by a [support library](https://github.com/holgerbrandl/kscript-support-api) to ease the writing of Kotlin scriptlets. The latter includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the development of kscript applications.
 
-When using the direct script arguments (like in the example below) the methods in the the `kscript.*` namespace and the corresponding dependency `com.github.holgerbrandl:kscript:1.2.1` are automatically added as prefix to the script by convention. This allows for  sed-like constructs like
+When using the direct script arguments (like in the example below) the methods in the the `kscript.*` namespace and the corresponding dependency `com.github.holgerbrandl:kscript:1.2.2` are automatically added as prefix to the script by convention. This allows for  sed-like constructs like
 
 ```bash
 cat some_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.map { it + "foo:" }.print()'
