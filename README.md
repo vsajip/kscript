@@ -185,6 +185,36 @@ FAQ
 ---
 
 
+### Does it also work for regular kotlin class files `.kt`?
+
+Yes, you can run kotlin classes through kscript. By default `kscript` will assume a top-level `main` method as entry-point.
+
+However in case you're using a companion object to declare the entry point, you can indicate this via the `//ENTRY` directive:
+
+```kotlin
+#!/usr/bin/env kscript
+
+package test
+
+//DEPS log4j:log4j:1.2.14
+//ENTRY Foo
+
+class User(val age: Int)
+
+fun findUserByName(name: String): User = null!!
+
+class Foo{
+    companion object {
+        @JvmStatic fun main(args: Array<String>) {
+            println("foo companion was called")
+        }
+    }
+}
+```
+The intial shebang could be left out by running the script directly with `kscript some.kt`
+
+
+
 ### How to adjust the memory settings for the JVM in my scriptlet?
 
 `kscript` allows to provide a `//KOTLIN_OPTS` line followed by parameters passed on to `kotlin` similar to how dependencies are defined:
