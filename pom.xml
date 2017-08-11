@@ -25,6 +25,11 @@
             <version>0.7</version>
         </dependency>
         <dependency>
+            <groupId>com.github.holgerbrandl</groupId>
+            <artifactId>kscript</artifactId>
+            <version>1.2.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jre8</artifactId>
             <version>${kotlin.version}</version>
