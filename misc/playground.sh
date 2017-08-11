@@ -54,6 +54,7 @@ scriptFile=/Users/brandl/projects/kotlin/kotlin_playground/src/test.kt
 
 kotlinc -d foo.jar /Users/brandl/projects/kotlin/kotlin_playground/src/test/test_1.kt
 unzip -l foo.jar
+java -classpath foo.jar 'test.Foo$Companion'
 
 ## does not owrk
 javac  /Users/brandl/projects/kotlin/kotlin_playground/src/burrows/Huff.java

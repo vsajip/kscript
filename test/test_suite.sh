@@ -133,3 +133,26 @@ assert 'kscript "println(1+1)"' '2'
 assert_statement 'echo "foo${NL}bar" | kscript "stdin.split().select(1, 2, -3)"' "" "[ERROR] Can not mix positive and negative selections" 1
 
 assert_end support_api
+
+
+########################################################################################################################
+##  kt support
+
+## run kt via interpreter mode
+assert "${KSCRIPT_HOME}/test/resources/kt_tests/simple_app.kt" "main was called"
+
+## run kt via interpreter mode with dependencies
+assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/main_with_deps.kt" "made it!"
+
+## test misc entry point with or without package configurations
+
+assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/custom_entry_nopckg.kt" "foo companion was called"
+
+assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/custom_entry_withpckg.kt" "foo companion was called"
+
+assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/default_entry_nopckg.kt" "main was called"
+
+assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/default_entry_withpckg.kt" "main was called"
+
+assert_end kt_support
+

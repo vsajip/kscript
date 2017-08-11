@@ -38,6 +38,7 @@ ${KSCRIPT_HOME}/test/test_suite.sh
 
 # run again with kotlin 1.0.X
 sdk use kotlin 1.0.6
+kscript --clear-cache
 ./test/test_suite.sh
 
 ```
