@@ -20,6 +20,8 @@ assert_statement(){
 export NL=$'\n'
 
 
+########################################################################################################################
+## script_input_modes
 
 ## make sure that scripts can be piped into kscript
 assert "source ${KSCRIPT_HOME}/test/resources/direct_script_arg.sh" "kotlin rocks"
@@ -58,8 +60,15 @@ assert "kscript i_do_not_exist.kts 2>&1" "[ERROR] Could not open script file 'i_
 assert "kscript https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/url_test.kts" "I came from the internet"
 
 
+# repeated compilation of buggy same script should end up in error again
+assert_raises "kscript '1-'; kscript '1-'" 1
+
 assert_end script_input_modes
 
+
+
+########################################################################################################################
+## cli_helper_tests
 
 ## interactive mode without dependencies
 #assert "kscript -i 'exitProcess(0)'" "To create a shell with script dependencies run:\nkotlinc  -classpath ''"
@@ -72,6 +81,8 @@ assert_end script_input_modes
 
 assert_end cli_helper_tests
 
+########################################################################################################################
+## environment_tests
 
 ## do not run interactive mode prep without script argument
 assert_statement "kscript -i" "" "[ERROR] Script argument for interactive mode preparation is missing" 1
@@ -83,6 +94,9 @@ assert "unset KOTLIN_HOME; echo 'println(99)' | kscript -" "99"
 
 
 assert_end environment_tests
+
+########################################################################################################################
+## dependency_lookup
 
 # export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"; export PATH=${KSCRIPT_HOME}:${PATH}
 
@@ -105,6 +119,8 @@ assert_raises "resdeps.kts org.docopt:docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 
 
 assert_end dependency_lookup
 
+########################################################################################################################
+## support_api
 
 ## make sure that one-liners include support-api
 assert 'echo "foo${NL}bar" | kscript "stdin.print()"' $'foo\nbar'
@@ -117,4 +133,3 @@ assert 'kscript "println(1+1)"' '2'
 assert_statement 'echo "foo${NL}bar" | kscript "stdin.split().select(1, 2, -3)"' "" "[ERROR] Can not mix positive and negative selections" 1
 
 assert_end support_api
-
