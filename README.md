@@ -185,9 +185,18 @@ FAQ
 ---
 
 
-### Does it also work for regular kotlin class files `.kt`?
+### Why is `kscript` not calling the main method in my `.kts` script?
 
-Yes, you can run kotlin classes through kscript. By default `kscript` will assume a top-level `main` method as entry-point.
+There is [no need](https://kotlinlang.org/docs/tutorials/command-line.html#using-the-command-line-to-run-scripts) for a `main` method in a Kotlin script. Kotlin `*.kts` scripts can be more simplistic compared to more common kotlin `*.kt` source files. The former work without a `main` method by directly running the provided code from top to bottom. E.g.
+```
+print("hello kotlin!")
+```
+is a valid Kotlin `kts` script. Plain and simple, no `main`, no `companion`, just a few bits of code.
+
+
+### Ok, but does `kscript` also work for regular kotlin `.kt` source files  with a `main` as entry point?
+
+Yes, (since v1.6) you can run kotlin source files through `kscript`. By default it will assume a top-level `main` method as entry-point.
 
 However in case you're using a companion object to declare the entry point, you can indicate this via the `//ENTRY` directive:
 
@@ -213,6 +222,7 @@ class Foo{
 ```
 The intial shebang could be left out by running the script directly with `kscript some.kt`
 
+By means of the `//ENTRY` directive, `kscript` can be used a application launcher for demos and examples. Even direcly from your github repo via its [URL input mode](#url-usage)
 
 
 ### How to adjust the memory settings for the JVM in my scriptlet?
@@ -225,16 +235,6 @@ The intial shebang could be left out by running the script directly with `kscrip
 println("Hello from Kotlin with 5g of heap memory running in server mode!")
 ```
 
-
-### Scripts with a main method do not run with `kscript`?
-
-There is [no need](https://kotlinlang.org/docs/tutorials/command-line.html#using-the-command-line-to-run-scripts) for a main method in a Kotlin script. Kotlin `*.kts` scripts can be more simplistic compared to regular kotlin `*.kt` source files and work without a main method by directly running the provided code. E.g.
-```
-print("hello kotlin!")
-```
-is a valid Kotlin `kts` script.
-
-Regular class files are not supported [yet](https://github.com/holgerbrandl/kscript/issues/31#issuecomment-309976103) by `kscript`. This is because a `kt` Kotlin source file might contain multiple classes with a main method in each, so the entry point might not be always clearly defined. (see #31)
 
 Support
 -------
