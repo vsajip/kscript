@@ -9,6 +9,10 @@ assertInPath(){ if [ -z "$(which $1)" ]; then echo "[ERROR] Could not locate '$1
 ## trim whitespace from a string
 trim() { while read -r line; do echo "$line"; done; }
 
+## pad version with 0s. From https://stackoverflow.com/questions/18668556/comparing-numbers-in-bash
+function pad_version { printf "%03d" $(echo "$1" | tr '.' ' '); }
+
+
 assertInPath kotlinc
 assertInPath mvn
 
@@ -52,14 +56,14 @@ if [ $# == 0 ]  || [ "$1" == "-v" ] || [ "$1" == "--version" ] || [ "$1" == "-h"
     echo "Website   : https://github.com/holgerbrandl/kscript" >&2
 
     ## determine the latest version
-    latestVersion=$(kurl https://git.io/v9R73 | grep '^KSCRIPT_VERSION' | cut -f2 -d'=' | tr -d '.')
-    installedVersion=$(echo $KSCRIPT_VERSION | tr -d '.')
+    latestVersion=$(kurl https://git.io/v9R73 | grep '^KSCRIPT_VERSION' | cut -f2 -d'=')
+    installedVersion=$(echo $KSCRIPT_VERSION | cut -f1 -d'-')
 
     ## http://stackoverflow.com/questions/15224581/floating-point-comparison-with-variable-in-bash
-    ## fixme bc is a dependency, use a kscriptlet here
-    if [ $(echo " ${latestVersion} > ${installedVersion}" | bc) -eq 1 ]; then
-        bold=$(tput bold); normal=$(tput sgr0)     ## http://stackoverflow.com/questions/2924697/how-does-one-output-bold-text-in-bash
-        echo -e "\n${bold}A new version of kscript is available. Use 'kscript --self-update' to update your local kscript installation" >&2
+    if (( $(pad_version ${latestVersion}) > $(pad_version ${installedVersion}) )); then
+        ## http://stackoverflow.com/questions/2924697/how-does-one-output-bold-text-in-bash
+        bold=$(tput bold); normal=$(tput sgr0)
+        echo -e "\n${bold}A new version (v${latestVersion}) of kscript is available. Use 'kscript --self-update' to update your local kscript installation" >&2
     fi
 
     exit 0;
