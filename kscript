@@ -209,14 +209,17 @@ fi
 if [ $(grep "^// DEPS" ${scriptFile} | wc -l) -gt 0 ]; then
     echo "[ERROR] Dependencies must be declared by using the line prefix //DEPS" 1>&2; exit 1;
 fi
-dependencies=$(grep "^//DEPS" ${scriptFile} | cut -f2- -d' ' | trim | tr ',;\n' ' ')
+
+## find all //DEPS directives and concatenate their values
+dependencies=$(grep "^//DEPS" ${scriptFile} | cut -f2- -d' ' | trim | tr ',;\n' ' ' | sed 's/ $//g')
 
 
 ## First try dependency cache directly to avoid jvm launch for resdeps.kts
-# fix me more consistent use of ${TMPDIR}
 dependency_cache="${KSCRIPT_CACHE_DIR}/dependency_cache.txt"
 if [ -n "$dependencies" ] && [ -f "$dependency_cache" ]; then
-    classpath=$(grep -F $(echo ${dependencies} | tr ' ' ';')" " ${dependency_cache} | cut -d' ' -f2)
+#    https://stackoverflow.com/questions/22861580/bash-script-check-if-a-file-contains-a-specific-line
+    depQuery="$(echo ${dependencies} | tr ' ' ';')"
+    classpath=$(awk '$1 == "'$depQuery'"' ${dependency_cache} | cut -d' ' -f2)
 fi
 
 ## If there are dependencies but cache-lookup failed we run resdeps.kts
@@ -289,16 +292,12 @@ elif [[ $scriptFileExt == ".kt" ]]; then
 fi
 
 
-echo "classpath is '${classpath}'"
-
-
 # build cache-jar if it does not yet exist
 if [ ! -f "${jarFile}" ]; then
     ## remove previous (now outdated) cache jars
     rm -f .$(basename ${scriptFile} .kts).*.jar
 
 
-    echo "kotlinc  -classpath "${classpath}" -d ${jarFile} ${scriptFile}"
     kotlinc  -classpath "${classpath}" -d ${jarFile} ${scriptFile}
 
     if [ $? -eq 1 ]; then

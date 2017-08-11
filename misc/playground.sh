@@ -74,3 +74,15 @@ JAR_CMD=jar
 (cd ${TMPDIR}/tt/ && ${JAR_CMD:=jar} cvf foojar.jar *)
 unzip -vl ${TMPDIR}/tt/foojar.jar
 
+
+#### dependency lookp
+
+if [ ! -z $(grep "$STRING" "$FILE") ]; then echo "FOUND"; fi
+grep "^"$(echo ${dependencies} | tr ' ' ';')" " "${dependency_cache}"
+
+grep -F "^"$(echo ${dependencies} | tr ' ' ';')" " ${dependency_cache} | cut -d' ' -f2
+
+if [ ! -z $(grep "^"$(echo ${dependencies} | tr ' ' ';')" " "${dependency_cache}") ]; then echo "FOUND"; fi
+classpath=$(grep -F $(echo ${dependencies} | tr ' ' ';')" " ${dependency_cache} | cut -d' ' -f2)
+
+awk '$1 == "'"${dependencies}"'"' ${dependency_cache}
