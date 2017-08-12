@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## note: always use a patch release even if it's 0
-KSCRIPT_VERSION=1.5.4-SNAPSHOT
+KSCRIPT_VERSION=1.6
 
 ## make sure that all requirements (java, kotlinc, maven) to run kscript are met
 assertInPath(){ if [ -z "$(which $1)" ]; then echo "[ERROR] Could not locate '$1'" 1>&2; exit 1; fi }
@@ -186,7 +186,7 @@ if [[ "$scriptFile" != *kts ]] && [[ ! -e ${scriptFile} ]]; then
 #    http://stackoverflow.com/questions/2172352/in-bash-how-can-i-check-if-a-string-begins-with-some-value
     trimmedScript=$(echo "${scriptFile}" | tr -d '\n' )
     if [[ $trimmedScript == lines.* ]] || [[ $trimmedScript == stdin.* ]] ; then
-        scriptFile=$'//DEPS com.github.holgerbrandl:kscript:1.2.1\nimport kscript.text.*\nval lines = resolveArgFile(args)\n\n'${scriptFile}
+        scriptFile=$'//DEPS com.github.holgerbrandl:kscript:1.2.2\nimport kscript.text.*\nval lines = resolveArgFile(args)\n\n'${scriptFile}
     fi
 
     scriptHash=$(kscript_md5 <(echo "$scriptFile"))
