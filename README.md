@@ -198,7 +198,7 @@ is a valid Kotlin `kts` script. Plain and simple, no `main`, no `companion`, jus
 
 Yes, (since v1.6) you can run kotlin source files through `kscript`. By default it will assume a top-level `main` method as entry-point.
 
-However in case you're using a companion object to declare the entry point, you can indicate this via the `//ENTRY` directive:
+However in case you're using a companion object to declare the entry point, you need to indicate this via the `//ENTRY` directive:
 
 ```kotlin
 #!/usr/bin/env kscript
@@ -227,7 +227,7 @@ By means of the `//ENTRY` directive, `kscript` can be used a application launche
 
 ### How to adjust the memory settings for the JVM in my scriptlet?
 
-`kscript` allows to provide a `//KOTLIN_OPTS` line followed by parameters passed on to `kotlin` similar to how dependencies are defined:
+`kscript` allows to provide a `//KOTLIN_OPTS` directive followed by parameters passed on to `kotlin` similar to how dependencies are defined:
 ```kotlin
 #!/usr/bin/env kscript
 //KOTLIN_OPTS -J-Xmx5g  -J-server
