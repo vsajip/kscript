@@ -1,7 +1,6 @@
 #!/bin/bash
 
-## note: always use a patch release even if it's 0
-KSCRIPT_VERSION=1.6
+KSCRIPT_VERSION=1.6.0
 
 ## make sure that all requirements (java, kotlinc, maven) to run kscript are met
 assertInPath(){ if [ -z "$(which $1)" ]; then echo "[ERROR] Could not locate '$1'" 1>&2; exit 1; fi }
