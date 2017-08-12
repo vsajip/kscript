@@ -10,7 +10,7 @@ assertInPath(){ if [ -z "$(which $1)" ]; then echo "[ERROR] Could not locate '$1
 trim() { while read -r line; do echo "$line"; done; }
 
 ## pad version with 0s. From https://stackoverflow.com/questions/18668556/comparing-numbers-in-bash
-function pad_version { printf "%03d" $(echo "$1" | tr '.' ' '); }
+function pad_version { printf "%03d%03d%03d" $(echo "$1" | tr '.' ' '); }
 
 
 assertInPath kotlinc
