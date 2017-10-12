@@ -1,6 +1,22 @@
 
 
 
+## dependency declarations
+
+kotlin [jupyter kernel ](https://github.com/ligee/kotlin-jupyter/blob/6ec1e5f8e4fc0a8ce0015194518275201fd5f3eb/readme.md)supports
+
+* `@file:DependsOnJar(<relative|absolute-path-in-dir-repo>)` - adds a class directory or jar to the classpath
+* `@file:DirRepository(<absolute-path>)` - adds a directory as a repo
+* `@file:DependsOnMaven(<colon-separated-maven-coordinates>)` - resolves artifacts using maven, downloads them if necessary, and adds to the classpath
+* `@file:MavenRepository(<mavenRepoUrl>)` - adds a maven repository
+
+which seem to come from https://github.com/kohesive/keplin//keplin-maven-resolver/src/main/kotlin/uy/kohesive/keplin/kotlin/script/resolver/maven/MavenResolverAnnotations.kt
+
+They also have impl a programmatic mvn resolver there https://github.com/kohesive/keplin/blob/master/keplin-maven-resolver/src/main/kotlin/uy/kohesive/keplin/kotlin/script/resolver/maven/MavenScriptDependenciesResolver.kt
+
+Could be used as a library, see
+https://github.com/kohesive/keplin#keplin-core
+
 ## References
 
 http://stackoverflow.com/questions/21814652/how-to-download-dependencies-in-gradle
