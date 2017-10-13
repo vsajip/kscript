@@ -85,7 +85,10 @@ assert_end cli_helper_tests
 ## environment_tests
 
 ## do not run interactive mode prep without script argument
-assert_statement "kscript -i" "" "[ERROR] Script argument for interactive mode preparation is missing" 1
+assert_statement "kscript -i" "" "Usage:
+ kscript [options] <script> [<script_args>]...
+ kscript --clear-cache
+ kscript --self-update" 1
 
 ## make sure that KOTLIN_HOME can be guessed from kotlinc correctly
 assert "unset KOTLIN_HOME; echo 'println(99)' | kscript -" "99"
@@ -126,7 +129,6 @@ assert_end dependency_lookup
 assert 'echo "foo${NL}bar" | kscript "stdin.print()"' $'foo\nbar'
 #echo "$'foo\nbar' | kscript 'stdin.print()'
 
-assert 'echo "foo${NL}bar" | kscript "stdin.print()"' $'foo\nbar'
 assert 'kscript "println(1+1)"' '2'
 
 
