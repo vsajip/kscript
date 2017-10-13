@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+
+## using shadow jar
+kotlin -classpath /Users/brandl/projects/kotlin/kscript/build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.app.KscriptKt "$@"
+
+## using simple jar
+#kotlin -classpath /Users/brandl/projects/kotlin/kscript/build/libs/kscript-0.1-SNAPSHOT.jar kscript.app.KscriptKt "$@"
+
+## todo inline jar
+#exec $(kotlin -classpath test.jar kscript.app.KscriptKt "$@")

@@ -2,6 +2,8 @@ package kscript.app
 
 // A kscript reimplementation in kotlin
 
+val KSCRIPT_VERSION = "2.0"
+
 fun main(args: Array<String>) {
 
     /**
@@ -15,7 +17,16 @@ fun main(args: Array<String>) {
 
 
     // todo
+    //    print("args are ${args.joinToString()}")
+
+    prepareScript()
 
     // todo fix args here
     println("kotlin ${kotlin_opts} -classpath ${jarFile}:${KOTLIN_HOME}/lib/kotlin-script-runtime.jar:${classpath} ${execClassName} \"\$@\" ")
 }
+
+fun prepareScript() {
+
+    createTempFile("kscriptlet")
+}
+
