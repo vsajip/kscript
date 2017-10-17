@@ -49,9 +49,7 @@ fun main(args: Array<String>) {
     if (args.size == 1 && listOf("--help", "-h", "--version", "-v").contains(args[0])) {
         info(USAGE)
         versionCheck()
-
-
-        exitProcess(0)
+        quit(0)
     }
 
     val docopt = DocOpt(args, USAGE)
@@ -73,7 +71,7 @@ fun main(args: Array<String>) {
         info("Cleaning up cache...")
         KSCRIPT_CACHE_DIR.listFiles().forEach { it.delete() }
         //        evalBash("rm -f ${KSCRIPT_CACHE_DIR}/*")
-        exitProcess(0)
+        quit(0)
     }
 
     // optionally self-update kscript ot the newest version
@@ -87,7 +85,7 @@ fun main(args: Array<String>) {
             // todo port sdkman-indpendent self-update
         }
 
-        exitProcess(0)
+        quit(0)
     }
 
 
@@ -226,11 +224,17 @@ fun main(args: Array<String>) {
     println("kotlin ${kotlin_opts} -classpath ${jarFile}:${KOTLIN_HOME}/lib/kotlin-script-runtime.jar:${classpath} ${execClassName} ${shiftedArgs} ")
 }
 
+fun quit(status: Int) {
+    println(if (status == 0) "true" else "false")
+    exitProcess(status)
+}
+
 /** Determine the latest version by checking github repo and print info if newer version is availabe. */
 fun versionCheck() {
 
     //    val latestVersion = fetchFromURL("https://git.io/v9R73")?.useLines {
     //    val kscriptRawReleaseURL= "https://git.io/v9R73"
+    // todo use the actual kscript.app.Kscript.kt here to infer version
     val kscriptRawReleaseURL = "https://raw.githubusercontent.com/holgerbrandl/kscript/releases/kscript"
     val latestVersion = BufferedReader(InputStreamReader(URL(kscriptRawReleaseURL).openStream())).useLines {
         it.first { it.startsWith("KSCRIPT_VERSION") }.split("=")[1]
