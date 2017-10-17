@@ -136,11 +136,13 @@ EOF
 ########################################################################################################################
 ### test suite coverage
 
-export PATH=${KSCRIPT_HOME}/miscexperimental:${PATH}
+export PATH=${KSCRIPT_HOME}/misc/experimental:${PATH}
 which kscript
 which assert.sh
 
+
 cd ${KSCRIPT_HOME}
+gradle shadowJar
 
 ## clean up the environment
 #sdk use kotlin 1.1-RC

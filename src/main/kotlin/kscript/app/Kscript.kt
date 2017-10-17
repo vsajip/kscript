@@ -74,6 +74,7 @@ fun main(args: Array<String>) {
     }
 
 
+    // Resolve the script resource argument into an actual file
     val scriptResource = docopt.getString("script")
     val scriptFile = prepareScript(scriptResource)
 
@@ -124,7 +125,11 @@ fun main(args: Array<String>) {
     }
 
 
-    val jarFile = File(KSCRIPT_CACHE_DIR, scriptFile.nameWithoutExtension + "." + scriptCheckSum + ".jar")
+    val jarFile = if (scriptFile.nameWithoutExtension.endsWith(scriptCheckSum)) {
+        File(KSCRIPT_CACHE_DIR, scriptFile.nameWithoutExtension + ".jar")
+    } else {
+        File(KSCRIPT_CACHE_DIR, scriptFile.nameWithoutExtension + "." + scriptCheckSum + ".jar")
+    }
 
     // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
     val className = scriptFile.nameWithoutExtension
@@ -230,7 +235,7 @@ fun prepareScript(scriptResource: String): File {
     if (scriptResource == "-" || scriptResource == "/dev/stdin") {
         val scriptText = generateSequence() { readLine() }.joinToString("\n").trim()
 
-        scriptFile = File(KSCRIPT_CACHE_DIR, "scriptlet_${md5(scriptText)}.kts")
+        scriptFile = File(createTempDir(), "scriptlet.${md5(scriptText)}.kts")
         scriptFile.writeText(scriptText)
     }
 
@@ -265,7 +270,8 @@ fun prepareScript(scriptResource: String): File {
             script.trim()
         }
 
-        scriptFile = File(KSCRIPT_CACHE_DIR, "scriptlet_${md5(scriptText)}.kts")
+
+        scriptFile = File(createTempDir(), "scriptlet.${md5(scriptText)}.kts")
         scriptFile.writeText(scriptText)
     }
 
@@ -281,7 +287,7 @@ fun prepareScript(scriptResource: String): File {
 
 fun fetchFromURL(scriptURL: String): File? {
     val urlHash = md5(scriptURL)
-    val urlCache = File(KSCRIPT_CACHE_DIR, "/urlkts_cache_${urlHash}.kts")
+    val urlCache = File(KSCRIPT_CACHE_DIR, "/url_cache_${urlHash}.kts")
 
     if (!urlCache.isFile) {
         urlCache.writeText(URL(scriptURL).readText())
