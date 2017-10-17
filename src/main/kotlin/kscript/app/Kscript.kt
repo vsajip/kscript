@@ -1,7 +1,9 @@
 package kscript.app
 
 import kscript.app.ShellUtils.requireInPath
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -16,7 +18,7 @@ import kotlin.system.exitProcess
  * @author Holger Brandl
  */
 
-val KSCRIPT_VERSION = "2.0"
+val KSCRIPT_VERSION = "2.0.0"
 
 val USAGE = """
 kscript - Enhanced scripting support for Kotlin on *nix-based systems.
@@ -44,7 +46,21 @@ val KSCRIPT_CACHE_DIR = File(System.getenv("HOME")!!, ".kscript")
 
 
 fun main(args: Array<String>) {
+    if (args.size == 1 && listOf("--help", "-h", "--version", "-v").contains(args[0])) {
+        info(USAGE)
+        versionCheck()
+
+
+        exitProcess(0)
+    }
+
     val docopt = DocOpt(args, USAGE)
+    //    try {
+    //        DocOpt(args, USAGE)
+    //    } catch (e: DocoptExitException) {
+    //        println("foo")
+    //        exitProcess(e.exitCode)
+    //    }
     // todo reimplement latest version check
 
     // create cache dir if it does not yet exist
@@ -55,7 +71,8 @@ fun main(args: Array<String>) {
     // optionally clear up the jar cache
     if (docopt.getBoolean("clear-cache")) {
         info("Cleaning up cache...")
-        evalBash("rm -f ${KSCRIPT_CACHE_DIR}/*")
+        KSCRIPT_CACHE_DIR.listFiles().forEach { it.delete() }
+        //        evalBash("rm -f ${KSCRIPT_CACHE_DIR}/*")
         exitProcess(0)
     }
 
@@ -165,10 +182,6 @@ fun main(args: Array<String>) {
         // }).forEach { it.delete() }
 
 
-        // todo reenable
-        //        ## remove previous (now outdated) cache jars
-        //        rm -f .$(basename ${scriptFile} .kts).*.jar
-
         requireInPath("kotlinc")
         //println("command is:\nkotlinc -classpath '${classpath}' -d ${jarFile} ${scriptFile}")
 
@@ -190,15 +203,13 @@ fun main(args: Array<String>) {
             """.trimIndent())
 
             // compile the wrapper
-            with(evalBash("javac ${mainJava}")) {
+            with(runProcess("javac ${mainJava}")) {
                 if (exitCode != 0)
                     error("Compilation of script-wrapper failed:\n${this}")
             }
 
             // update the jar to include main-wrapper
-            //            requireInPath("jar") // disabled because it's another process invocation
-            // val jarUpdateCmd = """cd ${'$'}(dirname ${mainJava}) && jar uf ${jarFile} ${mainJava.nameWithoutExtension}.class"""
-            // with(evalBash(jarUpdateCmd)) {
+            // requireInPath("jar") // disabled because it's another process invocation
             val jarUpdateCmd = "jar uf ${jarFile.absoluteFile} ${mainJava.nameWithoutExtension}.class"
             with(runProcess(jarUpdateCmd, wd = mainJava.parentFile)) {
                 errorIf(exitCode != 0) { "Update of script jar with wrapper class failed\n${this}" }
@@ -213,6 +224,23 @@ fun main(args: Array<String>) {
             joinToString(" ")
 
     println("kotlin ${kotlin_opts} -classpath ${jarFile}:${KOTLIN_HOME}/lib/kotlin-script-runtime.jar:${classpath} ${execClassName} ${shiftedArgs} ")
+}
+
+/** Determine the latest version by checking github repo and print info if newer version is availabe. */
+fun versionCheck() {
+
+    //    val latestVersion = fetchFromURL("https://git.io/v9R73")?.useLines {
+    //    val kscriptRawReleaseURL= "https://git.io/v9R73"
+    val kscriptRawReleaseURL = "https://raw.githubusercontent.com/holgerbrandl/kscript/releases/kscript"
+    val latestVersion = BufferedReader(InputStreamReader(URL(kscriptRawReleaseURL).openStream())).useLines {
+        it.first { it.startsWith("KSCRIPT_VERSION") }.split("=")[1]
+    }
+
+    fun padVersion(version: String) = java.lang.String.format("%03d%03d%03d", *version.split(".").map { Integer.valueOf(it) }.toTypedArray())
+
+    if (padVersion(latestVersion).compareTo(padVersion(KSCRIPT_VERSION)) > 0) {
+        info("""\nA new version (v${latestVersion}) of kscript is available. Use 'kscript --self-update' to update your local kscript installation""")
+    }
 }
 
 /** see discussion on https://github.com/holgerbrandl/kscript/issues/15*/
@@ -275,7 +303,6 @@ fun prepareScript(scriptResource: String): File {
         scriptFile.writeText(scriptText)
     }
 
-    // todo make sure to support stdin and process substitution
 
     // just proceed if the script file is a regular file at this point
     errorIf(scriptFile == null || !scriptFile.canRead()) {
