@@ -36,7 +36,7 @@ Use '--self-update' to wipe cached script jars and urls
 Options:
  -i --interactive        Create interactive shell with DEPS as declared in script
 
-Copyright : 2017 Holger Brandl"
+Copyright : 2017 Holger Brandl
 License   : MIT
 Version   : v$KSCRIPT_VERSION
 Website   : https://github.com/holgerbrandl/kscript
@@ -45,7 +45,9 @@ Website   : https://github.com/holgerbrandl/kscript
 val KSCRIPT_CACHE_DIR = File(System.getenv("HOME")!!, ".kscript")
 
 
+
 fun main(args: Array<String>) {
+    // skip docopt for version and help to allow for lazy version-check
     if (args.size == 1 && listOf("--help", "-h", "--version", "-v").contains(args[0])) {
         info(USAGE)
         versionCheck()
@@ -53,13 +55,6 @@ fun main(args: Array<String>) {
     }
 
     val docopt = DocOpt(args, USAGE)
-    //    try {
-    //        DocOpt(args, USAGE)
-    //    } catch (e: DocoptExitException) {
-    //        println("foo")
-    //        exitProcess(e.exitCode)
-    //    }
-    // todo reimplement latest version check
 
     // create cache dir if it does not yet exist
     if (!KSCRIPT_CACHE_DIR.isDirectory) {
@@ -181,9 +176,8 @@ fun main(args: Array<String>) {
 
 
         requireInPath("kotlinc")
-        //println("command is:\nkotlinc -classpath '${classpath}' -d ${jarFile} ${scriptFile}")
 
-        val scriptCompileResult = runProcess("kotlinc", "-classpath", classpath ?: "", "-d", jarFile.absolutePath, scriptFile.absolutePath)
+        val scriptCompileResult = evalBash("kotlinc -classpath '$classpath' -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}'")
         with(scriptCompileResult) {
             if (exitCode != 0) error("compilation of '$scriptFile' failed\n$this")
         }
@@ -201,15 +195,15 @@ fun main(args: Array<String>) {
             """.trimIndent())
 
             // compile the wrapper
-            with(runProcess("javac ${mainJava}")) {
+            with(evalBash("javac '${mainJava}'")) {
                 if (exitCode != 0)
                     error("Compilation of script-wrapper failed:\n${this}")
             }
 
             // update the jar to include main-wrapper
             // requireInPath("jar") // disabled because it's another process invocation
-            val jarUpdateCmd = "jar uf ${jarFile.absoluteFile} ${mainJava.nameWithoutExtension}.class"
-            with(runProcess(jarUpdateCmd, wd = mainJava.parentFile)) {
+            val jarUpdateCmd = "jar uf '${jarFile.absoluteFile}' ${mainJava.nameWithoutExtension}.class"
+            with(evalBash(jarUpdateCmd, wd = mainJava.parentFile)) {
                 errorIf(exitCode != 0) { "Update of script jar with wrapper class failed\n${this}" }
             }
         }
@@ -221,7 +215,7 @@ fun main(args: Array<String>) {
             //            map { "\""+it+"\"" }.
             joinToString(" ")
 
-    println("kotlin ${kotlin_opts} -classpath ${jarFile}:${KOTLIN_HOME}/lib/kotlin-script-runtime.jar:${classpath} ${execClassName} ${shiftedArgs} ")
+    println("kotlin ${kotlin_opts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${shiftedArgs} ")
 }
 
 fun quit(status: Int) {

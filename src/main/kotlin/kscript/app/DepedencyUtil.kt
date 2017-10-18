@@ -13,6 +13,9 @@ import kotlin.system.exitProcess
 // Use cached classpath from previous run if present
 val DEP_LOOKUP_CACHE_FILE = File(File(System.getProperty("user.home"), ".kscript"), "dependency_cache.txt")
 
+//val CP_SEPARATOR_CHAR= if(PlatformUtil.isWindows()) ";" else ":"
+val CP_SEPARATOR_CHAR = if (System.getProperty("os.name").toLowerCase().contains("windows")) ";" else ":"
+
 
 fun resolveDependencies(depIds: List<String>): String? {
 
@@ -21,7 +24,7 @@ fun resolveDependencies(depIds: List<String>): String? {
         return ""
     }
 
-    val depsHash = depIds.joinToString(";")
+    val depsHash = depIds.joinToString(CP_SEPARATOR_CHAR)
 
 
     if (DEP_LOOKUP_CACHE_FILE.isFile()) {

@@ -36,7 +36,8 @@ gradle shadowJar
 ## iteration 1 simple script
 misc/experimental/kscript2 "1+1"
 
-kscript --clear-cache; gradle shadowJar; misc/experimental/kscript2 "1+1"
+./kscript --clear-cache; (cd ../../ && gradle shadowJar); ./kscript2 "1+1"
+./kscript --clear-cache; gradle shadowJar; misc/experimental/kscript2 "1+1"
 kscript --clear-cache; gradle shadowJar; misc/experimental/kscript2 "lines.print()"
 
 kscript --clear-cache; gradle shadowJar; kotlin -classpath /Users/brandl/projects/kotlin/kscript/build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.app.KscriptKt /Users/brandl/test.kts
@@ -124,7 +125,7 @@ EOF
 
 export PATH=$KSCRIPT_HOME/misc/experimental:$PATH
 
-kscript2 - ~/test.kts <<"EOF"
+./kscript - ~/test.kts <<"EOF"
 //DEPS com.github.holgerbrandl:kscript:1.2.2
 
 import kscript.text.*
@@ -166,7 +167,35 @@ cat kscriptJarStub /Users/brandl/projects/kotlin/kscript/build/libs/kscript-0.1-
 ./kscriptJar --help
 ./kscriptJar "println(1+1)"
 
+ln -s /Users/brandl/projects/kotlin/kscript/build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.jar
 
 #https://stackoverflow.com/questions/17583578/what-command-means-do-nothing-in-a-conditional-in-bash
 #https://github.com/megastep/makeself
 #https://stackoverflow.com/questions/10491704/embed-a-executable-binary-in-a-shell-script
+
+########################################################################################################################
+## windows testing
+
+bash -c "kotlinc -classpath '' -d 'C:\cygwin\home\holger\.kscript\scriptlet.d96e018f51ea61e5.jar' 'C:\cygwin\tmp\tmp5305891320090504256.tmp\scriptlet.d96e018f51ea61e5.kts'"
+
+
+bash -c kotlinc -classpath '' -d 'C:\cygwin\home\holger\.kscript\scriptlet.d96e018f51ea61e5.jar' 'C:\cygwin\tmp\tmp5305891320090504256.tmp\scriptlet.d96e018f51ea61e5.kts'
+
+
+## todo for windows we need ; as classpath separator
+kotlin  -classpath 'C:\cygwin\home\holger\.kscript\scriptlet.d96e018f51ea61e5.jar;C:\cygwin\home\holger\SDKMAN~1\CANDID~1\kotlin\111112~1.51/lib/kotlin-script-runtime.jar' Main_Scriptlet_d96e018f51ea61e5
+
+kotlin  -classpath 'C:\cygwin\home\holger\.kscript\scriptlet.d96e018f51ea61e5.jar' Main_Scriptlet_d96e018f51ea61e5
+
+
+ls -la 'C:\cygwin\home\holger\SDKMAN~1\CANDID~1\kotlin\111112~1.51/lib/kotlin-script-runtime.jar'
+ls -la 'C:\cygwin\home\holger\.kscript\scriptlet.d96e018f51ea61e5.jar'
+
+echo <<EOF
+
+val file = java.io.File("C:\cygwin\home\holger\SDKMAN~1\CANDID~1\kotlin\111112~1.51/lib/kotlin-script-runtime.jar")
+
+EOF
+
+
+kotlin  -classpath 'C:\cygwin\home\holger\.kscript\scriptlet.d96e018f51ea61e5.jar;C:\cygwin\home\holger\SDKMAN~1\CANDID~1\kotlin\111112~1.51\lib\kotlin-script-runtime.jar;' Main_Scriptlet_d96e018f51ea61e5

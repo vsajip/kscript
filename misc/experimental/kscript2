@@ -4,5 +4,5 @@
 # version tag for backward compatibility with kscript v1.x
 KSCRIPT_VERSION=2.0
 
-exec $(kotlin -classpath /Users/brandl/projects/kotlin/kscript/build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.app.KscriptKt "$@")
-#exec $(kotlin -J-agentlib:jdwp=transport=dt_socket,server=n,address=scicomp-mac-12-usb.mpi-cbg.de:8765,suspend=y -classpath /Users/brandl/projects/kotlin/kscript/build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.app.KscriptKt "$@")
+
+exec $(kotlin -classpath ../../build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.app.KscriptKt "$@")
