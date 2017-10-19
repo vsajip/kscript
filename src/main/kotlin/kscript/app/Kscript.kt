@@ -1,6 +1,7 @@
 package kscript.app
 
 import kscript.app.ShellUtils.requireInPath
+import org.docopt.DocOptWrapper
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -9,7 +10,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
-import kotlin.system.exitProcess
 
 
 /**
@@ -45,16 +45,15 @@ Website   : https://github.com/holgerbrandl/kscript
 val KSCRIPT_CACHE_DIR = File(System.getenv("HOME")!!, ".kscript")
 
 
-
 fun main(args: Array<String>) {
-    // skip docopt for version and help to allow for lazy version-check
+    // skip org.docopt for version and help to allow for lazy version-check
     if (args.size == 1 && listOf("--help", "-h", "--version", "-v").contains(args[0])) {
         info(USAGE)
         versionCheck()
         quit(0)
     }
 
-    val docopt = DocOpt(args, USAGE)
+    val docopt = DocOptWrapper(args, USAGE)
 
     // create cache dir if it does not yet exist
     if (!KSCRIPT_CACHE_DIR.isDirectory) {
@@ -179,10 +178,11 @@ fun main(args: Array<String>) {
 
         val scriptCompileResult = evalBash("kotlinc -classpath '$classpath' -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}'")
         with(scriptCompileResult) {
-            if (exitCode != 0) error("compilation of '$scriptFile' failed\n$this")
+            errorIf(exitCode != 0) { "compilation of '$scriptResource' failed\n$stderr" }
         }
 
 
+        // create main-wrapper for kts scripts
         if (scriptFileExt == "kts") {
             val mainJava = File(createTempDir("kscript"), execClassName + ".java")
             mainJava.writeText("""
@@ -196,15 +196,14 @@ fun main(args: Array<String>) {
 
             // compile the wrapper
             with(evalBash("javac '${mainJava}'")) {
-                if (exitCode != 0)
-                    error("Compilation of script-wrapper failed:\n${this}")
+                errorIf(exitCode != 0) { "Compilation of script-wrapper failed:$stderr" }
             }
 
             // update the jar to include main-wrapper
             // requireInPath("jar") // disabled because it's another process invocation
             val jarUpdateCmd = "jar uf '${jarFile.absoluteFile}' ${mainJava.nameWithoutExtension}.class"
             with(evalBash(jarUpdateCmd, wd = mainJava.parentFile)) {
-                errorIf(exitCode != 0) { "Update of script jar with wrapper class failed\n${this}" }
+                errorIf(exitCode != 0) { "Update of script jar with wrapper class failed\n${stderr}" }
             }
         }
     }
@@ -216,11 +215,6 @@ fun main(args: Array<String>) {
             joinToString(" ")
 
     println("kotlin ${kotlin_opts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${shiftedArgs} ")
-}
-
-fun quit(status: Int) {
-    println(if (status == 0) "true" else "false")
-    exitProcess(status)
 }
 
 /** Determine the latest version by checking github repo and print info if newer version is availabe. */

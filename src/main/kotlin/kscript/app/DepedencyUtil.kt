@@ -98,7 +98,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
     // The following artifacts could not be resolved: log4ja:log4ja:jar:9.8.87, log4j:log4j:jar:9.8.105: Could not
 
-    // Check for errors (e.g. when using non-existing deps resdeps.kts log4j:log4j:1.2.14 org.docopt:docopt:22.3-MISSING)
+    // Check for errors (e.g. when using non-existing deps resdeps.kts log4j:log4j:1.2.14 org.org.docopt:org.docopt:22.3-MISSING)
     mavenResult.filter { it.startsWith("[ERROR]") }.find { it.contains("Could not resolve dependencie") }?.let {
         System.err.println("Failed to lookup dependencies. Maven reported the following error:")
         System.err.println(it)
