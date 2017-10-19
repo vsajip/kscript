@@ -32,7 +32,8 @@ install:
 
   ## install kotlin and maven
 #  - bash -c 'source "/home/travis/.sdkman/bin/sdkman-init.sh"; yes | sdk install java 8u144-oracle'
-  - bash -c 'source "/home/travis/.sdkman/bin/sdkman-init.sh"; yes | sdk install java 8u144-zulu'
+#  - bash -c 'source "/home/travis/.sdkman/bin/sdkman-init.sh"; yes | sdk install java 8u144-zulu'
+  - sudo apt-get install -y openjdk-8-jdk
   - sdk install maven
   - sdk install kotlin
   - sdk install gradle
