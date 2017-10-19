@@ -46,11 +46,9 @@ kscript --self-update
 
 #### Installation without `sdkman`
 
-If you have Kotlin and Maven already and you would like to install the latest `kscript` release to your `~/bin` without using `sdkman` you can do so with:
+If you have Kotlin and Maven already and you would like to install the latest `kscript` release to your `~/bin` without using `sdkman` you can do so by unzipping the [latest ](https://github.com/holgerbrandl/kscript/releases/latest) binary release.
 
-```bash
-curl -Lso ~/bin/kscript https://git.io/v9R73 && chmod u+x ~/bin/kscript
-```
+
 
 Interpreter Usage
 -----------------
@@ -246,6 +244,16 @@ How to contribute?
 ------------------
 
 We always welcome pull requests. :-)
+
+To build kscript yourself, simply clone the repo and do
+```bash
+## in the kscript repo root simple build it with
+gradle shadowJar
+## ... then copy fresh build into the same dir as launcher
+cp build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.jar
+## then and run it as usual with
+./kscript
+```
 
 You could also show your support by upvoting `kscript` here on github, or by voting for issues in Intellij IDEA which impact  `kscript`ing. Here are our top 3 tickets/annoyances that we would love to see fixed:
 
