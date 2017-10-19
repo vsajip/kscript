@@ -19,7 +19,7 @@ import javax.xml.bind.DatatypeConverter
  * @author Holger Brandl
  */
 
-val KSCRIPT_VERSION = "2.0.0"
+const val KSCRIPT_VERSION = "2.0.0"
 
 val USAGE = """
 kscript - Enhanced scripting support for Kotlin on *nix-based systems.
@@ -106,7 +106,7 @@ fun main(args: Array<String>) {
     val classpath = resolveDependencies(dependencies)
 
     // Extract kotlin arguments
-    val kotlin_opts = scriptText.
+    val kotlinOpts = scriptText.
             filter { it.startsWith("//KOTLIN_OPTS ") }.
             flatMap { it.split(" ").drop(0) }.
             joinToString(" ")
@@ -115,9 +115,9 @@ fun main(args: Array<String>) {
     //  Optionally enter interactive mode
     if (docopt.getBoolean("interactive")) {
         System.err.println("Creating REPL from ${scriptFile}")
-        System.err.println("kotlinc ${kotlin_opts} -classpath '${classpath}'")
+        System.err.println("kotlinc ${kotlinOpts} -classpath '${classpath}'")
 
-        println("kotlinc ${kotlin_opts} -classpath ${classpath}")
+        println("kotlinc ${kotlinOpts} -classpath ${classpath}")
     }
 
     val scriptFileExt = scriptFile.extension
@@ -160,6 +160,7 @@ fun main(args: Array<String>) {
 
 
     // infer KOTLIN_HOME if not set
+    @Suppress("LocalVariableName")
     val KOTLIN_HOME = System.getenv("KOTLIN_HOME") ?: guessKotlinHome()
     errorIf(KOTLIN_HOME == null) {
         "KOTLIN_HOME is not set and could not be inferred from context"
@@ -215,7 +216,7 @@ fun main(args: Array<String>) {
             //            map { "\""+it+"\"" }.
             joinToString(" ")
 
-    println("kotlin ${kotlin_opts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${shiftedArgs} ")
+    println("kotlin ${kotlinOpts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${shiftedArgs} ")
 }
 
 /** Determine the latest version by checking github repo and print info if newer version is availabe. */
@@ -231,7 +232,7 @@ fun versionCheck() {
 
     fun padVersion(version: String) = java.lang.String.format("%03d%03d%03d", *version.split(".").map { Integer.valueOf(it) }.toTypedArray())
 
-    if (padVersion(latestVersion).compareTo(padVersion(KSCRIPT_VERSION)) > 0) {
+    if (padVersion(latestVersion) > padVersion(KSCRIPT_VERSION)) {
         info("""\nA new version (v${latestVersion}) of kscript is available. Use 'kscript --self-update' to update your local kscript installation""")
     }
 }
@@ -245,7 +246,7 @@ private fun guessKotlinHome(): String? {
 }
 
 fun prepareScript(scriptResource: String): File {
-    var scriptFile: File? = null
+    var scriptFile: File?
 
     // map script argument to script file
     scriptFile = with(File(scriptResource)) {
@@ -333,7 +334,7 @@ fun fetchFromURL(scriptURL: String): File? {
 fun md5(byteProvider: () -> ByteArray): String {
     // from https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
     val md = MessageDigest.getInstance("MD5")
-    md.update(byteProvider());
+    md.update(byteProvider())
 
     val digestInHex = DatatypeConverter.printHexBinary(md.digest()).toLowerCase()
 
