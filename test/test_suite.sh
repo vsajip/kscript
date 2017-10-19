@@ -15,6 +15,11 @@ assert_statement(){
 #assert_statment "echo foo; echo bar  >&2; exit 1" "foo" "bar" 1
 
 
+assert_stderr(){
+    assert "( $1 ) 2>&1 >/dev/null" "$2"
+}
+#assert_stderr "echo foo" "bar"
+
 #http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
 #http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
 export NL=$'\n'
@@ -99,24 +104,25 @@ assert_end environment_tests
 ## dependency_lookup
 
 # export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"; export PATH=${KSCRIPT_HOME}:${PATH}
-alias resdeps.kts='kotlin -classpath kscript.jar kscript.app.DepedencyUtilKt'
+resolve_deps() { kotlin -classpath kscript.jar kscript.app.DepedencyUtilKt "$@";}
+export -f resolve_deps
 
-assert "resdeps.kts log4j:log4j:1.2.14" "${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar"
+
+assert_stderr "resolve_deps log4j:log4j:1.2.14" "${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar"
 
 ## impossible version
-assert_raises "resdeps.kts log4j:log4j:9.8.76" 1
+assert "resolve_deps log4j:log4j:9.8.76" "false"
 
 ## wrong format should exit with 1
-assert_raises "resdeps.kts log4j:1.0" 1
+assert "resolve_deps log4j:1.0" "false"
 
-## wrong format should give meaningful error message
-assert "resdeps.kts log4j:1.0 2>&1" "invalid dependency locator: log4j:1.0\nExpected format is groupId:artifactId:version[:classifier]"
+assert_stderr "resolve_deps log4j:1.0" "[ERROR] Invalid dependency locator: 'log4j:1.0'.  Expected format is groupId:artifactId:version[:classifier]"
 
 ## other version of wrong format should die with useful error.
-assert "resdeps.kts log4j:::1.0 2>&1" "Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript"
+assert_stderr "resolve_deps log4j:::1.0" "Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript"
 
 ## one good dependency,  one wrong
-assert_raises "resdeps.kts org.org.docopt:org.docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
+assert_raises "resolve_deps org.org.docopt:org.docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
 
 assert_end dependency_lookup
 

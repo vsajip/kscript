@@ -3,7 +3,6 @@ package kscript.app
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import kotlin.system.exitProcess
 
 /**
  * @author Holger Brandl
@@ -42,9 +41,8 @@ fun resolveDependencies(depIds: List<String>): String? {
         val splitDepId = it.split(":")
 
         if (!listOf(3, 4).contains(splitDepId.size)) {
-            System.err.println("invalid dependency locator: ${it}")
-            System.err.println("Expected format is groupId:artifactId:version[:classifier]")
-            exitProcess(1)
+            System.err.println("[ERROR] Invalid dependency locator: '${it}'.  Expected format is groupId:artifactId:version[:classifier]")
+            quit(1)
         }
 
         """
@@ -107,7 +105,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
         //    val failedDep = matchResult !!.groupValues[1]
         //    System.err.println("Failed to resolve: ${failedDep}")
 
-        exitProcess(1)
+        quit(1)
     }
 
 
@@ -119,7 +117,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
     if (classPath == null) {
         System.err.println("Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript")
-        exitProcess(1)
+        quit(1)
     }
 
 
@@ -132,5 +130,5 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
 
 fun main(args: Array<String>) {
-    println(resolveDependencies(args.toList()))
+    System.err.println(resolveDependencies(args.toList()))
 }

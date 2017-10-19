@@ -4,6 +4,7 @@ import kscript.app.ShellUtils.requireInPath
 import org.docopt.DocOptWrapper
 import java.io.BufferedReader
 import java.io.File
+import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.net.URL
 import java.nio.file.Files
@@ -246,17 +247,26 @@ private fun guessKotlinHome(): String? {
 fun prepareScript(scriptResource: String): File {
     var scriptFile: File? = null
 
-    // if script input was file just use it as it is
-    if (File(scriptResource).run { isFile() && canRead() }) {
-        scriptFile = File(scriptResource)
+    // map script argument to script file
+    scriptFile = with(File(scriptResource)) {
+        if (!canRead()) {
+            // not a file so let's keep the script-file undefined here
+            null
+        } else if (listOf("kts", "kt").contains(extension)) {
+            // script input is a regular script or clas file
+            this
+        } else {
+            // if we can "just" read from script resource create tmp file
+            // i.e. script input is process substitution file handle
+            // not FileInputStream(this).bufferedReader().use{ readText()} does not work nor does this.readText
+            createTmpScript(FileInputStream(this).bufferedReader().readText())
+        }
     }
 
     // support stdin
     if (scriptResource == "-" || scriptResource == "/dev/stdin") {
         val scriptText = generateSequence() { readLine() }.joinToString("\n").trim()
-
-        scriptFile = File(createTempDir(), "scriptlet.${md5(scriptText)}.kts")
-        scriptFile.writeText(scriptText)
+        scriptFile = createTmpScript(scriptText)
     }
 
 
@@ -290,9 +300,7 @@ fun prepareScript(scriptResource: String): File {
             script.trim()
         }
 
-
-        scriptFile = File(createTempDir(), "scriptlet.${md5(scriptText)}.kts")
-        scriptFile.writeText(scriptText)
+        scriptFile = createTmpScript(scriptText)
     }
 
 
@@ -302,6 +310,12 @@ fun prepareScript(scriptResource: String): File {
     }
 
     return scriptFile!!
+}
+
+private fun createTmpScript(scriptText: String): File {
+    return File(createTempDir(), "scriptlet.${md5(scriptText)}.kts").apply {
+        writeText(scriptText)
+    }
 }
 
 fun fetchFromURL(scriptURL: String): File? {
