@@ -24,11 +24,16 @@ export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"
 
 ## make sure to use devel-version
 export PATH=${KSCRIPT_HOME}:${PATH}
+which kscript
 
 ## make sure assert.h is in PATH
 which assert.sh || exit 1
 
 cd ${KSCRIPT_HOME}
+
+## build it
+gradle shadowJar && cp build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.jar
+
 
 ## clean up the environment
 #sdk use kotlin 1.1-RC

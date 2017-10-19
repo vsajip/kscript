@@ -1,4 +1,7 @@
+## v2.0.0
 
+* Reimplemented in kotlin (fixes [#36](https://github.com/holgerbrandl/kscript/issues/36))
+* Added cygwin support (fixes [#39](https://github.com/holgerbrandl/kscript/issues/39))
 
 ## v1.5.1
 

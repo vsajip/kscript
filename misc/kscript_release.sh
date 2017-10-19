@@ -22,8 +22,13 @@ echo "new version is $kscript_version"
 
 ## create and upload deployment file for sdkman
 
+cd $KSCRIPT_HOME
+gradle shadowJar
+
+## compile binary distribution (including jar and wrapper-script)
 mkdir -p $KSCRIPT_ARCHIVE/kscript-${kscript_version}/bin
 cp ${KSCRIPT_HOME}/kscript ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin
+cp ${KSCRIPT_HOME}/build/libs/kscript-0.1-SNAPSHOT-all.jar ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin/kscript.jar
 
 cd ${KSCRIPT_ARCHIVE}
 zip  -r ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip kscript-${kscript_version}

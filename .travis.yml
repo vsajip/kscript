@@ -32,6 +32,7 @@ install:
   ## install kotlin and maven
   - sdk install maven
   - sdk install kotlin
+  - sdk install gradle
 
   ## install assert.h
   - wget https://raw.github.com/lehmannro/assert.sh/v1.1/assert.sh && chmod +x assert.sh
@@ -40,6 +41,8 @@ install:
   - pwd
   - export PATH=$KSCRIPT_HOME::$PATH
 
+  # build it
+  - cd $KSCRIPT_HOME && gradle shadowJar && cp build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.jar
   - which kscript
   - which resdeps.kts
   - which assert.sh
@@ -50,7 +53,7 @@ install:
   - mvn --version
   - resdeps.kts log4j:log4j:1.2.14
   - kscript 'println("kotlin rocks")'
-#  - resdeps.kts org.docopt:docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14
+#  - resdeps.kts org.org.docopt:org.docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14
 #  - kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts
 
 script: ./test/test_suite.sh

@@ -54,7 +54,7 @@ assert "kscript ${KSCRIPT_HOME}/test/resources/dot.Test.kts" "dot alarm!"
 
 ## missing script
 assert_raises "kscript i_do_not_exist.kts" 1
-assert "kscript i_do_not_exist.kts 2>&1" "[ERROR] Could not open script file 'i_do_not_exist.kts'"
+assert "kscript i_do_not_exist.kts 2>&1" "[ERROR] Could not read script argument 'i_do_not_exist.kts'"
 
 ## make sure that it runs with remote URLs
 assert "kscript https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/url_test.kts" "I came from the internet"
@@ -85,10 +85,7 @@ assert_end cli_helper_tests
 ## environment_tests
 
 ## do not run interactive mode prep without script argument
-assert_statement "kscript -i" "" "Usage:
- kscript [options] <script> [<script_args>]...
- kscript --clear-cache
- kscript --self-update" 1
+assert_raises "kscript -i" 1
 
 ## make sure that KOTLIN_HOME can be guessed from kotlinc correctly
 assert "unset KOTLIN_HOME; echo 'println(99)' | kscript -" "99"
@@ -118,7 +115,7 @@ assert "resdeps.kts log4j:1.0 2>&1" "invalid dependency locator: log4j:1.0\nExpe
 assert "resdeps.kts log4j:::1.0 2>&1" "Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript"
 
 ## one good dependency,  one wrong
-assert_raises "resdeps.kts org.docopt:docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
+assert_raises "resdeps.kts org.org.docopt:org.docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
 
 assert_end dependency_lookup
 
