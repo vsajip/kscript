@@ -14,3 +14,5 @@ gradle-app.setting
 .*jar
 *.iml
 .idea
+
+kscript.jar
