@@ -31,7 +31,7 @@ install:
   - source "/home/travis/.sdkman/bin/sdkman-init.sh"
 
   ## install kotlin and maven
-  - bash -c 'yes | sdk install java 8u144-oracle'
+  - bash -c 'source "/home/travis/.sdkman/bin/sdkman-init.sh"; yes | sdk install java 8u144-oracle'
   - sdk install maven
   - sdk install kotlin
   - sdk install gradle
