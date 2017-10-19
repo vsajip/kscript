@@ -11,7 +11,7 @@ import java.io.File
 class DocOptWrapper(args: Array<String>, val usage: String) {
 
     val parsedArgs = try {
-        Docopt(usage).withExit(true).parse(args.toList())
+        Docopt(usage).withExit(false).parse(args.toList())
     } catch (e: DocoptExitException) {
         // mimic docopts exit behavior but using process-substituion handler at the end
         val ps = System.err
