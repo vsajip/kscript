@@ -99,6 +99,7 @@ assert_end environment_tests
 ## dependency_lookup
 
 # export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"; export PATH=${KSCRIPT_HOME}:${PATH}
+alias resdeps.kts='kotlin -classpath kscript.jar kscript.app.DepedencyUtilKt'
 
 assert "resdeps.kts log4j:log4j:1.2.14" "${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar"
 

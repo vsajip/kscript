@@ -129,3 +129,8 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
     // Print the classpath
     return classPath
 }
+
+
+fun main(args: Array<String>) {
+    println(resolveDependencies(args.toList()))
+}
