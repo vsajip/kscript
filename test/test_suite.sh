@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/bash -x
+#/usr/bin/env bash +x
 
 export DEBUG="--verbose"
 
