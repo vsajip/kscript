@@ -11,6 +11,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
+import kotlin.system.exitProcess
 
 
 /**
@@ -37,7 +38,7 @@ Use '--clear-cache' to wipe cached script jars and urls
 Use '--self-update' to wipe cached script jars and urls
 
 Options:
- -i --interactive        Create interactive shell with DEPS as declared in script
+ -i --interactive        Create interactive shell with dependencies as declared in script
 
 Copyright : 2017 Holger Brandl
 License   : MIT
@@ -120,6 +121,7 @@ fun main(args: Array<String>) {
         System.err.println("kotlinc ${kotlinOpts} -classpath '${classpath}'")
 
         println("kotlinc ${kotlinOpts} -classpath ${classpath}")
+        exitProcess(0)
     }
 
     val scriptFileExt = scriptFile.extension
