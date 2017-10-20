@@ -20,6 +20,7 @@ To run the tests, just run the [`test_suite.sh`](test_suite.sh)
 #git clone https://github.com/holgerbrandl/kscript ; export KSCRIPT_HOME=$(pwd)/kscript
 
 export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"
+#export KSCRIPT_HOME="/cygdrive/z/kscript"
 ## change into this/test directory
 
 ## make sure to use devel-version
@@ -41,13 +42,13 @@ kscript --clear-cache
 
 ${KSCRIPT_HOME}/test/test_suite.sh
 
-# run again with kotlin 1.0.X
-sdk use kotlin 1.0.6
-kscript --clear-cache
-./test/test_suite.sh
-
+# # run again with kotlin 1.0.X
+# sdk use kotlin 1.0.6
+# kscript --clear-cache
+# ./test/test_suite.sh
 ```
 
+## Remove kscript from path
 export PATH=`echo ${PATH} | awk -v RS=: -v ORS=: '/kscript/ {next} {print}'`
 
 

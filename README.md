@@ -233,6 +233,12 @@ By means of the `//ENTRY` directive, `kscript` can be used a application launche
 println("Hello from Kotlin with 5g of heap memory running in server mode!")
 ```
 
+## Why does it fail to read my script file when using cygwin?
+
+In order to use cygwin you need to use windows paths to provide your scripts. You can map cygwin paths using `cygpath`. Example
+```bash
+kscript $(cygpath -w /cygdrive/z/some/path/my_script.kt)
+```
 
 Support
 -------
