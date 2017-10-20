@@ -1,18 +1,10 @@
 package kscript.app
 
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
-
-/**
- * @author Holger Brandl
- */
 
 
-// Use cached classpath from previous run if present
-val DEP_LOOKUP_CACHE_FILE = File(File(System.getProperty("user.home"), ".kscript"), "dependency_cache.txt")
+val DEP_LOOKUP_CACHE_FILE = File(KSCRIPT_CACHE_DIR, "dependency_cache.txt")
 
-//val CP_SEPARATOR_CHAR= if(PlatformUtil.isWindows()) ";" else ":"
 val CP_SEPARATOR_CHAR = if (System.getProperty("os.name").toLowerCase().contains("windows")) ";" else ":"
 
 
@@ -26,6 +18,7 @@ fun resolveDependencies(depIds: List<String>): String? {
     val depsHash = depIds.joinToString(CP_SEPARATOR_CHAR)
 
 
+    // Use cached classpath from previous run if present
     if (DEP_LOOKUP_CACHE_FILE.isFile()) {
         val cache = DEP_LOOKUP_CACHE_FILE.
                 readLines().filter { it.isNotBlank() }.
@@ -84,15 +77,19 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
     fun runMaven(pom: String, goal: String): Iterable<String> {
         val temp = File.createTempFile("__resdeps__temp__", "_pom.xml")
         temp.writeText(pom)
-        val exec = Runtime.getRuntime().exec("mvn -f ${temp.absolutePath} ${goal}")
-        return BufferedReader(InputStreamReader(exec.inputStream)).
-                lines().toArray().map { it.toString() }
+
+        val mavenCmd = if (System.getenv("PATH").run { this != null && contains("cygwin") }) {
+            // when running with cygwin we need to map the pom path into windows space to work
+            "mvn -f $(cygpath -w '${temp.absolutePath}') ${goal}"
+        } else {
+            "mvn -f ${temp.absolutePath} ${goal}"
+        }
+
+        return evalBash(mavenCmd).stdout.lines()
     }
 
     val mavenResult = runMaven(pom, "dependency:build-classpath")
 
-    //println(pom)
-    //println(mavenResult.joinToString("\n"))
 
     // The following artifacts could not be resolved: log4ja:log4ja:jar:9.8.87, log4j:log4j:jar:9.8.105: Could not
 
@@ -100,19 +97,12 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
     mavenResult.filter { it.startsWith("[ERROR]") }.find { it.contains("Could not resolve dependencie") }?.let {
         System.err.println("Failed to lookup dependencies. Maven reported the following error:")
         System.err.println(it)
-        //    val matchResult = "Failure to find ([^ ]*)".toRegex().find(it)
-        //    println(matchResult.toString())
-        //    val failedDep = matchResult !!.groupValues[1]
-        //    System.err.println("Failed to resolve: ${failedDep}")
 
         quit(1)
     }
 
 
     // Extract the classpath from the maven output
-    //System.err.println(mavenResult)
-    //mavenResult.dropWhile { !it.contains("Dependencies classpath:") }.forEach { println(">>>> ${it}") }
-
     val classPath = mavenResult.dropWhile { !it.contains("Dependencies classpath:") }.drop(1).firstOrNull()
 
     if (classPath == null) {

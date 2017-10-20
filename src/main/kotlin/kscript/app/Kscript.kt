@@ -14,12 +14,14 @@ import javax.xml.bind.DatatypeConverter
 
 
 /**
- * A kscript reimplementation in kotlin
+ * A kscript - Scripting enhancements for Kotlin
+ *
+ * For details and license see https://github.com/holgerbrandl/kscript
  *
  * @author Holger Brandl
  */
 
-const val KSCRIPT_VERSION = "2.0.0"
+const val KSCRIPT_VERSION = "2.0.1"
 
 val USAGE = """
 kscript - Enhanced scripting support for Kotlin on *nix-based systems.
