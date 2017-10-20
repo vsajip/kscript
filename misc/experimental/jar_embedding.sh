@@ -10,9 +10,9 @@ cat kscriptJarStub /Users/brandl/projects/kotlin/kscript/build/libs/kscript-0.1-
 
 ./kscriptJar --help
 ./kscriptJar "println(1+1)"
+./kscriptJar "1-"
 
-ln -s /Users/brandl/projects/kotlin/kscript/build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.jar
-
+## References
 #https://stackoverflow.com/questions/17583578/what-command-means-do-nothing-in-a-conditional-in-bash
 #https://github.com/megastep/makeself
 #https://stackoverflow.com/questions/10491704/embed-a-executable-binary-in-a-shell-script
