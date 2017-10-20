@@ -7,10 +7,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.security.MessageDigest
-import javax.xml.bind.DatatypeConverter
 import kotlin.system.exitProcess
 
 
@@ -241,14 +237,6 @@ fun versionCheck() {
     }
 }
 
-/** see discussion on https://github.com/holgerbrandl/kscript/issues/15*/
-private fun guessKotlinHome(): String? {
-    return evalBash("KOTLIN_RUNNER=1 JAVACMD=echo kotlinc").stdout.run {
-        "kotlin.home=([^\\s]*)".toRegex()
-                .find(this)?.groups?.get(1)?.value
-    }
-}
-
 fun prepareScript(scriptResource: String): File {
     var scriptFile: File?
 
@@ -321,40 +309,3 @@ fun prepareScript(scriptResource: String): File {
 }
 
 
-fun createTmpScript(scriptText: String): File {
-    return File(SCRIPT_TEMP_DIR, "scriptlet.${md5(scriptText)}.kts").apply {
-        writeText(scriptText)
-    }
-}
-
-fun fetchFromURL(scriptURL: String): File? {
-    val urlHash = md5(scriptURL)
-    val urlCache = File(KSCRIPT_CACHE_DIR, "/url_cache_${urlHash}.kts")
-
-    if (!urlCache.isFile) {
-        urlCache.writeText(URL(scriptURL).readText())
-    }
-
-    return urlCache
-}
-
-
-fun md5(byteProvider: () -> ByteArray): String {
-    // from https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
-    val md = MessageDigest.getInstance("MD5")
-    md.update(byteProvider())
-
-    val digestInHex = DatatypeConverter.printHexBinary(md.digest()).toLowerCase()
-
-    return digestInHex.substring(0, 16)
-}
-
-fun md5(msg: String) = md5 { msg.toByteArray() }
-
-fun md5(file: File) = md5 { Files.readAllBytes(Paths.get(file.toURI())) }
-
-
-private fun numLines(str: String) =
-        str.split("\r\n|\r|\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray().size
-
-fun info(msg: String) = System.err.println(msg)

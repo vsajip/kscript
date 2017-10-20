@@ -1,5 +1,15 @@
 
 
+## macos setup
+
+change java version
+https://stackoverflow.com/questions/21964709/how-to-set-or-change-the-default-java-jdk-version-on-os-x
+
+```
+export JAVA_HOME=`/usr/libexec/java_home -v 9.0.1`
+export JAVA_HOME=`/usr/libexec/java_home -v 1.8.0_151`
+```
+
 ## launcher
 
 https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within

@@ -1,6 +1,10 @@
 package kscript.app
 
 import java.io.File
+import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.security.MessageDigest
 import kotlin.system.exitProcess
 
 data class ProcessResult(val command: String, val exitCode: Int, val stdout: String, val stderr: String) {
@@ -55,9 +59,11 @@ object ShellUtils {
 
 }
 
+
 fun errorMsg(msg: String) {
     System.err.println("[ERROR] " + msg)
 }
+
 
 fun errorIf(value: Boolean, lazyMessage: () -> Any) {
     if (value) {
@@ -70,3 +76,75 @@ fun quit(status: Int): Nothing {
     print(if (status == 0) "true" else "false")
     exitProcess(status)
 }
+
+/** see discussion on https://github.com/holgerbrandl/kscript/issues/15*/
+fun guessKotlinHome(): String? {
+    return evalBash("KOTLIN_RUNNER=1 JAVACMD=echo kotlinc").stdout.run {
+        "kotlin.home=([^\\s]*)".toRegex()
+                .find(this)?.groups?.get(1)?.value
+    }
+}
+
+
+fun createTmpScript(scriptText: String): File {
+    return File(SCRIPT_TEMP_DIR, "scriptlet.${md5(scriptText)}.kts").apply {
+        writeText(scriptText)
+    }
+}
+
+
+fun fetchFromURL(scriptURL: String): File? {
+    val urlHash = md5(scriptURL)
+    val urlCache = File(KSCRIPT_CACHE_DIR, "/url_cache_${urlHash}.kts")
+
+    if (!urlCache.isFile) {
+        urlCache.writeText(URL(scriptURL).readText())
+    }
+
+    return urlCache
+}
+
+
+fun md5(byteProvider: () -> ByteArray): String {
+    // from https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
+    val md = MessageDigest.getInstance("MD5")
+    md.update(byteProvider())
+
+    // disabled to support java9 which dropeed DataTypeConverter
+    //    md.update(byteProvider())
+    //    val digestInHex = DatatypeConverter.printHexBinary(md.digest()).toLowerCase()
+
+    val digestInHex = bytesToHex(md.digest()).toLowerCase()
+
+    return digestInHex.substring(0, 16)
+}
+
+fun md5(msg: String) = md5 { msg.toByteArray() }
+
+
+fun md5(file: File) = md5 { Files.readAllBytes(Paths.get(file.toURI())) }
+
+
+// from https://github.com/frontporch/pikitis/blob/master/src/test/kotlin/repacker.tests.kt
+private fun bytesToHex(buffer: ByteArray): String {
+    val HEX_CHARS = "0123456789ABCDEF".toCharArray()
+
+    val len = buffer.count()
+    val result = StringBuffer(len * 2)
+    var ix = 0
+    while (ix < len) {
+        val octet = buffer[ix].toInt()
+        val firstIndex = (octet and 0xF0).ushr(4)
+        val secondIndex = octet and 0x0F
+        result.append(HEX_CHARS[firstIndex])
+        result.append(HEX_CHARS[secondIndex])
+        ix++
+    }
+    return result.toString()
+}
+
+
+fun numLines(str: String) = str.split("\r\n|\r|\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray().size
+
+
+fun info(msg: String) = System.err.println(msg)

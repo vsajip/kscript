@@ -1,8 +1,10 @@
-## v2.0.0
+## v2.0.X
 
 * Reimplemented in kotlin (fixes [#36](https://github.com/holgerbrandl/kscript/issues/36))
 * Added cygwin support (fixes [#39](https://github.com/holgerbrandl/kscript/issues/39))
 * Added `//INCLUDE` directive (fixes [#34](https://github.com/holgerbrandl/kscript/issues/34)
+* Fixed: interactive mode is not correctly started when using stdin as script argument ([#40](https://github.com/holgerbrandl/kscript/issues/40)
+* Fixed compatibility with java9 ([#41](https://github.com/holgerbrandl/kscript/issues/41))
 
 
 ## v1.5.1
