@@ -46,7 +46,7 @@ kscript --self-update
 
 #### Installation without `sdkman`
 
-If you have Kotlin and Maven already and you would like to install the latest `kscript` release to your `~/bin` without using `sdkman` you can do so by unzipping the [latest ](https://github.com/holgerbrandl/kscript/releases/latest) binary release.
+If you have Kotlin and Maven already and you would like to install the latest `kscript` release without using `sdkman` you can do so by unzipping the [latest ](https://github.com/holgerbrandl/kscript/releases/latest) binary release. Don't forget to update your `$PATH` accordingly.
 
 
 
@@ -237,8 +237,23 @@ println("Hello from Kotlin with 5g of heap memory running in server mode!")
 
 In order to use cygwin you need to use windows paths to provide your scripts. You can map cygwin paths using `cygpath`. Example
 ```bash
-kscript $(cygpath -w /cygdrive/z/some/path/my_script.kt)
+kscript $(cygpath -w /cygdrive/z/some/path/my_script.kts)
 ```
+
+## Can I include another script with helper functions like `source foo.sh` in bash?
+
+Yes, `kscript` supports an `//INLCUDE` directive. Absolute and relative paths, as well as URLs are supported. Example
+
+```kotlin
+#!/usr/bin/env kscript
+
+//INCLUDE Utils.kt
+//INCLUDE ../other_utils/Utils.kt
+//INCLUDE http://somewhere.com/utils.kt
+
+...
+```
+For an actual example see [here](test/resources/includes/include_variations.kts).
 
 Support
 -------

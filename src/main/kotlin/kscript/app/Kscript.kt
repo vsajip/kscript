@@ -46,7 +46,7 @@ Website   : https://github.com/holgerbrandl/kscript
 """.trim()
 
 val KSCRIPT_CACHE_DIR = File(System.getenv("HOME")!!, ".kscript")
-
+val SCRIPT_TEMP_DIR = createTempDir()
 
 fun main(args: Array<String>) {
     // skip org.docopt for version and help to allow for lazy version-check
@@ -307,6 +307,9 @@ fun prepareScript(scriptResource: String): File {
     }
 
 
+    // support //INCLUDE directive (see https://github.com/holgerbrandl/kscript/issues/34)
+    scriptFile = resolveIncludes(scriptFile)
+
     // just proceed if the script file is a regular file at this point
     errorIf(scriptFile == null || !scriptFile.canRead()) {
         "Could not read script argument '$scriptResource'"
@@ -315,8 +318,9 @@ fun prepareScript(scriptResource: String): File {
     return scriptFile!!
 }
 
-private fun createTmpScript(scriptText: String): File {
-    return File(createTempDir(), "scriptlet.${md5(scriptText)}.kts").apply {
+
+fun createTmpScript(scriptText: String): File {
+    return File(SCRIPT_TEMP_DIR, "scriptlet.${md5(scriptText)}.kts").apply {
         writeText(scriptText)
     }
 }

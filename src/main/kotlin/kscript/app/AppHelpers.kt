@@ -55,20 +55,18 @@ object ShellUtils {
 
 }
 
+fun errorMsg(msg: String) {
+    System.err.println("[ERROR] " + msg)
+}
+
 fun errorIf(value: Boolean, lazyMessage: () -> Any) {
     if (value) {
-        System.err.println("[ERROR] " + lazyMessage().toString())
+        errorMsg(lazyMessage().toString())
         quit(1)
     }
 }
 
-
 fun quit(status: Int): Nothing {
     print(if (status == 0) "true" else "false")
     exitProcess(status)
-}
-
-
-internal inline fun warning(value: Boolean, lazyMessage: () -> Any): Unit {
-    if (!value) System.err.println(lazyMessage())
 }
