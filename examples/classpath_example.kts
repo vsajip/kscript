@@ -1,11 +1,15 @@
 #!/usr/bin/env kscript
-//DEPS org.docopt:docopt:0.6.0-SNAPSHOT,log4j:log4j:1.2.14
+//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:1.2.14
 
 //#!/usr/bin/env kotlinc -script -classpath /Users/brandl/.m2/repository/org/docopt/docopt/0.6.0-SNAPSHOT/docopt-0.6.0-SNAPSHOT.jar
 
 import org.docopt.Docopt
 import java.io.File
 import java.util.*
+
+
+// woraround for https://youtrack.jetbrains.com/issue/KT-13347
+//val args = listOf("foo", "bar")
 
 
 var test = File("sdf")

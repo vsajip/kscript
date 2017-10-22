@@ -1,6 +1,5 @@
 #!/usr/bin/env kscript
 
-//org.docopt:docopt:0.6.0-SNAPSHOT
 //DEPS  com.offbytwo:docopt:0.6.0.20150202
 //DEPS log4j:log4j:1.2.14
 
