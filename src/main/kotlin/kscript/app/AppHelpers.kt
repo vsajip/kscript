@@ -148,3 +148,73 @@ fun numLines(str: String) = str.split("\r\n|\r|\n".toRegex()).dropLastWhile { it
 
 
 fun info(msg: String) = System.err.println(msg)
+
+
+fun launchIdeaWithKscriptlet(scriptFile: File, dependencies: List<String>): String {
+    System.err.println("Setting up idea project from ${scriptFile}")
+
+    //    val tmpProjectDir = createTempDir("edit_kscript", suffix="")
+    //            .run { File(this, "kscript_tmp_project") }
+    //            .apply { mkdir() }
+
+
+    //  fixme use tmp instead of cachdir. Fails for now because idea gradle import does not seem to like tmp
+    val tmpProjectDir = KSCRIPT_CACHE_DIR
+            .run { File(this, "kscript_tmp_project__${scriptFile.name}") }
+            .apply { mkdir() }
+    //    val tmpProjectDir = File("/Users/brandl/Desktop/")
+    //            .run { File(this, "kscript_tmp_project") }
+    //            .apply { mkdir() }
+
+    val stringifiedDeps = dependencies.map { "    compile \"$it\"" }.joinToString("\n")
+
+    val gradleScript = """
+group 'com.github.holgerbrandl.kscript.editor'
+version '0.1-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
+
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:${'$'}kotlin_version"
+$stringifiedDeps
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'src'
+        }
+    }
+}
+
+buildscript {
+    ext.kotlin_version = '1.1.4'
+
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${'$'}kotlin_version"
+    }
+}
+"""
+
+    File(tmpProjectDir, "build.gradle").writeText(gradleScript)
+
+    // also copy script reource in
+    File(tmpProjectDir, "src").apply {
+        mkdir()
+        scriptFile.copyTo(File(this, scriptFile.name))
+
+    }
+
+    return "idea ${tmpProjectDir.absolutePath}"
+}

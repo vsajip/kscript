@@ -35,6 +35,7 @@ Use '--self-update' to wipe cached script jars and urls
 
 Options:
  -i --interactive        Create interactive shell with dependencies as declared in script
+ --idea                  Open script in temporary Intellij session
 
 Copyright : 2017 Holger Brandl
 License   : MIT
@@ -101,6 +102,14 @@ fun main(args: Array<String>) {
             .map { it.split("[ ]+".toRegex())[1] }
             .flatMap { it.split(";", ",", " ") }
             .map(String::trim)
+
+
+    //  Create temopary dev environment
+    if (docopt.getBoolean("idea")) {
+        println(launchIdeaWithKscriptlet(scriptFile, dependencies))
+        exitProcess(0)
+    }
+
 
     val classpath = resolveDependencies(dependencies)
 
