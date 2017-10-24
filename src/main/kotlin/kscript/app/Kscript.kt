@@ -99,8 +99,7 @@ fun main(args: Array<String>) {
     // Find all //DEPS directives and concatenate their values
     val dependencies = scriptText
             .filter { it.startsWith("//DEPS ") }
-            .map { it.split("[ ]+".toRegex())[1] }
-            .flatMap { it.split(";", ",", " ") }
+            .flatMap { it.split("[ ;,]+".toRegex()).drop(1) }
             .map(String::trim)
 
 
@@ -114,10 +113,7 @@ fun main(args: Array<String>) {
     val classpath = resolveDependencies(dependencies)
 
     // Extract kotlin arguments
-    val kotlinOpts = scriptText.
-            filter { it.startsWith("//KOTLIN_OPTS ") }.
-            flatMap { it.split(" ").drop(0) }.
-            joinToString(" ")
+    val kotlinOpts = extractKotlinOptions(scriptText)
 
 
     //  Optionally enter interactive mode
@@ -221,15 +217,24 @@ fun main(args: Array<String>) {
 
 
     // print the final command to be run by exec
-    val shiftedArgs = args.drop(1 + args.indexOfFirst { it == scriptResource }).
-            //            map { "\""+it+"\"" }.
-            joinToString(" ")
+    val shiftedArgs = args.drop(1 + args.indexOfFirst { it == scriptResource }).joinToString(" ")
 
     println("kotlin ${kotlinOpts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${shiftedArgs} ")
 }
 
+
+private fun extractKotlinOptions(scriptText: List<String>): String {
+    val koptsPrefix = "//KOTLIN_OPTS "
+
+    return scriptText.
+            filter { it.startsWith(koptsPrefix) }.
+            map { it.replace(koptsPrefix, "") }.
+            joinToString(" ")
+}
+
+
 /** Determine the latest version by checking github repo and print info if newer version is availabe. */
-fun versionCheck() {
+private fun versionCheck() {
 
     //    val latestVersion = fetchFromURL("https://git.io/v9R73")?.useLines {
     //    val kscriptRawReleaseURL= "https://git.io/v9R73"
