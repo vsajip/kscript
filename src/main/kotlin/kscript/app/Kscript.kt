@@ -251,7 +251,7 @@ private fun versionCheck() {
     fun padVersion(version: String) = java.lang.String.format("%03d%03d%03d", *version.split(".").map { Integer.valueOf(it) }.toTypedArray())
 
     if (padVersion(latestVersion) > padVersion(KSCRIPT_VERSION)) {
-        info("""\nA new version (v${latestVersion}) of kscript is available. Use 'kscript --self-update' to update your local kscript installation""")
+        info("""A new version (v${latestVersion}) of kscript is available. Use 'kscript --self-update' to update your local kscript installation""")
     }
 }
 
