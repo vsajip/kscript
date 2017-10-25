@@ -97,10 +97,7 @@ fun main(args: Array<String>) {
     }
 
     // Find all //DEPS directives and concatenate their values
-    val dependencies = scriptText
-            .filter { it.startsWith("//DEPS ") }
-            .flatMap { it.split("[ ;,]+".toRegex()).drop(1) }
-            .map(String::trim)
+    val dependencies = collectDependencies(scriptText)
 
 
     //  Create temopary dev environment
@@ -113,7 +110,7 @@ fun main(args: Array<String>) {
     val classpath = resolveDependencies(dependencies)
 
     // Extract kotlin arguments
-    val kotlinOpts = extractKotlinOptions(scriptText)
+    val kotlinOpts = collectRuntimeOptions(scriptText)
 
 
     //  Optionally enter interactive mode
@@ -222,13 +219,20 @@ fun main(args: Array<String>) {
     println("kotlin ${kotlinOpts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${shiftedArgs} ")
 }
 
+fun collectDependencies(scriptText: List<String>): List<String> {
+    return scriptText
+            .filter { it.startsWith("//DEPS ") }
+            .flatMap { it.split("[ ;,]+".toRegex()).drop(1) }
+            .map(String::trim)
+}
 
-private fun extractKotlinOptions(scriptText: List<String>): String {
+
+fun collectRuntimeOptions(scriptText: List<String>): String {
     val koptsPrefix = "//KOTLIN_OPTS "
 
     return scriptText.
             filter { it.startsWith(koptsPrefix) }.
-            map { it.replace(koptsPrefix, "") }.
+            map { it.replace(koptsPrefix, "").trim() }.
             joinToString(" ")
 }
 
