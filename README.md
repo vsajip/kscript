@@ -16,6 +16,10 @@ In particular this wrapper around `kotlinc` adds
 Taken all these features together, `kscript` provides an easy-to-use, very flexible, and almost zero-overhead solution to write self-contained mini-applications with Kotlin.
 
 
+---
+### [`kscript` presentation from KotlinConf2017!](https://holgerbrandl.github.io/kscript_kotlinconf_2017/kscript_kotlinconf.html)
+---
+
 Installation
 ------------
 
