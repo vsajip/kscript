@@ -239,7 +239,7 @@ fun collectRuntimeOptions(scriptText: List<String>): String {
             filter { it.startsWith(koptsPrefix) }.
             map { it.replaceFirst(koptsPrefix, "").trim() }.
             joinToString(" ").
-            plus( if ( kscriptOpts.isNullOrBlank() ) "" else " ${kscriptOpts}" )
+            plus(kscriptOpts ?: "")
 }
 
 
