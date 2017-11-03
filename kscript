@@ -2,7 +2,7 @@
 
 
 # version tag for backward compatibility with kscript v1.x
-KSCRIPT_VERSION=2.0.2
+KSCRIPT_VERSION=2.1.0
 
 
 ## resolve application jar path from script location and convert to windows path when using cygwin
