@@ -230,16 +230,18 @@ fun collectDependencies(scriptText: List<String>): List<String> {
 fun collectRuntimeOptions(scriptText: List<String>): String {
     val koptsPrefix = "//KOTLIN_OPTS "
 
-    // Append $KSCRIPT_KOTLIN_OPTS.
-    // Overriding //KOTLIN_OPTS lines in the script relies on the JVM processing
-    // arguments in order, which seems to be the case for Oracle, OpenJDK, and J9.
-    val kscriptOpts = System.getenv()["KSCRIPT_KOTLIN_OPTS"]
-
-    return scriptText.
+    var kotlinOpts = scriptText.
             filter { it.startsWith(koptsPrefix) }.
-            map { it.replaceFirst(koptsPrefix, "").trim() }.
-            joinToString(" ").
-            plus(kscriptOpts ?: "")
+            map { it.replaceFirst(koptsPrefix, "").trim() }
+
+    //todo add support for @file:KotlinOpts here
+
+    // Append $KSCRIPT_KOTLIN_OPTS if defined in the parent environment
+    System.getenv()["KSCRIPT_KOTLIN_OPTS"]?.run {
+        kotlinOpts = kotlinOpts + this
+    }
+
+    return kotlinOpts.joinToString(" ")
 }
 
 

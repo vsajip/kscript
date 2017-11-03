@@ -46,7 +46,7 @@ assert "source ${KSCRIPT_HOME}/test/resources/cmd_subst_test.sh" "command substi
 
 ## make sure that it runs with local script files
 assert "source ${KSCRIPT_HOME}/test/resources/local_script_file.sh" "kscript rocks!"
-assert "echo foo" "bar" # known to fail
+#assert "echo foo" "bar" # known to fail
 
 ## make sure that it runs with local script files
 assert "kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts" "kscript is  cool!"
