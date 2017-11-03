@@ -56,6 +56,16 @@ class Tests {
         collectRuntimeOptions(lines) shouldBe "-foo 3 'some file.txt' --bar"
     }
 
+    @Test
+    fun annotOptsCollect() {
+        val lines = listOf(
+                "//KOTLIN_OPTS -foo 3 'some file.txt'",
+                """@file:KotlinOpts("--bar")"""
+        )
+
+        collectRuntimeOptions(lines) shouldBe "-foo 3 'some file.txt' --bar"
+    }
+
 
     @Test
     fun foo() {

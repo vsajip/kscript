@@ -253,7 +253,13 @@ fun collectRuntimeOptions(scriptText: List<String>): String {
             filter { it.startsWith(koptsPrefix) }.
             map { it.replaceFirst(koptsPrefix, "").trim() }
 
-    //todo add support for @file:KotlinOpts here
+    //support for @file:KotlinOpts see #47
+    val annotatonPrefix = "@file:KotlinOpts("
+    kotlinOpts += scriptText
+            .filter { it.startsWith(annotatonPrefix) }
+            .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
+            .map { it.trim(' ', '"') }
+
 
     // Append $KSCRIPT_KOTLIN_OPTS if defined in the parent environment
     System.getenv()["KSCRIPT_KOTLIN_OPTS"]?.run {
