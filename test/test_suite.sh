@@ -133,6 +133,14 @@ assert_raises "resolve_deps org.org.docopt:org.docopt:0.9.0-SNAPSHOT log4j:log4j
 assert_end dependency_lookup
 
 ########################################################################################################################
+## annotation-drive configuration
+
+# make sure that @file:DependsOn is parsed correctly
+assert "kscript ${KSCRIPT_HOME}/test/resources/annotation_deps.kts" "kscript with annotations rocks!"
+
+
+
+########################################################################################################################
 ## support_api
 
 ## make sure that one-liners include support-api

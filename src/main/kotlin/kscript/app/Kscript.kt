@@ -117,7 +117,7 @@ fun main(args: Array<String>) {
     //  Optionally enter interactive mode
     if (docopt.getBoolean("interactive")) {
         System.err.println("Creating REPL from ${scriptFile}")
-        System.err.println("kotlinc ${kotlinOpts} -classpath '${classpath}'")
+        //        System.err.println("kotlinc ${kotlinOpts} -classpath '${classpath}'")
 
         println("kotlinc ${kotlinOpts} -classpath ${classpath}")
         exitProcess(0)
@@ -221,11 +221,29 @@ fun main(args: Array<String>) {
 }
 
 fun collectDependencies(scriptText: List<String>): List<String> {
-    return scriptText
+    val deps = scriptText
             .filter { it.startsWith("//DEPS ") }
             .flatMap { it.split("[ ;,]+".toRegex()).drop(1) }
             .map(String::trim)
+
+    val annotatonPrefix = "@file:DependsOn("
+    var annotDeps = scriptText
+            .filter { it.startsWith(annotatonPrefix) }
+            .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
+            .flatMap { it.split(",") }
+            .map { it.trim(' ', '"') }
+
+    // if annotations are used add dependency
+    if (scriptText.any { containsKscriptAnnotation(it) }) {
+        annotDeps += "com.github.holgerbrandl:kscript-annotations:1.0"
+    }
+
+    return (deps + annotDeps).distinct()
 }
+
+
+fun containsKscriptAnnotation(line: String) =
+        listOf("DependsOn", "KotlinOpts", "Include", "EntryPoint").any { line.startsWith("@file:${it}(") }
 
 
 fun collectRuntimeOptions(scriptText: List<String>): String {
@@ -305,7 +323,7 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
             var script = scriptResource.trim()
 
             //auto-prefix one-liners with kscript-support api
-//            if (numLines(script) == 1 && (script.startsWith("lines") || script.startsWith("stdin"))) {
+            //            if (numLines(script) == 1 && (script.startsWith("lines") || script.startsWith("stdin"))) {
             if (enableSupportApi) {
                 val prefix = """
                 //DEPS com.github.holgerbrandl:kscript:1.2.2
