@@ -1,4 +1,9 @@
-## v2.0.X
+## v2.1
+
+* support for annotation-driven script configuration
+* refactored support api mode into `-t` parameter
+
+## v2.0
 
 * Reimplemented in kotlin (fixes [#36](https://github.com/holgerbrandl/kscript/issues/36))
 * Added cygwin support (fixes [#39](https://github.com/holgerbrandl/kscript/issues/39))
