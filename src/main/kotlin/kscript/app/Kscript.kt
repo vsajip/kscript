@@ -35,6 +35,7 @@ Use '--self-update' to wipe cached script jars and urls
 
 Options:
  -i --interactive        Create interactive shell with dependencies as declared in script
+ -t --text               Enable stdin support API for more streamlined text processing
  --idea                  Open script in temporary Intellij session
 
 Copyright : 2017 Holger Brandl
@@ -86,7 +87,7 @@ fun main(args: Array<String>) {
 
     // Resolve the script resource argument into an actual file
     val scriptResource = docopt.getString("script")
-    val scriptFile = prepareScript(scriptResource)
+    val scriptFile = prepareScript(scriptResource, enableSupportApi = docopt.getBoolean("text"))
 
 
     val scriptText = scriptFile.readLines()
@@ -263,7 +264,7 @@ private fun versionCheck() {
     }
 }
 
-fun prepareScript(scriptResource: String): File {
+fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
     var scriptFile: File?
 
     // map script argument to script file
@@ -304,7 +305,8 @@ fun prepareScript(scriptResource: String): File {
             var script = scriptResource.trim()
 
             //auto-prefix one-liners with kscript-support api
-            if (numLines(script) == 1 && (script.startsWith("lines") || script.startsWith("stdin"))) {
+//            if (numLines(script) == 1 && (script.startsWith("lines") || script.startsWith("stdin"))) {
+            if (enableSupportApi) {
                 val prefix = """
                 //DEPS com.github.holgerbrandl:kscript:1.2.2
 

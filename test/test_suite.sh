@@ -35,6 +35,10 @@ assert "source ${KSCRIPT_HOME}/test/resources/direct_script_arg.sh" "kotlin rock
 ## also allow for empty programs
 assert "kscript ''" ""
 
+## provide script as direct argument
+assert 'kscript "println(1+1)"' '2'
+
+
 ## provide script via stidin
 assert "echo 'println(1+1)' | kscript -" "2"
 
@@ -132,13 +136,12 @@ assert_end dependency_lookup
 ## support_api
 
 ## make sure that one-liners include support-api
-assert 'echo "foo${NL}bar" | kscript "stdin.print()"' $'foo\nbar'
+assert 'echo "foo${NL}bar" | kscript -t "stdin.print()"' $'foo\nbar'
 #echo "$'foo\nbar' | kscript 'stdin.print()'
 
-assert 'kscript "println(1+1)"' '2'
 
 
-assert_statement 'echo "foo${NL}bar" | kscript "stdin.split().select(1, 2, -3)"' "" "[ERROR] Can not mix positive and negative selections" 1
+assert_statement 'echo "foo${NL}bar" | kscript --text "stdin.split().select(1, 2, -3)"' "" "[ERROR] Can not mix positive and negative selections" 1
 
 assert_end support_api
 
