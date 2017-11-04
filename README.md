@@ -314,5 +314,7 @@ Acknowledgements
 
 The initial version of `kscript` was kindly contributed by [Oscar Gonzalez](https://github.com/oskargb).
 
+Thanks also to the [Scionics Computer Innovation GmbH](https://www.scionics.com/) and the [MPI-CBG](http://www.mpi-cbg.de) for supporting this project.
+
 `kscript` was inspired by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way to do scripting in Kotlin.
 
