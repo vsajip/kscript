@@ -290,9 +290,9 @@ Support API
 
 `kscript` is complemented by a [support library](https://github.com/holgerbrandl/kscript-support-api) to ease the writing of Kotlin scriptlets for text-processing. The latter includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the development of kscript applications.
 
-The text processing mode can be enabled with `-t` or `--text`. If so, `kscript`
-* declare `com.github.holgerbrandl:kscript:1.2.2` as dependency for the scriptl
-* import the  `kscript.*` namespace for the script
+The text processing mode can be enabled with `-t` or `--text`. If so, `kscript` will
+* declare `com.github.holgerbrandl:kscript:1.2.2` as dependency for the script
+* import the  `kscript.*` namespace
 * Define variable `val lines = kscript.text.StreamUtilKt.resolveArgFile(args)` which returns an iterator over the lines in the first input argument of the script, or the standard input if no arguments are provided to the script
 
 This allows for `sed`/`awk`/`perl`-like constructs such as
