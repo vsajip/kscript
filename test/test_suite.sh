@@ -145,11 +145,12 @@ assert "kscript ${KSCRIPT_HOME}/test/resources/annotation_deps.kts" "kscript wit
 
 ## make sure that one-liners include support-api
 assert 'echo "foo${NL}bar" | kscript -t "stdin.print()"' $'foo\nbar'
-#echo "$'foo\nbar' | kscript 'stdin.print()'
+assert 'echo "foo${NL}bar" | kscript -t "lines.print()"' $'foo\nbar'
+#echo "$'foo\nbar' | kscript 'lines.print()'
 
 
 
-assert_statement 'echo "foo${NL}bar" | kscript --text "stdin.split().select(1, 2, -3)"' "" "[ERROR] Can not mix positive and negative selections" 1
+assert_statement 'echo "foo${NL}bar" | kscript --text "lines.split().select(1, 2, -3)"' "" "[ERROR] Can not mix positive and negative selections" 1
 
 assert_end support_api
 

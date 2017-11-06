@@ -19,7 +19,7 @@ assertInPath mvn
 ## cheap curl replacement to avoid dependency on curl
 ## https://superuser.com/questions/238987/how-does-unix-search-for-executable-files
 kurl(){
-kscript 'import java.io.*
+../kscript 'import java.io.*
 
 try {
     BufferedReader(InputStreamReader(java.net.URL(args[0]).openStream())).useLines { it.forEach { println(it) } }
@@ -86,7 +86,7 @@ fi
 
 ## look up resdeps from repo unless we're having a full local test clone of it
 if [[ -z "$(which resdeps.kts 2>/dev/null)" ]]; then
-    resolve_script_deps(){ kscript "https://raw.githubusercontent.com/holgerbrandl/kscript/v${KSCRIPT_VERSION}/resdeps.kts" "$@"; }
+    resolve_script_deps(){ ../kscript "https://raw.githubusercontent.com/holgerbrandl/kscript/v${KSCRIPT_VERSION}/resdeps.kts" "$@"; }
 else
     resolve_script_deps(){ resdeps.kts "$@"; }
 fi
@@ -103,7 +103,7 @@ if [[ "$1" == "--self-update" ]]; then
         # Create and spawn update script (see this may not work https://stackoverflow.com/questions/8595751/is-this-a-valid-self-update-approach-for-a-bash-script)
 cat > ${KSCRIPT_CACHE_DIR}/self_update.sh <<EOF
 mv "$(which kscript).tmp" "$(which kscript)"
-echo "You're now running kscript "$(kscript --help 2>&1| grep Version | cut -f2- | tr -d ':')
+echo "You're now running kscript "$(../kscript --help 2>&1| grep Version | cut -f2- | tr -d ':')
 EOF
     exec /bin/bash ${KSCRIPT_CACHE_DIR}/self_update.sh
 
