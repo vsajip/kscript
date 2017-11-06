@@ -68,34 +68,6 @@ for (arg in args) {
 }
 ```
 
-To specify dependencies simply use gradle-style locators. Here's an example using [docopt](https://github.com/docopt/docopt.java) and [log4j](http://logging.apache.org/log4j/2.x/)
-
-```kotlin
-#!/usr/bin/env kscript
-//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:1.2.14
-
-import org.docopt.Docopt
-import java.util.*
-
-
-val usage = """
-Use this cool tool to do cool stuff
-Usage: cooltool.kts [options] <igenome> <fastq_files>...
-
-Options:
- --gtf <gtfFile>     Custom gtf file instead of igenome bundled copy
- --pc-only           Use protein coding genes only for mapping and quantification
-"""
-
-val doArgs = Docopt(usage).parse(args.toList())
-
-println("Hello from Kotlin!")
-println("Parsed script arguments are: \n" + doArgs)
-```
-
-`kscript` will read dependencies from all lines in a script that start with `//DEPS` (if any). Multiple dependencies can be split by comma, space or semicolon.
-
-
 Inlined Usage
 -------------
 
@@ -164,17 +136,169 @@ URL-scripts are cached locally to speed up processing, and `kscript --clear-cach
 
 See this [blogpost](http://holgerbrandl.github.io/kotlin/2016/12/02/mini_programs_with_kotlin.html) for a more extensive overview about URL support in `kscript`.
 
+Script Configuration
+--------------------
+
+The following directives supported by `kscript` to configure scripts:
+
+* `//DEPS` to declare dependencies with gradle-style locators
+* `//KOTLIN_OPTS`  to configure the kotlin/java runtime environment
+* `//INCLUDE` to source kotlin files into the script
+* `//ENTRY` to declare the application entrypoint for kotlin `*.kt` applications
+
+
+### Declare dependencies with `//DEPS`
+
+To specify dependencies simply use gradle-style locators. Here's an example using [docopt](https://github.com/docopt/docopt.java) and [log4j](http://logging.apache.org/log4j/2.x/)
+
+```kotlin
+#!/usr/bin/env kscript
+//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:1.2.14
+
+import org.docopt.Docopt
+import java.util.*
+
+
+val usage = """
+Use this cool tool to do cool stuff
+Usage: cooltool.kts [options] <igenome> <fastq_files>...
+
+Options:
+ --gtf <gtfFile>     Custom gtf file instead of igenome bundled copy
+ --pc-only           Use protein coding genes only for mapping and quantification
+"""
+
+val doArgs = Docopt(usage).parse(args.toList())
+
+println("Hello from Kotlin!")
+println("Parsed script arguments are: \n" + doArgs)
+```
+
+`kscript` will read dependencies from all lines in a script that start with `//DEPS` (if any). Multiple dependencies can be split by comma, space or semicolon.
+
+### Configure the runtime  with `//KOTLIN_OPTS`
+
+`kscript` allows to provide a `//KOTLIN_OPTS` directive followed by parameters passed on to `kotlin` similar to how dependencies are defined:
+```kotlin
+#!/usr/bin/env kscript
+//KOTLIN_OPTS -J-Xmx5g  -J-server
+
+println("Hello from Kotlin with 5g of heap memory running in server mode!")
+```
+
+### Ease prototyping with `//INCLUDE`
+
+`kscript` supports an `//INLCUDE` directive to directly include other source files without prior compilation. Absolute and relative paths, as well as URLs are supported. Example:
+
+```kotlin
+//utils.kt
+fun Array<Double>.median(): Double {
+    val (lower, upper) = sorted().let { take(size / 2) to takeLast(size / 2) }
+    return if (size % 2 == 0) (lower.last() + upper.first()) / 2.0 else upper.first()
+}
+```
+
+Which can be now used using the `//INCLUDE` directive with
+
+```kotlin
+#!/usr/bin/env kscript
+
+
+*//INCLUDE utils.kt
+*//INCLUDE https://github.com/krangl/blob/src/MathHelpers.kt
+
+val robustMean = listOf(1.3, 42.3, 7.).median()
+println(robustMean)
+```
+
+
+For more examples see [here](test/resources/includes/include_variations.kts).
+
+
+### Use `//ENTRY` to run applications with `main` method
+
+
+`kscript` also supports running regular Kotlin `kt` files.
+
+Example: `./examples/Foo.kt`:
+
+```kotlin
+package examples
+
+//ENTRY examples.Bar
+
+class Bar{
+    companion object {
+        @JvmStatic fun main(args: Array<String>) {
+            println("Foo was called")
+        }
+    }
+}
+
+fun main(args: Array<String>) =  println("main was called")
+```
+
+To run top-level main instead we would use `//ENTRY examples.FooKt`
+
+The latter is the default for `kt` files and could be omitted
+
+
+### Annotation driven script configuration
+
+Using annotations instead of comment directives to configure scripts is cleaner and allow for better tooling.
+
+```kotlin
+// annotation-driven script configuration
+@file:DependsOn("de.mpicbg.scicomp:kutils:0.4")
+
+// comment directive
+//DEPS de.mpicbg.scicomp:kutils:0.4
+```
+
+ To do so `kscript` supports [annotations](https://github.com/holgerbrandl/kscript_annotations) to be used instead of comment directives:
+```kotlin
+#!/usr/bin/env kscript
+
+// declare dependencies
+@file:DependsOn("de.mpicbg.scicomp:kutils:0.4")
+@file:DependsOn("com.beust:klaxon:0.24", "com.github.kittinunf.fuel:fuel:1.3.1")
+
+// include helper scripts without deployment or prior compilation
+@file:Include("util.kt")
+
+
+// Define kotlin options
+@file:KotlinOpts("-J-Xmx5g")
+@file:KotlinOpts("-J-server")
+
+// declare application entry point (applies on for kt-files)
+@file:EntryPoint("Foo.bar") 
+
+print("1+1")
+```
+
+To enable the use of these annotations in Intellij, the user must add the following artifact (hosted on jcenter) to the project dependencies:
+```
+com.github.holgerbrandl:kscript-annotations:1.0
+```
+
+`kscript` will automatically detect an annotation-driven script, and if so will declare a dependency on this artifact internally.
 
 Support API
 -----------
 
 
-`kscript` is complemented by a [support library](https://github.com/holgerbrandl/kscript-support-api) to ease the writing of Kotlin scriptlets. The latter includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the development of kscript applications.
+`kscript` is complemented by a [support library](https://github.com/holgerbrandl/kscript-support-api) to ease the writing of Kotlin scriptlets for text-processing. The latter includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the development of kscript applications.
 
-When using the direct script arguments (like in the example below) the methods in the the `kscript.*` namespace and the corresponding dependency `com.github.holgerbrandl:kscript:1.2.2` are automatically added as prefix to the script by convention. This allows for  sed-like constructs like
+The text processing mode can be enabled with `-t` or `--text`. If so, `kscript`
+* declare `com.github.holgerbrandl:kscript:1.2.2` as dependency for the scriptl
+* import the  `kscript.*` namespace for the script
+* Define variable `val lines = kscript.text.StreamUtilKt.resolveArgFile(args)` which returns an iterator over the lines in the first input argument of the script, or the standard input if no arguments are provided to the script
+
+This allows for `sed`/`awk`/`perl`-like constructs such as
 
 ```bash
-cat some_file | kscript 'stdin.filter { "^de0[-0]*".toRegex().matches(it) }.map { it + "foo:" }.print()'
+cat some_file | kscript -t 'lines.filter { "^de0[-0]*".toRegex().matches(it) }.map { it + "foo:" }.print()'
 ```
 
 The elements that come from our [support library](https://github.com/holgerbrandl/kscript-support-api) in the example are the [`stdin`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/text/StreamUtil.kt#11) object of type `Sequence<String>` to iterate over the standard input, and the extension method [`print`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/text/StreamUtil.kt#L34) to print the lines to stdout. The rest is stdlib Kotlin.
@@ -185,7 +309,6 @@ The elements that come from our [support library](https://github.com/holgerbrand
 
 FAQ
 ---
-
 
 ### Why is `kscript` not calling the main method in my `.kts` script?
 
@@ -202,40 +325,6 @@ Yes, (since v1.6) you can run kotlin source files through `kscript`. By default 
 
 However in case you're using a companion object to declare the entry point, you need to indicate this via the `//ENTRY` directive:
 
-```kotlin
-#!/usr/bin/env kscript
-
-package test
-
-//DEPS log4j:log4j:1.2.14
-//ENTRY Foo
-
-class User(val age: Int)
-
-fun findUserByName(name: String): User = null!!
-
-class Foo{
-    companion object {
-        @JvmStatic fun main(args: Array<String>) {
-            println("foo companion was called")
-        }
-    }
-}
-```
-The intial shebang could be left out by running the script directly with `kscript some.kt`
-
-By means of the `//ENTRY` directive, `kscript` can be used a application launcher for demos and examples. Even direcly from your github repo via its [URL input mode](#url-usage)
-
-
-### How to adjust the memory settings for the JVM in my scriptlet?
-
-`kscript` allows to provide a `//KOTLIN_OPTS` directive followed by parameters passed on to `kotlin` similar to how dependencies are defined:
-```kotlin
-#!/usr/bin/env kscript
-//KOTLIN_OPTS -J-Xmx5g  -J-server
-
-println("Hello from Kotlin with 5g of heap memory running in server mode!")
-```
 
 ## Why does it fail to read my script file when using cygwin?
 
@@ -243,42 +332,6 @@ In order to use cygwin you need to use windows paths to provide your scripts. Yo
 ```bash
 kscript $(cygpath -w /cygdrive/z/some/path/my_script.kts)
 ```
-
-## Can I include another script with helper functions like `source foo.sh` in bash?
-
-Yes, `kscript` supports an `//INLCUDE` directive. Absolute and relative paths, as well as URLs are supported. Example
-
-```kotlin
-#!/usr/bin/env kscript
-
-//INCLUDE Utils.kt
-//INCLUDE ../other_utils/Utils.kt
-//INCLUDE http://somewhere.com/utils.kt
-
-...
-```
-For an actual example see [here](test/resources/includes/include_variations.kts).
-
-
-## Why isn't kscript using annotations instead of comment directives to configure scripts?
-
-Indeed using annotations would be cleaner. And kscript provides annotations to be used instead of comment directives. Example
-
-```kotlin
-// annotation-driven script configuration
-@file:DependsOn("de.mpicbg.scicomp:kutils:0.4")
-
-// comment directive
-//DEPS de.mpicbg.scicomp:kutils:0.4
-```
-See [here](https://github.com/holgerbrandl/kscript_annotations) for a complete listing of supported annotations.
-
-To enable the use of these annotations in Intellij, the user must add the following artifact (hosted on jcenter) to the project dependencies:
-```
-com.github.holgerbrandl:kscript-annotations:1.0
-```
-
-`kscript` will automatically detect an annotation-driven script, and if so will add this artifact to the dependencies internally.
 
 Support
 -------
