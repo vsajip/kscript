@@ -76,9 +76,22 @@ fun main(args: Array<String>) {
     if (docopt.getBoolean(("self-update"))) {
         if (evalBash("which kscript | grep .sdkman").stdout.isNotBlank()) {
             info("Installing latest version of kscript...")
-            println("sdkman_auto_answer=true && sdk install kscript")
+            //            println("sdkman_auto_answer=true && sdk install kscript")
+
+            // create update script
+            val updateScript = File(KSCRIPT_CACHE_DIR, "self_update.sh").apply {
+                writeText("""
+                source ${"$"}{HOME}/.bash_profile
+                sdk --help
+                sdkman_auto_answer=true && sdk install kscript
+                """.trimIndent())
+                setExecutable(true)
+            }
+
+            println(updateScript.absolutePath)
         } else {
             info("Self-update is currently just supported via sdkman.")
+            info("Please download a new release from https://github.com/holgerbrandl/kscript")
             // todo port sdkman-indpendent self-update
         }
 
