@@ -7,6 +7,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.net.URL
+import java.net.UnknownHostException
 import kotlin.system.exitProcess
 
 
@@ -277,8 +278,13 @@ private fun versionCheck() {
     //    val kscriptRawReleaseURL= "https://git.io/v9R73"
     // todo use the actual kscript.app.Kscript.kt here to infer version
     val kscriptRawReleaseURL = "https://raw.githubusercontent.com/holgerbrandl/kscript/releases/kscript"
-    val latestVersion = BufferedReader(InputStreamReader(URL(kscriptRawReleaseURL).openStream())).useLines {
-        it.first { it.startsWith("KSCRIPT_VERSION") }.split("=")[1]
+
+    val latestVersion = try {
+        BufferedReader(InputStreamReader(URL(kscriptRawReleaseURL).openStream())).useLines {
+            it.first { it.startsWith("KSCRIPT_VERSION") }.split("=")[1]
+        }
+    } catch (e: UnknownHostException) {
+        return // skip version check here, since the use has no connection to the internet at the moment
     }
 
     fun padVersion(version: String) = java.lang.String.format("%03d%03d%03d", *version.split(".").map { Integer.valueOf(it) }.toTypedArray())
@@ -332,7 +338,7 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
             //            if (numLines(script) == 1 && (script.startsWith("lines") || script.startsWith("stdin"))) {
             if (enableSupportApi) {
                 val prefix = """
-                //DEPS com.github.holgerbrandl:kscript:1.2.2
+                //DEPS com.github.holgerbrandl:kscript:1.2.3
 
                 import kscript.text.*
                 val lines = resolveArgFile(args)
