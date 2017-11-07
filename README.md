@@ -52,7 +52,12 @@ kscript --self-update
 
 If you have Kotlin and Maven already and you would like to install the latest `kscript` release without using `sdkman` you can do so by unzipping the [latest ](https://github.com/holgerbrandl/kscript/releases/latest) binary release. Don't forget to update your `$PATH` accordingly.
 
+#### Installation with Homebrew
 
+On MacOS you can install `kscript` also with [Homebrew](https://brew.sh/)
+```
+brew install holgerbrandl/tap/kscript
+```
 
 Interpreter Usage
 -----------------

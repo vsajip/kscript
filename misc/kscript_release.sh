@@ -81,6 +81,9 @@ github-release upload \
 ### Update release branch
 
 #http://stackoverflow.com/questions/13969050/how-to-create-a-new-empty-branch-for-a-new-project
+
+cd $KSCRIPT_HOME && rm -rf kscript_releases_*
+
 git clone git@github.com:holgerbrandl/kscript.git kscript_releases_${kscript_version}
 cd kscript_releases_${kscript_version}
 #git checkout --orphan releases
@@ -145,3 +148,36 @@ curl -X POST \
     -d '{"candidate": "kscript", "version": "'${kscript_version}'", "hashtag": "kscript"}' \
     https://vendors.sdkman.io/announce/struct
 
+
+########################################################################
+### Update the homebrew descriptor (see https://github.com/holgerbrandl/kscript/issues/50)
+
+cd $KSCRIPT_HOME && rm -rf homebrew-tap
+git clone https://github.com/holgerbrandl/homebrew-tap.git
+cd homebrew-tap
+
+archiveMd5=$(shasum -a 256 ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip | cut -f1 -d ' ')
+
+cat - <<EOF > kscript.rb
+class Kscript < Formula
+  desc "kscript"
+  homepage "https://github.com/holgerbrandl/kscript"
+  url "https://github.com/holgerbrandl/kscript/releases/download/v${kscript_version}/kscript-${kscript_version}-bin.zip"
+  sha256 "${archiveMd5}"
+
+  depends_on "kotlin"
+
+  def install
+    libexec.install Dir["*"]
+    inreplace "#{libexec}/bin/kscript", /^jarPath=.*/, "jarPath=#{libexec}/bin/kscript.jar"
+    bin.install_symlink "#{libexec}/bin/kscript"
+  end
+end
+EOF
+
+git add kscript.rb
+git commit -m "v${kscript_version} release"
+git push #origin releases
+
+
+## to test use `brew install holgerbrandl/tap/kscript`
