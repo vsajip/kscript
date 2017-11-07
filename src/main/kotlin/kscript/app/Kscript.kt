@@ -81,8 +81,9 @@ fun main(args: Array<String>) {
             // create update script
             val updateScript = File(KSCRIPT_CACHE_DIR, "self_update.sh").apply {
                 writeText("""
-                source ${"$"}{HOME}/.bash_profile
-                sdk --help
+                #!/usr/bin/env bash
+                # source ${"$"}{HOME}/.bash_profile
+                # sdk --help
                 sdkman_auto_answer=true && sdk install kscript
                 """.trimIndent())
                 setExecutable(true)
