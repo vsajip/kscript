@@ -208,14 +208,12 @@ Which can be now used using the `//INCLUDE` directive with
 ```kotlin
 #!/usr/bin/env kscript
 
-
-*//INCLUDE utils.kt
-*//INCLUDE https://github.com/krangl/blob/src/MathHelpers.kt
+//INCLUDE utils.kt
 
 val robustMean = listOf(1.3, 42.3, 7.).median()
 println(robustMean)
 ```
-
+The argument file can be an url, absolute or relative path.
 
 For more examples see [here](test/resources/includes/include_variations.kts).
 
