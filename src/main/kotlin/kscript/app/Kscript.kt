@@ -74,7 +74,7 @@ fun main(args: Array<String>) {
     // optionally self-update kscript ot the newest version
     // (if not local copy is not being maintained by sdkman)
     if (docopt.getBoolean(("self-update"))) {
-        if (evalBash("which kscript | grep .sdkman").stdout.isNotBlank()) {
+        if (true || evalBash("which kscript | grep .sdkman").stdout.isNotBlank()) {
             info("Installing latest version of kscript...")
             //            println("sdkman_auto_answer=true && sdk install kscript")
 
@@ -82,8 +82,8 @@ fun main(args: Array<String>) {
             val updateScript = File(KSCRIPT_CACHE_DIR, "self_update.sh").apply {
                 writeText("""
                 #!/usr/bin/env bash
-                # source ${"$"}{HOME}/.bash_profile
-                # sdk --help
+                export SDKMAN_DIR="${"$"}{HOME}/.sdkman"
+                source "${"$"}{SDKMAN_DIR}/bin/sdkman-init.sh"
                 sdkman_auto_answer=true && sdk install kscript
                 """.trimIndent())
                 setExecutable(true)
