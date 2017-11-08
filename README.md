@@ -59,8 +59,14 @@ On MacOS you can install `kscript` also with [Homebrew](https://brew.sh/)
 brew install holgerbrandl/tap/kscript
 ```
 
-Interpreter Usage
------------------
+## Script Input Modes
+
+The main mode of operation is `kscript <script>`.
+
+The `<script>` can be a Kotlin `*.kts` script file , a script URL, `-` for stdin, a process substitution file handle, a `*.kt` source file with a main method, or some kotlin code.
+
+
+### Interpreter Usage
 
 To use `kscript` as interpreter for a script just point to it in the shebang line of your Kotlin scripts:
 
@@ -73,8 +79,7 @@ for (arg in args) {
 }
 ```
 
-Inlined Usage
--------------
+### Inlined Usage
 
 
 To use `kscript` in a workflow without creating an additional script file, you can also use one of its supported modes for _inlined usage_. The following modes are supported:
@@ -121,8 +126,7 @@ kscript <(echo 'println("k-onliner")') arg1 arg2 arg3
 Inlined _kscripts_ are also cached based on `md5` checksum, so running the same snippet again will use a cached jar (sitting in `~/.kscript`).
 
 
-URL usage
----------
+### URL usage
 
 To support remote scriplet repositories, `kscript` can also work with URLs. Consider the following [hello-world-gist-scriptlet](https://github.com/holgerbrandl/kscript/blob/master/examples/url_example.kts) which is hosted on github (but any URL would work). To run it locally as a tool simply refer to it (here using the shortened [raw-URL](https://raw.githubusercontent.com/holgerbrandl/kscript/master/examples/url_example.kts) of the script for better readability)
 
@@ -296,7 +300,7 @@ Support API
 The text processing mode can be enabled with `-t` or `--text`. If so, `kscript` will
 * declare `com.github.holgerbrandl:kscript:1.2.3` as dependency for the script
 * import the  `kscript.*` namespace
-* Define variable `val lines = kscript.text.StreamUtilKt.resolveArgFile(args)` which returns an iterator over the lines in the first input argument of the script, or the standard input if no arguments are provided to the script
+* Define variable `val lines = kscript.text.StreamUtilKt.resolveArgFile(args)` which returns an iterator over the lines in the first input argument of the script, or the standard input if no file arguments are provided to the script
 
 This allows for `sed`/`awk`/`perl`-like constructs such as
 
@@ -304,7 +308,7 @@ This allows for `sed`/`awk`/`perl`-like constructs such as
 cat some_file | kscript -t 'lines.filter { "^de0[-0]*".toRegex().matches(it) }.map { it + "foo:" }.print()'
 ```
 
-The elements that come from our [support library](https://github.com/holgerbrandl/kscript-support-api) in the example are the [`stdin`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/text/StreamUtil.kt#11) object of type `Sequence<String>` to iterate over the standard input, and the extension method [`print`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/text/StreamUtil.kt#L34) to print the lines to stdout. The rest is stdlib Kotlin.
+In this example, the extension method [`Iterable<String>.print()`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/text/StreamUtil.kt#L34) to print the lines to stdout comes from the support API. The rest is stdlib Kotlin.
 
  For more  examples using the support library see this [blog post](http://holgerbrandl.github.io/kotlin/2017/05/08/kscript_as_awk_substitute.html).
 
