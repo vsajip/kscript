@@ -31,8 +31,6 @@ fun runProcess(vararg cmd: String, wd: File? = null): ProcessResult {
         // simplify with https://stackoverflow.com/questions/35421699/how-to-invoke-external-command-from-within-kotlin-code
         val proc = ProcessBuilder(cmd.asList()). //.inheritIO();
                 directory(wd).
-                redirectOutput(ProcessBuilder.Redirect.PIPE).
-                redirectError(ProcessBuilder.Redirect.PIPE).
                 // see https://youtrack.jetbrains.com/issue/KT-20785
                 apply { environment()["KOTLIN_RUNNER"] = "" }.
                 start();
