@@ -8,7 +8,7 @@ val DEP_LOOKUP_CACHE_FILE = File(KSCRIPT_CACHE_DIR, "dependency_cache.txt")
 val CP_SEPARATOR_CHAR = if (System.getProperty("os.name").toLowerCase().contains("windows")) ";" else ":"
 
 
-fun resolveDependencies(depIds: List<String>): String? {
+fun resolveDependencies(depIds: List<String>, loggingEnabled: Boolean): String? {
 
     // if no dependencies were provided we stop here
     if (depIds.isEmpty()) {
@@ -29,6 +29,9 @@ fun resolveDependencies(depIds: List<String>): String? {
         }
     }
 
+
+    if (loggingEnabled) System.err.print("[kscript] Resolving dependencies...")
+    var hasLoggedDownload = false
 
     val depTags = depIds.map {
         val splitDepId = it.split(":")
@@ -85,7 +88,20 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
             "mvn -f ${temp.absolutePath} ${goal}"
         }
 
-        return evalBash(mavenCmd).stdout.lines()
+        return evalBash(mavenCmd, stdoutConsumer = object : StringBuilderConsumer() {
+            override fun accept(t: String) {
+                super.accept(t)
+
+
+                // log artifact downloading (see https://github.com/holgerbrandl/kscript/issues/23)
+                if (loggingEnabled && t.startsWith("Downloading: ")) {
+                    if (!hasLoggedDownload) System.err.println()
+                    hasLoggedDownload = true
+
+                    System.err.println("[kscript] " + t)
+                }
+            }
+        }).stdout.lines()
     }
 
     val mavenResult = runMaven(pom, "dependency:build-classpath")
@@ -112,6 +128,10 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
 
     // Add classpath to cache
+    if (loggingEnabled && !hasLoggedDownload) {
+        System.err.println("Done")
+    }
+
     DEP_LOOKUP_CACHE_FILE.appendText(depsHash + " " + classPath + "\n")
 
     // Print the classpath
@@ -119,6 +139,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 }
 
 
+// called by unit tests
 fun main(args: Array<String>) {
-    System.err.println(resolveDependencies(args.toList()))
+    System.err.println(resolveDependencies(args.toList(), false))
 }

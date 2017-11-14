@@ -38,6 +38,7 @@ Options:
  -i --interactive        Create interactive shell with dependencies as declared in script
  -t --text               Enable stdin support API for more streamlined text processing
  --idea                  Open script in temporary Intellij session
+ -s --silent             Suppress status logging to stderr
 
 Copyright : 2017 Holger Brandl
 License   : MIT
@@ -57,6 +58,8 @@ fun main(args: Array<String>) {
     }
 
     val docopt = DocOptWrapper(args, USAGE)
+    val loggingEnabled = !docopt.getBoolean("silent")
+
 
     // create cache dir if it does not yet exist
     if (!KSCRIPT_CACHE_DIR.isDirectory) {
@@ -123,7 +126,7 @@ fun main(args: Array<String>) {
     }
 
 
-    val classpath = resolveDependencies(dependencies)
+    val classpath = resolveDependencies(dependencies, loggingEnabled)
 
     // Extract kotlin arguments
     val kotlinOpts = collectRuntimeOptions(scriptText)
@@ -187,6 +190,9 @@ fun main(args: Array<String>) {
 
     // If scriplet jar ist not cached yet, build it
     if (!jarFile.isFile) {
+        // disabled logging because it seems too much
+        // if(loggingEnabled) System.err.print("[kscript] Building script jar...")
+
         // disabled because a user might have same-named scripts for different projects
         // // remove previous (now outdated) cache jars
         // KSCRIPT_CACHE_DIR.listFiles({
@@ -225,6 +231,8 @@ fun main(args: Array<String>) {
             with(evalBash(jarUpdateCmd, wd = mainJava.parentFile)) {
                 errorIf(exitCode != 0) { "Update of script jar with wrapper class failed\n${stderr}" }
             }
+
+            //            if(loggingEnabled) System.err.println("Done")
         }
     }
 

@@ -1,11 +1,16 @@
 package kscript.app
 
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.MessageDigest
+import java.util.function.Consumer
 import kotlin.system.exitProcess
+
 
 data class ProcessResult(val command: String, val exitCode: Int, val stdout: String, val stderr: String) {
 
@@ -17,7 +22,12 @@ data class ProcessResult(val command: String, val exitCode: Int, val stdout: Str
     }
 }
 
-fun evalBash(cmd: String, wd: File? = null): ProcessResult = runProcess("bash", "-c", cmd, wd = wd)
+fun evalBash(cmd: String, wd: File? = null,
+             stdoutConsumer: Consumer<String> = StringBuilderConsumer(),
+             stderrConsumer: Consumer<String> = StringBuilderConsumer()): ProcessResult {
+    return runProcess("bash", "-c", cmd,
+        wd = wd, stderrConsumer = stderrConsumer, stdoutConsumer = stdoutConsumer)
+}
 
 
 fun runProcess(cmd: String, wd: File? = null): ProcessResult {
@@ -25,26 +35,56 @@ fun runProcess(cmd: String, wd: File? = null): ProcessResult {
     return runProcess(cmd = *parts.toTypedArray(), wd = wd)
 }
 
-fun runProcess(vararg cmd: String, wd: File? = null): ProcessResult {
+fun runProcess(vararg cmd: String, wd: File? = null,
+               stdoutConsumer: Consumer<String> = StringBuilderConsumer(),
+               stderrConsumer: Consumer<String> = StringBuilderConsumer()): ProcessResult {
 
     try {
         // simplify with https://stackoverflow.com/questions/35421699/how-to-invoke-external-command-from-within-kotlin-code
-        val proc = ProcessBuilder(cmd.asList()). //.inheritIO();
-                directory(wd).
-                // see https://youtrack.jetbrains.com/issue/KT-20785
-                apply { environment()["KOTLIN_RUNNER"] = "" }.
-                start();
+        val proc = ProcessBuilder(cmd.asList()).
+            directory(wd).
+            // see https://youtrack.jetbrains.com/issue/KT-20785
+            apply { environment()["KOTLIN_RUNNER"] = "" }.
+            start();
 
+
+        // we need to gobble the streams to prevent that the internal pipes hit their respecitive buffer limits, which
+        // would lock the sub-process execution (see see https://github.com/holgerbrandl/kscript/issues/55
+        // https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki
+        val stdoutGobbler = StreamGobbler(proc.inputStream, stdoutConsumer).apply { start() }
+        val stderrGobbler = StreamGobbler(proc.errorStream, stderrConsumer).apply { start() }
 
         val exitVal = proc.waitFor()
 
-        return ProcessResult(cmd.joinToString(" "), exitVal,
-                proc.inputStream.bufferedReader().readText(),
-                proc.errorStream.bufferedReader().readText()
-        )
+        // we need to wait for the gobbler threads or we may loose some output (e.g. in case of short-lived processes
+        stderrGobbler.join()
+        stdoutGobbler.join()
+
+        return ProcessResult(cmd.joinToString(" "), exitVal, stdoutConsumer.toString(), stderrConsumer.toString())
 
     } catch (t: Throwable) {
         throw RuntimeException(t)
+    }
+}
+
+
+internal class StreamGobbler(private val inputStream: InputStream, private val consumeInputLine: Consumer<String>) : Thread() {
+
+
+    override fun run() {
+        BufferedReader(InputStreamReader(inputStream)).lines().forEach(consumeInputLine)
+    }
+}
+
+internal open class StringBuilderConsumer : Consumer<String> {
+    val sb = StringBuilder()
+
+    override fun accept(t: String) {
+        sb.appendln(t)
+    }
+
+    override fun toString(): String {
+        return sb.toString()
     }
 }
 
@@ -79,7 +119,7 @@ fun quit(status: Int): Nothing {
 fun guessKotlinHome(): String? {
     return evalBash("KOTLIN_RUNNER=1 JAVACMD=echo kotlinc").stdout.run {
         "kotlin.home=([^\\s]*)".toRegex()
-                .find(this)?.groups?.get(1)?.value
+            .find(this)?.groups?.get(1)?.value
     }
 }
 
@@ -158,8 +198,8 @@ fun launchIdeaWithKscriptlet(scriptFile: File, dependencies: List<String>): Stri
 
     //  fixme use tmp instead of cachdir. Fails for now because idea gradle import does not seem to like tmp
     val tmpProjectDir = KSCRIPT_CACHE_DIR
-            .run { File(this, "kscript_tmp_project__${scriptFile.name}") }
-            .apply { mkdir() }
+        .run { File(this, "kscript_tmp_project__${scriptFile.name}") }
+        .apply { mkdir() }
     //    val tmpProjectDir = File("/Users/brandl/Desktop/")
     //            .run { File(this, "kscript_tmp_project") }
     //            .apply { mkdir() }
