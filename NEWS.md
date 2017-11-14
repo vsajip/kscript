@@ -1,3 +1,9 @@
+## v2.2
+
+* Logging of maven artifact downloads to stderr and high level status information (fixes [#23](https://github.com/holgerbrandl/kscript/issues/23))
+* Added `-s` / `--silent` to suppress all logging
+* Fixed [#55](https://github.com/holgerbrandl/kscript/issues/55): dependency resolution fails on travis ci and within docker containers
+
 ## v2.1
 
 * support for annotation-driven script configuration

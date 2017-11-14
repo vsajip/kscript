@@ -26,10 +26,14 @@ kotlin [jupyter kernel ](https://github.com/ligee/kotlin-jupyter/blob/6ec1e5f8e4
 
 which seem to come from https://github.com/kohesive/keplin//keplin-maven-resolver/src/main/kotlin/uy/kohesive/keplin/kotlin/script/resolver/maven/MavenResolverAnnotations.kt
 
+
 They also have impl a programmatic mvn resolver there https://github.com/kohesive/keplin/blob/master/keplin-maven-resolver/src/main/kotlin/uy/kohesive/keplin/kotlin/script/resolver/maven/MavenScriptDependenciesResolver.kt
 
 Could be used as a library, see
 https://github.com/kohesive/keplin#keplin-core
+
+
+tbd: What is included in `compile "org.jetbrains.kotlin:kotlin-annotations-jvm:1.1.60"`
 
 ## References
 
@@ -154,3 +158,10 @@ Related Projects
 
 
 
+Suprocess management
+--------------------
+
+buffer handling is limited with standard jdk ProcessBuilder because buffer is limit and will block once full.
+![](.notes_images/7eef33f0.png)
+
+JDK aims to improve it https://www.javaworld.com/article/3176874/java-language/java-9s-other-new-enhancements-part-3.html
