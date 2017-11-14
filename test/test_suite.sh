@@ -110,7 +110,7 @@ assert_end environment_tests
 ## dependency_lookup
 
 # export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"; export PATH=${KSCRIPT_HOME}:${PATH}
-resolve_deps() { kotlin -classpath kscript.jar kscript.app.DepedencyUtilKt "$@";}
+resolve_deps() { kotlin -classpath kscript.jar kscript.app.DependencyUtilKt "$@";}
 export -f resolve_deps
 
 
@@ -176,3 +176,10 @@ assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/default_entry_withpckg.k
 
 assert_end kt_support
 
+
+
+########################################################################################################################
+##  run junit-test suite
+
+# exit code of `true` is expected to be 0 (see https://github.com/lehmannro/assert.sh)
+assert "gradle test"

@@ -10,9 +10,12 @@ docker run -it kscript_tester
 
 
 ## or with host-local repo-copy
-cd ~/Desktop/
-git clone https://github.com/holgerbrandl/kscript.git kscript_docker
+#cd ~/Desktop/
+#git clone https://github.com/holgerbrandl/kscript.git kscript_docker
 docker run -it --rm -v $(pwd)/kscript_docker:/kscript kscript_tester
+
+cd $KSCRIPT_HOME
+docker run -it --rm -v $(pwd):/kscript kscript_tester
 
 
 #docker rm  `docker ps -q -l` # restart it in the background
@@ -27,7 +30,7 @@ docker attach `docker ps -q -l` # reattach the terminal & stdin
 
 
 ## or using github repo
-git clone https://github.com/holgerbrandl/kscript.git
+#git clone https://github.com/holgerbrandl/kscript.git
 cd kscript
 export KSCRIPT_HOME=$(pwd)
 
@@ -45,10 +48,12 @@ ${KSCRIPT_HOME}/test/test_suite.sh
 
 ## manuallt test dependency lookup
 ./kscript --clear-cache
-resolve_deps() { kotlin -classpath kscript.jar kscript.app.DepedencyUtilKt "$@";}
+rm -rf ~/.m2/; kscript --clear-cache
+resolve_deps() { kotlin -classpath kscript.jar kscript.app.DependencyUtilKt "$@";}
 
 resolve_deps log4j:log4j:1.2.14
 
+mvn -f /tmp/__resdeps__temp__6026124609748923742_pom.xml dependency:build-classpath
 
 ## copy newer jar into container
 #scp brandl@scicomp-mac-12-usb:/Users/brandl/projects/kotlin/kscript/kscript.jar .

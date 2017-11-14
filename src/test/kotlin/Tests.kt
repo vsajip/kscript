@@ -65,11 +65,4 @@ class Tests {
 
         collectRuntimeOptions(lines) shouldBe "-foo 3 'some file.txt' --bar"
     }
-
-
-    @Test
-    fun foo() {
-        1 shouldBe 2
-    }
-
 }
