@@ -182,4 +182,6 @@ assert_end kt_support
 ##  run junit-test suite
 
 # exit code of `true` is expected to be 0 (see https://github.com/lehmannro/assert.sh)
-assert "gradle test"
+assert_raises "gradle test"
+
+assert_end junit_tests
