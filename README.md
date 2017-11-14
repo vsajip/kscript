@@ -275,8 +275,8 @@ Using annotations instead of comment directives to configure scripts is cleaner 
 @file:MavenRepository("imagej-releases","http://maven.imagej.net/content/repositories/releases" )
 
 // For compatibility with https://github.com/ligee/kotlin-jupyter kscript supports also
-// Note that for compatibility reasons, only one locator argument is allowed here
 @file:DependsOnMaven("net.clearvolume:cleargl:2.0.1")
+// Note that for compatibility reasons, only one locator argument is allowed for @DependsOnMaven
 
 
 // Include helper scripts without deployment or prior compilation
@@ -342,7 +342,7 @@ Yes, (since v1.6) you can run kotlin source files through `kscript`. By default 
 However in case you're using a companion object to declare the entry point, you need to indicate this via the `//ENTRY` directive:
 
 
-## Why does it fail to read my script file when using cygwin?
+### Why does it fail to read my script file when using cygwin?
 
 In order to use cygwin you need to use windows paths to provide your scripts. You can map cygwin paths using `cygpath`. Example
 ```bash
@@ -350,7 +350,7 @@ kscript $(cygpath -w /cygdrive/z/some/path/my_script.kts)
 ```
 
 
-## Can I use custom artifact repositories?
+### Can I use custom artifact repositories?
 
 Yes, via the `@MavenRepository` annotation. See [annotations section](#annotation-driven-script-configuration) or [custom_mvn_repo_annot](test/resources/custom_mvn_repo_annot.kts) for a complete example
 
