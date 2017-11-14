@@ -19,7 +19,7 @@ import kotlin.system.exitProcess
  * @author Holger Brandl
  */
 
-const val KSCRIPT_VERSION = "2.1.1"
+const val KSCRIPT_VERSION = "2.2.0"
 
 val USAGE = """
 kscript - Enhanced scripting support for Kotlin on *nix-based systems.

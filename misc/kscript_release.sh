@@ -1,6 +1,6 @@
 ## Release Checklist
 
-# 1. Increment version in `kscript`
+# 1. Increment version in `Kscript.kt`
 # 2. Make sure that support api version is up to date and available from jcenter
 # 3. Push and wait for travis CI results
 
