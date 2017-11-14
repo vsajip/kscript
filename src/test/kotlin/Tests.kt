@@ -1,5 +1,7 @@
 import io.kotlintest.matchers.shouldBe
+import kscript.app.MavenRepo
 import kscript.app.collectDependencies
+import kscript.app.collectRepos
 import kscript.app.collectRuntimeOptions
 import org.junit.Test
 
@@ -13,14 +15,14 @@ class Tests {
     @Test
     fun directiveDependencyCollect() {
         val lines = listOf(
-                "//DEPS de.mpicbg.scicomp.joblist:joblist-kotlin:1.1, de.mpicbg.scicomp:kutils:0.7",
-                "//DEPS  log4j:log4j:1.2.14"
+            "//DEPS de.mpicbg.scicomp.joblist:joblist-kotlin:1.1, de.mpicbg.scicomp:kutils:0.7",
+            "//DEPS  log4j:log4j:1.2.14"
         )
 
         val expected = listOf(
-                "de.mpicbg.scicomp.joblist:joblist-kotlin:1.1",
-                "de.mpicbg.scicomp:kutils:0.7",
-                "log4j:log4j:1.2.14"
+            "de.mpicbg.scicomp.joblist:joblist-kotlin:1.1",
+            "de.mpicbg.scicomp:kutils:0.7",
+            "log4j:log4j:1.2.14"
         )
 
         collectDependencies(lines) shouldBe expected
@@ -29,28 +31,43 @@ class Tests {
     @Test
     fun mixedDependencyCollect() {
         val lines = listOf(
-                "//DEPS de.mpicbg.scicomp.joblist:joblist-kotlin:1.1, de.mpicbg.scicomp:kutils:0.7",
-                """@file:DependsOn("log4j:log4j:1.2.14")"""
+            "//DEPS de.mpicbg.scicomp.joblist:joblist-kotlin:1.1, de.mpicbg.scicomp:kutils:0.7",
+            """@file:DependsOn("log4j:log4j:1.2.14")"""
         )
 
         val expected = listOf(
-                "de.mpicbg.scicomp.joblist:joblist-kotlin:1.1",
-                "de.mpicbg.scicomp:kutils:0.7",
-                "log4j:log4j:1.2.14",
-                "com.github.holgerbrandl:kscript-annotations:1.0"
+            "de.mpicbg.scicomp.joblist:joblist-kotlin:1.1",
+            "de.mpicbg.scicomp:kutils:0.7",
+            "log4j:log4j:1.2.14",
+            "com.github.holgerbrandl:kscript-annotations:1.1"
         )
 
         collectDependencies(lines) shouldBe expected
     }
 
 
+    @Test
+    fun customRepo() {
+        val lines = listOf(
+            """@file:MavenRepository("imagej-releases", "http://maven.imagej.net/content/repositories/releases" ) // crazy comment""",
+            """@file:DependsOnMaven("net.clearvolume:cleargl:2.0.1")""",
+            """println("foo")"""
+        )
+
+        val expected = listOf(
+            MavenRepo("imagej-releases", "http://maven.imagej.net/content/repositories/releases")
+        )
+
+        collectRepos(lines) shouldBe expected
+    }
+
 
     // combine kotlin opts spread over multiple lines
     @Test
     fun optsCollect() {
         val lines = listOf(
-                "//KOTLIN_OPTS -foo 3 'some file.txt'",
-                "//KOTLIN_OPTS  --bar"
+            "//KOTLIN_OPTS -foo 3 'some file.txt'",
+            "//KOTLIN_OPTS  --bar"
         )
 
         collectRuntimeOptions(lines) shouldBe "-foo 3 'some file.txt' --bar"
@@ -59,8 +76,8 @@ class Tests {
     @Test
     fun annotOptsCollect() {
         val lines = listOf(
-                "//KOTLIN_OPTS -foo 3 'some file.txt'",
-                """@file:KotlinOpts("--bar")"""
+            "//KOTLIN_OPTS -foo 3 'some file.txt'",
+            """@file:KotlinOpts("--bar")"""
         )
 
         collectRuntimeOptions(lines) shouldBe "-foo 3 'some file.txt' --bar"

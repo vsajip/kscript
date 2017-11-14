@@ -136,8 +136,16 @@ assert_end dependency_lookup
 ## annotation-drive configuration
 
 # make sure that @file:DependsOn is parsed correctly
-assert "kscript ${KSCRIPT_HOME}/test/resources/annotation_deps.kts" "kscript with annotations rocks!"
+assert "kscript ${KSCRIPT_HOME}/test/resources/depends_on_annot.kts" "kscript with annotations rocks!"
 
+# make sure that @file:DependsOnMaven is parsed correctly
+assert "kscript ${KSCRIPT_HOME}/test/resources/depends_on_maven_annot.kts" "kscript with annotations rocks!"
+
+# make sure that @file:MavenRepository is parsed correctly
+assert "kscript ${KSCRIPT_HOME}/test/resources/custom_mvn_repo_annot.kts" "kscript with annotations rocks!"
+
+
+assert_end annotation_config
 
 
 ########################################################################################################################

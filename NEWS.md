@@ -1,8 +1,14 @@
 ## v2.2
 
-* Logging of maven artifact downloads to stderr and high level status information (fixes [#23](https://github.com/holgerbrandl/kscript/issues/23))
+* Logging of maven artifact downloads to stderr (fixes [#23](https://github.com/holgerbrandl/kscript/issues/23))
 * Added `-s` / `--silent` to suppress all logging
 * Fixed [#55](https://github.com/holgerbrandl/kscript/issues/55): dependency resolution fails on travis ci and within docker containers
+* Added alternative `@DependsOnMaven(val artifactId: String)` annotaiton to declare dependencies. This has been implemented to make kscripts compatible with https://github.com/ligee/kotlin-jupyter
+* Added support for custom maven repositories (fixes [#22](https://github.com/holgerbrandl/kscript/issues/22))
+
+
+See [README.md](README.md) for usage details.
+
 
 ## v2.1
 

@@ -8,7 +8,7 @@ val DEP_LOOKUP_CACHE_FILE = File(KSCRIPT_CACHE_DIR, "dependency_cache.txt")
 val CP_SEPARATOR_CHAR = if (System.getProperty("os.name").toLowerCase().contains("windows")) ";" else ":"
 
 
-fun resolveDependencies(depIds: List<String>, loggingEnabled: Boolean): String? {
+fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emptyList(), loggingEnabled: Boolean): String? {
 
     // if no dependencies were provided we stop here
     if (depIds.isEmpty()) {
@@ -51,6 +51,17 @@ fun resolveDependencies(depIds: List<String>, loggingEnabled: Boolean): String? 
     """
     }
 
+    // see https://github.com/holgerbrandl/kscript/issues/22
+    val repoTags = customRepos.map {
+        """
+    <repository>
+            <id>${it.id}</id>
+            <url>${it.url}</url>
+    </repository>
+    """
+
+    }
+
     val pom = """
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -68,6 +79,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
             <id>jcenter</id>
             <url>http://jcenter.bintray.com/</url>
         </repository>
+        ${repoTags.joinToString("\n")}
     </repositories>
 
     <dependencies>
@@ -141,5 +153,5 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
 // called by unit tests
 fun main(args: Array<String>) {
-    System.err.println(resolveDependencies(args.toList(), false))
+    System.err.println(resolveDependencies(args.toList(), loggingEnabled = false))
 }

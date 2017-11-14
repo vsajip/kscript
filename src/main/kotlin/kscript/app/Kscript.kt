@@ -117,16 +117,17 @@ fun main(args: Array<String>) {
 
     // Find all //DEPS directives and concatenate their values
     val dependencies = collectDependencies(scriptText)
+    val customRepos = collectRepos(scriptText)
 
 
     //  Create temopary dev environment
     if (docopt.getBoolean("idea")) {
-        println(launchIdeaWithKscriptlet(scriptFile, dependencies))
+        println(launchIdeaWithKscriptlet(scriptFile, dependencies, customRepos))
         exitProcess(0)
     }
 
 
-    val classpath = resolveDependencies(dependencies, loggingEnabled)
+    val classpath = resolveDependencies(dependencies, customRepos, loggingEnabled)
 
     // Extract kotlin arguments
     val kotlinOpts = collectRuntimeOptions(scriptText)
@@ -148,8 +149,8 @@ fun main(args: Array<String>) {
     // Even if we just need and support the //ENTRY directive in case of kt-class
     // files, we extract it here to fail if it was used in kts files.
     val entryDirective = scriptText
-            .find { it.contains("^//ENTRY ".toRegex()) }
-            ?.replace("//ENTRY ", "")?.trim()
+        .find { it.contains("^//ENTRY ".toRegex()) }
+        ?.replace("//ENTRY ", "")?.trim()
 
     errorIf(entryDirective != null && scriptFileExt == "kts") {
         "//ENTRY directive is just supported for kt class files"
@@ -164,8 +165,8 @@ fun main(args: Array<String>) {
 
     // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
     val className = scriptFile.nameWithoutExtension
-            .replace("[.-]".toRegex(), "_")
-            .capitalize()
+        .replace("[.-]".toRegex(), "_")
+        .capitalize()
 
 
     // Define the entrypoint for the scriptlet jar
@@ -174,7 +175,7 @@ fun main(args: Array<String>) {
     } else {
         // extract package from kt-file
         val pckg = scriptText.find { it.startsWith("package ") }
-                ?.split("[ ]+".toRegex())?.get(1)?.run { this + "." }
+            ?.split("[ ]+".toRegex())?.get(1)?.run { this + "." }
 
         """${pckg ?: ""}${entryDirective ?: "${className}Kt"}"""
     }
@@ -244,44 +245,70 @@ fun main(args: Array<String>) {
 }
 
 fun collectDependencies(scriptText: List<String>): List<String> {
-    val deps = scriptText
-            .filter { it.startsWith("//DEPS ") }
-            .flatMap { it.split("[ ;,]+".toRegex()).drop(1) }
-            .map(String::trim)
-
-    val annotatonPrefix = "@file:DependsOn("
+    val dependsOnPrefix = "@file:DependsOn("
     var annotDeps = scriptText
-            .filter { it.startsWith(annotatonPrefix) }
-            .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
-            .flatMap { it.split(",") }
-            .map { it.trim(' ', '"') }
+        .filter { it.startsWith(dependsOnPrefix) }
+        .map { it.replaceFirst(dependsOnPrefix, "").split(")")[0] }
+        .flatMap { it.split(",") }
+        .map { it.trim(' ', '"') }
 
-    // if annotations are used add dependency
+
+    val dependsOnMavenPrefix = "@file:DependsOnMaven("
+    annotDeps += scriptText
+        .filter { it.startsWith(dependsOnMavenPrefix) }
+        .map { it.replaceFirst(dependsOnMavenPrefix, "").split(")")[0] }
+        .map { it.trim(' ', '"') }
+
+
+    // if annotations are used add dependency on kscript-annotations
     if (scriptText.any { containsKscriptAnnotation(it) }) {
-        annotDeps += "com.github.holgerbrandl:kscript-annotations:1.0"
+        annotDeps += "com.github.holgerbrandl:kscript-annotations:1.1"
     }
+
+
+    // also extract classical comment directives
+    val deps = scriptText
+        .filter { it.startsWith("//DEPS ") }
+        .flatMap { it.split("[ ;,]+".toRegex()).drop(1) }
+        .map(String::trim)
 
     return (deps + annotDeps).distinct()
 }
 
+data class MavenRepo(val id: String, val url: String)
+
+fun collectRepos(scriptText: List<String>): List<MavenRepo> {
+    val dependsOnMavenPrefix = "@file:MavenRepository("
+    // only supported annotation format for now
+
+    // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/")
+    return scriptText
+        .filter { it.startsWith(dependsOnMavenPrefix) }
+        .map { it.replaceFirst(dependsOnMavenPrefix, "").split(")")[0] }
+        .map { it.split(",").map { it.trim(' ', '"') }.let { MavenRepo(it[0], it[1]) } }
+
+    // todo add credential support https://stackoverflow.com/questions/36282168/how-to-add-custom-maven-repository-to-gradle
+}
+
 
 fun containsKscriptAnnotation(line: String) =
-        listOf("DependsOn", "KotlinOpts", "Include", "EntryPoint").any { line.startsWith("@file:${it}(") }
+    listOf("DependsOn", "KotlinOpts", "Include", "EntryPoint", "MavenRepository", "DependsOnMaven")
+        .any { line.startsWith("@file:${it}(") }
 
 
 fun collectRuntimeOptions(scriptText: List<String>): String {
     val koptsPrefix = "//KOTLIN_OPTS "
 
     var kotlinOpts = scriptText.
-            filter { it.startsWith(koptsPrefix) }.
-            map { it.replaceFirst(koptsPrefix, "").trim() }
+        filter { it.startsWith(koptsPrefix) }.
+        map { it.replaceFirst(koptsPrefix, "").trim() }
 
     //support for @file:KotlinOpts see #47
     val annotatonPrefix = "@file:KotlinOpts("
     kotlinOpts += scriptText
-            .filter { it.startsWith(annotatonPrefix) }
-            .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
-            .map { it.trim(' ', '"') }
+        .filter { it.startsWith(annotatonPrefix) }
+        .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
+        .map { it.trim(' ', '"') }
 
 
     // Append $KSCRIPT_KOTLIN_OPTS if defined in the parent environment

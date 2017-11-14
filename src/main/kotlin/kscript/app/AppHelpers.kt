@@ -188,7 +188,7 @@ fun numLines(str: String) = str.split("\r\n|\r|\n".toRegex()).dropLastWhile { it
 fun info(msg: String) = System.err.println(msg)
 
 
-fun launchIdeaWithKscriptlet(scriptFile: File, dependencies: List<String>): String {
+fun launchIdeaWithKscriptlet(scriptFile: File, dependencies: List<String>, customRepos: List<MavenRepo>): String {
     System.err.println("Setting up idea project from ${scriptFile}")
 
     //    val tmpProjectDir = createTempDir("edit_kscript", suffix="")
@@ -198,13 +198,14 @@ fun launchIdeaWithKscriptlet(scriptFile: File, dependencies: List<String>): Stri
 
     //  fixme use tmp instead of cachdir. Fails for now because idea gradle import does not seem to like tmp
     val tmpProjectDir = KSCRIPT_CACHE_DIR
-        .run { File(this, "kscript_tmp_project__${scriptFile.name}") }
+        .run { File(this, "kscript_tmp_project__${scriptFile.name}_${System.currentTimeMillis()}") }
         .apply { mkdir() }
     //    val tmpProjectDir = File("/Users/brandl/Desktop/")
     //            .run { File(this, "kscript_tmp_project") }
     //            .apply { mkdir() }
 
     val stringifiedDeps = dependencies.map { "    compile \"$it\"" }.joinToString("\n")
+    val stringifiedRepos = customRepos.map { "    maven {\n        url '${it.url}'\n    }\n" }.joinToString("\n")
 
     val gradleScript = """
 group 'com.github.holgerbrandl.kscript.editor'
@@ -221,7 +222,9 @@ $stringifiedDeps
 
 repositories {
     mavenCentral()
+    mavenLocal()
     jcenter()
+$stringifiedRepos
 }
 
 sourceSets {
@@ -233,7 +236,7 @@ sourceSets {
 }
 
 buildscript {
-    ext.kotlin_version = '1.1.4'
+    ext.kotlin_version = '1.1.60'
 
     repositories {
         jcenter()
