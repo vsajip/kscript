@@ -39,6 +39,11 @@ assert "kscript ''" ""
 assert 'kscript "println(1+1)"' '2'
 
 
+##  use dashed arguments (to prevent regression from https://github.com/holgerbrandl/kscript/issues/59)
+assert 'kscript "println(args.joinToString(\"\"))" --arg u ments' '--arguments'
+assert 'kscript -s "println(args.joinToString(\"\"))" --arg u ments' '--arguments'
+
+
 ## provide script via stidin
 assert "echo 'println(1+1)' | kscript -" "2"
 
@@ -90,7 +95,7 @@ assert_end script_input_modes
 #assert "kscript -i '//DEPS log4j:log4j:1.2.14'" "To create a shell with script dependencies run:\nkotlinc  -classpath '${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar'"
 #assert "kscript -i <(echo '//DEPS log4j:log4j:1.2.14')" "To create a shell with script dependencies run:\nkotlinc  -classpath '${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar'"
 
-assert_end cli_helper_tests
+#assert_end cli_helper_tests
 
 ########################################################################################################################
 ## environment_tests

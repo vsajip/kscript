@@ -57,7 +57,11 @@ fun main(args: Array<String>) {
         quit(0)
     }
 
-    val docopt = DocOptWrapper(args, USAGE)
+    // note: with current impt we still don't support `kscript -1` where "-1" is a valid kotlin expression
+    val userArgs = args.dropWhile { it.startsWith("-") }.drop(1)
+    val kscriptArgs = args.take(args.size - userArgs.size)
+
+    val docopt = DocOptWrapper(kscriptArgs, USAGE)
     val loggingEnabled = !docopt.getBoolean("silent")
 
 
@@ -239,9 +243,10 @@ fun main(args: Array<String>) {
 
 
     // print the final command to be run by exec
-    val shiftedArgs = args.drop(1 + args.indexOfFirst { it == scriptResource }).joinToString(" ")
+    //    val joinedUserArgs = args.drop(1 + args.indexOfFirst { it == scriptResource }).joinToString(" ")
+    val joinedUserArgs = userArgs.joinToString(" ")
 
-    println("kotlin ${kotlinOpts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${shiftedArgs} ")
+    println("kotlin ${kotlinOpts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${joinedUserArgs} ")
 }
 
 fun collectDependencies(scriptText: List<String>): List<String> {
