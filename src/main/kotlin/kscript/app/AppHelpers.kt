@@ -236,7 +236,7 @@ sourceSets {
 }
 
 buildscript {
-    ext.kotlin_version = '1.1.60'
+    ext.kotlin_version = '1.1.51'
 
     repositories {
         jcenter()
