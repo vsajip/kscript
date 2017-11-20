@@ -59,6 +59,17 @@ On MacOS you can install `kscript` also with [Homebrew](https://brew.sh/)
 brew install holgerbrandl/tap/kscript
 ```
 
+#### Build it yourself
+
+To build `kscript` yourself, simply clone the repo and do
+```bash
+gradle shadowJar
+cp build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.jar
+
+## Don't forget to prefix with `./` when running the freshly compiled version 
+./kscript
+```
+
 ## Script Input Modes
 
 The main mode of operation is `kscript <script>`.
@@ -365,16 +376,6 @@ How to contribute?
 ------------------
 
 We always welcome pull requests. :-)
-
-To build kscript yourself, simply clone the repo and do
-```bash
-## in the kscript repo root simple build it with
-gradle shadowJar
-## ... then copy fresh build into the same dir as launcher
-cp build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.jar
-## then and run it as usual with
-./kscript
-```
 
 You could also show your support by upvoting `kscript` here on github, or by voting for issues in Intellij IDEA which impact  `kscript`ing. Here are our top 3 tickets/annoyances that we would love to see fixed:
 
