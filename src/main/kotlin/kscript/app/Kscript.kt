@@ -215,25 +215,28 @@ fun main(args: Array<String>) {
 
         // create main-wrapper for kts scripts
         if (scriptFileExt == "kts") {
-            val mainJava = File(createTempDir("kscript"), execClassName + ".java")
-            mainJava.writeText("""
-            public class Main_${className} {
-                public static void main(String... args) throws Exception {
-                    Class script = Main_${className}.class.getClassLoader().loadClass("${className}");
-                    script.getDeclaredConstructor(String[].class).newInstance((Object)args);
+            val mainKotlin = File(createTempDir("kscript"), execClassName + ".kt")
+            mainKotlin.writeText("""
+            class Main_${className}{
+                companion object {
+                    @JvmStatic
+                    fun main(args: Array<String>) {
+                        val script = Main_${className}::class.java.classLoader.loadClass("${className}")
+                        script.getDeclaredConstructor(Array<String>::class.java).newInstance(args);
+                    }
                 }
             }
             """.trimIndent())
 
             // compile the wrapper
-            with(evalBash("javac '${mainJava}'")) {
+            with(evalBash("kotlinc '${mainKotlin}'", wd = mainKotlin.parentFile)) {
                 errorIf(exitCode != 0) { "Compilation of script-wrapper failed:$stderr" }
             }
 
             // update the jar to include main-wrapper
             // requireInPath("jar") // disabled because it's another process invocation
-            val jarUpdateCmd = "jar uf '${jarFile.absoluteFile}' ${mainJava.nameWithoutExtension}.class"
-            with(evalBash(jarUpdateCmd, wd = mainJava.parentFile)) {
+            val jarUpdateCmd = "jar uf '${jarFile.absoluteFile}' ${mainKotlin.nameWithoutExtension}*.class"
+            with(evalBash(jarUpdateCmd, wd = mainKotlin.parentFile)) {
                 errorIf(exitCode != 0) { "Update of script jar with wrapper class failed\n${stderr}" }
             }
 
