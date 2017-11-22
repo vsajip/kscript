@@ -379,9 +379,8 @@ We always welcome pull requests. :-)
 You could also show your support by upvoting `kscript` here on github, or by voting for issues in Intellij IDEA which impact  `kscript`ing. Here are our top 3 tickets/annoyances that we would love to see fixed:
 
 1. [KT-11618](https://youtrack.jetbrains.com/issue/KT-11618) Idea does not allow to run scripts with dependencies
-2. [KT-16802](https://youtrack.jetbrains.com/issue/KT-16802) Good code is always red when editing kts-script files under Kotlin v1.1
-3. [KT-10368](https://youtrack.jetbrains.com/issue/KT-10368) Kotlin scratch files not runnable?
-4. [KT-13347](https://youtrack.jetbrains.com/issue/KT-13347) Good code is red in injected kotlin language snippets
+2. [KT-15019](https://youtrack.jetbrains.com/issue/KT-15019) Editor: `args` reference in .kts file is red
+3. [KT-13347](https://youtrack.jetbrains.com/issue/KT-13347) Good code is red in injected kotlin language snippets
 
 
 
