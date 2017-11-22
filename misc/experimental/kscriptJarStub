@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
 
-# version tag for backward compatibility with kscript v1.x
-KSCRIPT_VERSION=2.0.0
-
 # resolve own location
 MYSELF=$(which "$0" 2>/dev/null)
 [ $? -gt 0 -a -f "$0" ] && MYSELF="./$0"

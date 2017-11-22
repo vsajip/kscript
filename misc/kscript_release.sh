@@ -11,7 +11,7 @@ export PATH=~/go/bin/:$PATH
 KSCRIPT_ARCHIVE=~/Dropbox/archive/kscript_versions/
 
 
-kscript_version=$(grep '^KSCRIPT_VERSION' ${KSCRIPT_HOME}/kscript | cut -f2 -d'=')
+kscript_version=$(grep 'val KSCRIPT_VERSION' ${KSCRIPT_HOME}/src/main/kotlin/kscript/app/Kscript.kt | cut -f2 -d'=' | tr -d ' "')
 echo "new version is $kscript_version" 
 ## see https://github.com/aktau/github-release
 
@@ -105,7 +105,12 @@ cd kscript_releases_${kscript_version}
 
 git checkout releases
 #cp ~/projects/kotlin/kscript/resdeps.kts ~/projects/kotlin/kscript/kscript .
-cp ~/projects/kotlin/kscript/kscript .
+#cp ~/projects/kotlin/kscript/kscript .
+## create file with current release version
+echo "
+KSCRIPT_VERSION=${kscript_version}
+" > kscript
+
 git add -A 
 git status
 git commit -m "v${kscript_version} release"

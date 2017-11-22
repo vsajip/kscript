@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 
 
-# version tag for backward compatibility with kscript v1.x
-KSCRIPT_VERSION=2.2.1
-
-
 ## resolve application jar path from script location and convert to windows path when using cygwin
 jarPath=$(dirname $0)/kscript.jar
 if [[ $(uname) == CYGWIN* ]]; then jarPath=$(cygpath -w ${jarPath}); fi
