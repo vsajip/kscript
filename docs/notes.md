@@ -14,6 +14,19 @@ export JAVA_HOME=`/usr/libexec/java_home -v 1.8.0_151`
 
 https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
 
+Kotlin wrapper class
+```
+
+class Wrapper{
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val script = Wrapper::class.java.classLoader.loadClass("Wrapper")
+            script.getDeclaredConstructor().newInstance(args);
+        }
+    }
+}
+```
 
 ## dependency declarations
 

@@ -207,14 +207,11 @@ fun main(args: Array<String>) {
 
         requireInPath("kotlinc")
 
-        val scriptCompileResult = evalBash("kotlinc -classpath '$classpath' -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}'")
-        with(scriptCompileResult) {
-            errorIf(exitCode != 0) { "compilation of '$scriptResource' failed\n$stderr" }
-        }
 
 
         // create main-wrapper for kts scripts
-        if (scriptFileExt == "kts") {
+
+        val wrapperSrcArg = if (scriptFileExt == "kts") {
             val mainKotlin = File(createTempDir("kscript"), execClassName + ".kt")
             mainKotlin.writeText("""
             class Main_${className}{
@@ -228,19 +225,27 @@ fun main(args: Array<String>) {
             }
             """.trimIndent())
 
-            // compile the wrapper
-            with(evalBash("kotlinc '${mainKotlin}'", wd = mainKotlin.parentFile)) {
-                errorIf(exitCode != 0) { "Compilation of script-wrapper failed:$stderr" }
-            }
-
-            // update the jar to include main-wrapper
-            // requireInPath("jar") // disabled because it's another process invocation
-            val jarUpdateCmd = "jar uf '${jarFile.absoluteFile}' ${mainKotlin.nameWithoutExtension}*.class"
-            with(evalBash(jarUpdateCmd, wd = mainKotlin.parentFile)) {
-                errorIf(exitCode != 0) { "Update of script jar with wrapper class failed\n${stderr}" }
-            }
+            //            // compile the wrapper
+            //            with(evalBash("kotlinc '${mainKotlin}'", wd = mainKotlin.parentFile)) {
+            //                errorIf(exitCode != 0) { "Compilation of script-wrapper failed:$stderr" }
+            //            }
+            //
+            //            // update the jar to include main-wrapper
+            //            // requireInPath("jar") // disabled because it's another process invocation
+            //            val jarUpdateCmd = "jar uf '${jarFile.absoluteFile}' ${mainKotlin.nameWithoutExtension}*.class"
+            //            with(evalBash(jarUpdateCmd, wd = mainKotlin.parentFile)) {
+            //                errorIf(exitCode != 0) { "Update of script jar with wrapper class failed\n${stderr}" }
+            //            }
 
             //            if(loggingEnabled) System.err.println("Done")
+            "'${mainKotlin.absolutePath}'"
+        } else {
+            ""
+        }
+
+        val scriptCompileResult = evalBash("kotlinc -classpath '$classpath' -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}' ${wrapperSrcArg}")
+        with(scriptCompileResult) {
+            errorIf(exitCode != 0) { "compilation of '$scriptResource' failed\n$stderr" }
         }
     }
 
