@@ -392,7 +392,7 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
             //            if (numLines(script) == 1 && (script.startsWith("lines") || script.startsWith("stdin"))) {
             if (enableSupportApi) {
                 val prefix = """
-                //DEPS com.github.holgerbrandl:kscript:1.2.3
+                //DEPS com.github.holgerbrandl:kscript-support:1.2.4
 
                 import kscript.text.*
                 val lines = resolveArgFile(args)

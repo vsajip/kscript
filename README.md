@@ -272,7 +272,7 @@ Using annotations instead of comment directives to configure scripts is cleaner 
 //DEPS de.mpicbg.scicomp:kutils:0.4
 ```
 
- To do so `kscript` supports [annotations](https://github.com/holgerbrandl/kscript_annotations) to be used instead of comment directives:
+ To do so `kscript` supports [annotations](https://github.com/holgerbrandl/kscript-annotations) to be used instead of comment directives:
 ```kotlin
 #!/usr/bin/env kscript
 
@@ -317,7 +317,7 @@ Support API
 `kscript` is complemented by a [support library](https://github.com/holgerbrandl/kscript-support-api) to ease the writing of Kotlin scriptlets for text-processing. The latter includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the development of kscript applications.
 
 The text processing mode can be enabled with `-t` or `--text`. If so, `kscript` will
-* declare `com.github.holgerbrandl:kscript:1.2.3` as dependency for the script
+* declare `com.github.holgerbrandl:kscript-support:1.2.4` as dependency for the script
 * import the  `kscript.*` namespace
 * Define variable `val lines = kscript.text.StreamUtilKt.resolveArgFile(args)` which returns an iterator over the lines in the first input argument of the script, or the standard input if no file arguments are provided to the script
 
