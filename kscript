@@ -1,8 +1,27 @@
 #!/usr/bin/env bash
 
 
+
+absolute_path() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+resolve_symlink() (
+    if [[ $OSTYPE != darwin* ]]; then minusFarg="-f"; fi
+    sym_resolved=$(readlink ${minusFarg} $1)
+
+    if [[ -n $sym_resolved ]]; then
+        echo $sym_resolved
+    else
+        echo $1
+    fi
+)
+
+
+abs_kscript_path=$(resolve_symlink $(absolute_path $0))
+
 ## resolve application jar path from script location and convert to windows path when using cygwin
-jarPath=$(dirname $0)/kscript.jar
+jarPath=$(dirname $abs_kscript_path)/kscript.jar
 if [[ $(uname) == CYGWIN* ]]; then jarPath=$(cygpath -w ${jarPath}); fi
 
 ## run it using command substitution to have just the user process once kscript is done
