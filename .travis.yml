@@ -53,7 +53,7 @@ install:
   - export PATH=$KSCRIPT_HOME::$PATH
 
   # build it
-  - cd $KSCRIPT_HOME && gradle shadowJar && cp build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.jar
+  - cd $KSCRIPT_HOME && gradle shadowJar
 
 
   - which kscript

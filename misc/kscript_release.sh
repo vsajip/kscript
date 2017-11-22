@@ -24,12 +24,12 @@ echo "new version is $kscript_version"
 
 cd $KSCRIPT_HOME
 
-gradle shadowJar
+gradle clean shadowJar
 
 ## compile binary distribution (including jar and wrapper-script)
 mkdir -p $KSCRIPT_ARCHIVE/kscript-${kscript_version}/bin
 cp ${KSCRIPT_HOME}/kscript ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin
-cp ${KSCRIPT_HOME}/build/libs/kscript-0.1-SNAPSHOT-all.jar ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin/kscript.jar
+cp ${KSCRIPT_HOME}/kscript.jar ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin/kscript.jar
 
 cd ${KSCRIPT_ARCHIVE}
 rm ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip

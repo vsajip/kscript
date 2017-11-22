@@ -33,7 +33,7 @@ which assert.sh || exit 1
 cd ${KSCRIPT_HOME}
 
 ## build it
-gradle shadowJar && cp build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.jar
+gradle shadowJar
 
 
 ## clean up the environment

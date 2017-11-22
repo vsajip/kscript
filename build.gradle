@@ -35,3 +35,15 @@ buildscript {
     }
 }
 
+
+// copy shadow output back into root directory for simplified testing (see http://imperceptiblethoughts.com/shadow/)
+shadowJar.doLast{
+    copy { from 'build/libs/kscript-0.1-SNAPSHOT-all.jar' ; into projectDir; rename { 'kscript.jar' } }
+}
+
+// make sure to remove kscript.jar in project root first on clean
+// from https://stackoverflow.com/questions/29813189/how-do-i-extend-gradles-clean-task-to-delete-a-file
+clean.doFirst {
+    delete "${projectDir}/kscript.jar"
+    println "deleting  ./kscript.jar"
+}
