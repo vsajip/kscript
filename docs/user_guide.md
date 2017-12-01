@@ -7,6 +7,8 @@ __{work in progress}__
 [TOC levels=3]: # " "
 
 - [Requirements for running `kscript`](#requirements-for-running-kscript)
+- [Tips and tricks](#tips-and-tricks)
+    - [Display images inline and open other files](#display-images-inline-and-open-other-files)
 - [Text Processing](#text-processing)
 - [Examples](#examples)
     - [Bioinformatics](#bioinformatics)
@@ -25,6 +27,16 @@ optional dependencies
 
 Actually the repo contains a docker container spec that details out what is needed to run kscript. See https://github.com/holgerbrandl/kscript/blob/master/misc/Dockerfile
 
+
+
+## Tips and tricks
+
+
+### Display images inline and open other files
+
+When using iterm2 it is possible to print inlined image output directly into the terminal.
+
+Suggested by [@yschimke](https://github.com/yschimke) in  [#51](https://github.com/holgerbrandl/kscript/issues/51)
 
 
 
