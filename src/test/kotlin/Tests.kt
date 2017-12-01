@@ -91,4 +91,16 @@ class Tests {
 
         result.readText() shouldBe (expected.readText())
     }
+
+    @Test
+    fun test_include_annotations() {
+        val file = File("test/resources/includes/include_variations.kts")
+        val expected = File("test/resources/includes/expexcted_variations.kts")
+
+        val result = resolveIncludes(file)
+
+        result.readText() shouldBe (expected.readText())
+    }
+
+
 }

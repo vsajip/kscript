@@ -17,7 +17,7 @@ private fun resolveIncludesInternal(template: File): File {
 
     val scriptLines = template.readText().lines()
 
-    if (!scriptLines.any { it.startsWith("//INCLUDE ") }) {
+    if (!scriptLines.any { isIncludeDirective(it) }) {
         return template
     }
 
@@ -27,8 +27,8 @@ private fun resolveIncludesInternal(template: File): File {
     val imports = emptySet<String>().toMutableSet()
 
     scriptLines.forEach {
-        if (it.startsWith("//INCLUDE")) {
-            val include = it.split("[ ]+".toRegex()).last()
+        if (isIncludeDirective(it)) {
+            val include = extractIncludeTarget(it)
 
             val includeURL = when {
                 include.startsWith("http://") -> URL(include)
@@ -67,6 +67,20 @@ private fun resolveIncludesInternal(template: File): File {
 
     return createTmpScript(incResolved.toString())
 }
+
+
+private const val INCLUDE_ANNOT_PREFIX = "@file:Include("
+
+private fun isIncludeDirective(line: String) = line.startsWith("//INCLUDE") || line.startsWith(INCLUDE_ANNOT_PREFIX)
+
+
+private fun extractIncludeTarget(incDirective: String) = when {
+    incDirective.startsWith(INCLUDE_ANNOT_PREFIX) -> incDirective
+        .replaceFirst(INCLUDE_ANNOT_PREFIX, "")
+        .split(")")[0].trim(' ', '"')
+    else -> incDirective.split("[ ]+".toRegex()).last()
+}
+
 
 
 // basic launcher used for testing
