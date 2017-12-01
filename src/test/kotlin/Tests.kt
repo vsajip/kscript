@@ -1,9 +1,7 @@
 import io.kotlintest.matchers.shouldBe
-import kscript.app.MavenRepo
-import kscript.app.collectDependencies
-import kscript.app.collectRepos
-import kscript.app.collectRuntimeOptions
+import kscript.app.*
 import org.junit.Test
+import java.io.File
 
 /**
  * @author Holger Brandl
@@ -81,5 +79,16 @@ class Tests {
         )
 
         collectRuntimeOptions(lines) shouldBe "-foo 3 'some file.txt' --bar"
+    }
+
+
+    @Test
+    fun test_consolidate_imports() {
+        val file = File("test/resources/consolidate_includes/template.kts")
+        val expected = File("test/resources/consolidate_includes/expected.kts")
+
+        val result = resolveIncludes(file)
+
+        result.readText() shouldBe (expected.readText())
     }
 }
