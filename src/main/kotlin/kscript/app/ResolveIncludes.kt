@@ -6,6 +6,7 @@ import java.net.URL
 
 /**
  * @author Holger Brandl
+ * @author Ilan Pillemer
  */
 
 /** Resolve include declarations in a script file. Resolved script will be put into another temporary script */
@@ -13,18 +14,19 @@ fun resolveIncludes(template: File): File = resolveIncludesInternal(template)
 
 private fun resolveIncludesInternal(template: File): File {
     val IMPORT_TEXT = "import "
+
     val scriptLines = template.readText().lines()
 
-    if (scriptLines.find { it.startsWith("//INCLUDE ") } == null) {
+    if (!scriptLines.any { it.startsWith("//INCLUDE ") }) {
         return template
     }
 
     val sb = StringBuilder()
 
     // collect up the set of imports in this
-    val imports : MutableSet<String> = emptySet<String>().toMutableSet()
+    val imports = emptySet<String>().toMutableSet()
 
-    scriptLines.map {
+    scriptLines.forEach {
         if (it.startsWith("//INCLUDE")) {
             val include = it.split("[ ]+".toRegex()).last()
 
@@ -52,21 +54,22 @@ private fun resolveIncludesInternal(template: File): File {
             }
         } else if (it.startsWith(IMPORT_TEXT)) {
             imports.add(it)
-        } else {
+        } else if (!it.startsWith("#!/")) {
             // if its not an include directive or an import or a bang line, emit as is
-            if (!it.startsWith("#!/")) { sb.appendln(it) } else { }
+            sb.appendln(it)
         }
     }
 
-    val impsb = StringBuilder()
-    imports.map { impsb.appendln(it) }
+    val incResolved = StringBuilder().apply {
+        imports.map { appendln(it) }
+        appendln(sb)
+    }
 
-    val final = impsb.appendln(sb.toString())
-    return createTmpScript(final.toString())
+    return createTmpScript(incResolved.toString())
 }
 
 
-// basic launcher for testing
+// basic launcher used for testing
 fun main(args: Array<String>) {
     System.err.println(resolveIncludes(File(args[0])))
 }
