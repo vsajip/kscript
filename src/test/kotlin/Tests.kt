@@ -1,5 +1,7 @@
 import io.kotlintest.matchers.shouldBe
 import kscript.app.*
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
@@ -79,6 +81,31 @@ class Tests {
         )
 
         collectRuntimeOptions(lines) shouldBe "-foo 3 'some file.txt' --bar"
+    }
+
+    @Test
+    fun detectEntryPoint() {
+        assertTrue(isEntryPointDirective("//ENTRY Foo"))
+        assertTrue(isEntryPointDirective("""@file:EntryPoint("Foo")"""))
+
+        assertFalse(isEntryPointDirective("""//@file:EntryPoint("Foo")"""))
+        assertFalse(isEntryPointDirective("""// //ENTRY Foo"""))
+
+
+        val commentDriven = """
+            // comment
+            //ENTRY Foo
+            fun a = ""
+            """.trimIndent()
+
+        val annotDriven = """
+            // comment
+            @file:EntryPoint("Foo")
+            fun a = ""
+            """.trimIndent()
+
+        findEntryPoint(annotDriven.lines()) shouldBe "Foo"
+        findEntryPoint(commentDriven.lines()) shouldBe "Foo"
     }
 
 

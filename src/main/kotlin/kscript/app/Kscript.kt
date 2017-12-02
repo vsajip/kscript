@@ -6,6 +6,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import java.lang.IllegalArgumentException
 import java.net.URL
 import java.net.UnknownHostException
 import kotlin.system.exitProcess
@@ -152,12 +153,10 @@ fun main(args: Array<String>) {
 
     // Even if we just need and support the //ENTRY directive in case of kt-class
     // files, we extract it here to fail if it was used in kts files.
-    val entryDirective = scriptText
-        .find { it.contains("^//ENTRY ".toRegex()) }
-        ?.replace("//ENTRY ", "")?.trim()
+    val entryDirective = findEntryPoint(scriptText)
 
     errorIf(entryDirective != null && scriptFileExt == "kts") {
-        "//ENTRY directive is just supported for kt class files"
+        "@Entry directive is just supported for kt class files"
     }
 
 
@@ -206,7 +205,6 @@ fun main(args: Array<String>) {
 
 
         requireInPath("kotlinc")
-
 
 
         // create main-wrapper for kts scripts
@@ -332,8 +330,35 @@ fun collectRuntimeOptions(scriptText: List<String>): String {
     return kotlinOpts.joinToString(" ")
 }
 
+//
+// Entry directive
+//
 
-/** Determine the latest version by checking github repo and print info if newer version is availabe. */
+private const val ENTRY_ANNOT_PREFIX = "@file:EntryPoint("
+private const val ENTRY_COMMENT_PREFIX = "//ENTRY"
+
+
+internal fun isEntryPointDirective(line: String) =
+    line.startsWith(ENTRY_COMMENT_PREFIX) || line.startsWith(ENTRY_ANNOT_PREFIX)
+
+
+internal fun findEntryPoint(scriptText: List<String>): String? {
+    return scriptText.find { isEntryPointDirective(it) }?.let { extractEntryPoint(it) }
+}
+
+private fun extractEntryPoint(line: String) = when {
+    line.startsWith(ENTRY_ANNOT_PREFIX) ->
+        line
+            .replaceFirst(ENTRY_ANNOT_PREFIX, "")
+            .split(")")[0].trim(' ', '"')
+    line.startsWith(ENTRY_COMMENT_PREFIX) ->
+        line.split("[ ]+".toRegex()).last()
+    else ->
+        throw IllegalArgumentException("can not extract entry point from non-directive")
+}
+
+
+/** Determine the latest version by checking github repo and print info if newer version is available. */
 private fun versionCheck() {
 
     //    val latestVersion = fetchFromURL("https://git.io/v9R73")?.useLines {
