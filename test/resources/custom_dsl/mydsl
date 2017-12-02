@@ -2,17 +2,19 @@
 
 
 export KSCRIPT_DSL_HEADER='
+// declare dependencies
 @file:DependsOn("de.mpicbg.scicomp:kutils:0.4")
 
 // make sure to also support includes in here
+// @file:Include("util.kt")
+@file:Include("https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/custom_dsl/test_dsl_include.kt")
 
 
-@file:Include("util.kt")
-
+// also adjust jvm settings
 @file:KotlinOpts("-J-Xmx5g")
 
 
-// define some important object used throughout the dsl
+// define some important variables to be used throughout the dsl
 val foo = "bar"
 '
 
