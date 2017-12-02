@@ -7,6 +7,7 @@ __{work in progress}__
 [TOC levels=3]: # " "
 
 - [Requirements for running `kscript`](#requirements-for-running-kscript)
+- [Create interpreters for custom DSLs](#create-interpreters-for-custom-dsls)
 - [Tips and tricks](#tips-and-tricks)
     - [Display images inline and open other files](#display-images-inline-and-open-other-files)
 - [Text Processing](#text-processing)
@@ -28,6 +29,42 @@ optional dependencies
 Actually the repo contains a docker container spec that details out what is needed to run kscript. See https://github.com/holgerbrandl/kscript/blob/master/misc/Dockerfile
 
 
+## Create interpreters for custom DSLs
+
+`kscript` makes it easy to derive custom interpreters. All you need to do is to write a wrapper that declares a preamble. See https://github.com/holgerbrandl/kscript/tree/master/test/resources/custom_dsl for an example interpreter called `mydsl`.
+It can be used in the same way as `kscript` including all command-line arguments:
+
+```bash
+mydsl "1+1"
+```
+
+Usage help is customized (within some limits)
+```bash
+mydsl --help
+```
+
+```
+mydsl - Enhanced scripting support for Kotlin on *nix-based systems.
+
+Usage:
+ mydsl [options] <script> [<script_args>]...
+ mydsl --clear-cache
+...
+```
+
+```
+bar
+```
+
+However it differ from `kscript` that it provides a dependency and/or code context (via the preamble)
+```bash
+mydsl "println(foo)"
+# bar
+```
+
+Here `foo` was declared in the `mydsl` preamble.
+
+For more customizability you could for sure also fork the repo take it from there. :-)
 
 ## Tips and tricks
 
