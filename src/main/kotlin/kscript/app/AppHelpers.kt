@@ -1,5 +1,6 @@
 package kscript.app
 
+import kscript.app.ShellUtils.requireInPath
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
@@ -193,6 +194,8 @@ fun info(msg: String) = System.err.println(msg)
 
 
 fun launchIdeaWithKscriptlet(scriptFile: File, dependencies: List<String>, customRepos: List<MavenRepo>): String {
+    requireInPath("idea")
+
     System.err.println("Setting up idea project from ${scriptFile}")
 
     //    val tmpProjectDir = createTempDir("edit_kscript", suffix="")

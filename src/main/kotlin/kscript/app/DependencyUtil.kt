@@ -1,5 +1,6 @@
 package kscript.app
 
+import kscript.app.ShellUtils.requireInPath
 import java.io.File
 
 
@@ -92,6 +93,8 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
     fun runMaven(pom: String, goal: String): Iterable<String> {
         val temp = File.createTempFile("__resdeps__temp__", "_pom.xml")
         temp.writeText(pom)
+
+        requireInPath("mvn")
 
         val mavenCmd = if (System.getenv("PATH").run { this != null && contains("cygwin") }) {
             // when running with cygwin we need to map the pom path into windows space to work
