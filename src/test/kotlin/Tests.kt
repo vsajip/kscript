@@ -1,3 +1,4 @@
+import io.kotlintest.matchers.shouldBe
 import kscript.app.*
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
