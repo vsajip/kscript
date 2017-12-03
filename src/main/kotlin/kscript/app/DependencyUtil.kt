@@ -134,7 +134,14 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
     val classPath = mavenResult.dropWhile { !it.contains("Dependencies classpath:") }.drop(1).firstOrNull()
 
     if (classPath == null) {
-        System.err.println("Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript")
+        errorMsg("Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript")
+        System.err.println("[kscript] The error reported by maven was:")
+        mavenResult.map { it.prependIndent("[kscript] [mvn] ") }.forEach { System.err.println(it) }
+
+        System.err.println("[kscript] Generated pom file was:")
+        pom.lines()
+            //            .map{it.prependIndent("[kscript] [pom] ")}
+            .forEach { System.err.println(it) }
         quit(1)
     }
 
