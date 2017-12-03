@@ -1,4 +1,3 @@
-import io.kotlintest.matchers.shouldBe
 import kscript.app.*
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -51,14 +50,15 @@ class Tests {
         val lines = listOf(
             """@file:MavenRepository("imagej-releases", "http://maven.imagej.net/content/repositories/releases" ) // crazy comment""",
             """@file:DependsOnMaven("net.clearvolume:cleargl:2.0.1")""",
+            """@file:DependsOn("log4j:log4j:1.2.14")""",
             """println("foo")"""
         )
 
-        val expected = listOf(
+        collectRepos(lines) shouldBe listOf(
             MavenRepo("imagej-releases", "http://maven.imagej.net/content/repositories/releases")
         )
 
-        collectRepos(lines) shouldBe expected
+        collectDependencies(lines) shouldBe listOf("net.clearvolume:cleargl:2.0.1", "log4j:log4j:1.2.14", "com.github.holgerbrandl:kscript-annotations:1.1")
     }
 
 
@@ -128,6 +128,4 @@ class Tests {
 
         result.readText() shouldBe (expected.readText())
     }
-
-
 }

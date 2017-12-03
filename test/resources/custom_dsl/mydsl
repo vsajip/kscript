@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 
-export KSCRIPT_DSL_HEADER='
+export CUSTOM_KSCRIPT_NAME='mydsl'
+
+export CUSTOM_KSCRIPT_PREAMBLE='
 // declare dependencies
 @file:DependsOn("de.mpicbg.scicomp:kutils:0.4")
 

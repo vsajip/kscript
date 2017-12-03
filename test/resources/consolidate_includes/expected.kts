@@ -1,7 +1,9 @@
-import java.io.File
-import java.net.URL
+@file:DependsOn("log4j:log4j:1.2.14")
+
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStream
+import java.net.URL
 
 //DEPS com.eclipsesource.minimal-json:minimal-json:0.9.4
 

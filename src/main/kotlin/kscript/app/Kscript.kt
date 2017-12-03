@@ -22,13 +22,15 @@ import kotlin.system.exitProcess
 
 const val KSCRIPT_VERSION = "2.2.1"
 
+val selfName = System.getenv("CUSTOM_KSCRIPT_NAME") ?: "kscript"
+
 val USAGE = """
-kscript - Enhanced scripting support for Kotlin on *nix-based systems.
+$selfName - Enhanced scripting support for Kotlin on *nix-based systems.
 
 Usage:
- kscript [options] <script> [<script_args>]...
- kscript --clear-cache
- kscript --self-update
+ $selfName [options] <script> [<script_args>]...
+ $selfName --clear-cache
+ $selfName --self-update
 
 The <script> can be a  script file (*kts), a script URL, - for stdin, a *.kt source file with a main method, or some kotlin code.
 
@@ -255,56 +257,25 @@ fun main(args: Array<String>) {
     println("kotlin ${kotlinOpts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${joinedUserArgs} ")
 }
 
-fun collectDependencies(scriptText: List<String>): List<String> {
-    val dependsOnPrefix = "@file:DependsOn("
-    var annotDeps = scriptText
-        .filter { it.startsWith(dependsOnPrefix) }
-        .map { it.replaceFirst(dependsOnPrefix, "").split(")")[0] }
-        .flatMap { it.split(",") }
-        .map { it.trim(' ', '"') }
-
-
-    val dependsOnMavenPrefix = "@file:DependsOnMaven("
-    annotDeps += scriptText
-        .filter { it.startsWith(dependsOnMavenPrefix) }
-        .map { it.replaceFirst(dependsOnMavenPrefix, "").split(")")[0] }
-        .map { it.trim(' ', '"') }
-
-
-    // if annotations are used add dependency on kscript-annotations
-    if (scriptText.any { containsKscriptAnnotation(it) }) {
-        annotDeps += "com.github.holgerbrandl:kscript-annotations:1.1"
-    }
-
-
-    // also extract classical comment directives
-    val deps = scriptText
-        .filter { it.startsWith("//DEPS ") }
-        .flatMap { it.split("[ ;,]+".toRegex()).drop(1) }
-        .map(String::trim)
-
-    return (deps + annotDeps).distinct()
-}
-
 data class MavenRepo(val id: String, val url: String)
 
 fun collectRepos(scriptText: List<String>): List<MavenRepo> {
-    val dependsOnMavenPrefix = "@file:MavenRepository("
+    val dependsOnMavenPrefix = "^@file:MavenRepository[(]".toRegex()
     // only supported annotation format for now
 
     // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/")
     return scriptText
-        .filter { it.startsWith(dependsOnMavenPrefix) }
+        .filter { it.contains(dependsOnMavenPrefix) }
         .map { it.replaceFirst(dependsOnMavenPrefix, "").split(")")[0] }
-        .map { it.split(",").map { it.trim(' ', '"') }.let { MavenRepo(it[0], it[1]) } }
+        .map { it.split(",").map { it.trim(' ', '"', '(') }.let { MavenRepo(it[0], it[1]) } }
 
     // todo add credential support https://stackoverflow.com/questions/36282168/how-to-add-custom-maven-repository-to-gradle
 }
 
 
-fun containsKscriptAnnotation(line: String) =
+fun isKscriptAnnotation(line: String) =
     listOf("DependsOn", "KotlinOpts", "Include", "EntryPoint", "MavenRepository", "DependsOnMaven")
-        .any { line.startsWith("@file:${it}(") }
+        .any { line.contains("^@file:${it}[(]".toRegex()) }
 
 
 fun collectRuntimeOptions(scriptText: List<String>): String {
@@ -315,9 +286,9 @@ fun collectRuntimeOptions(scriptText: List<String>): String {
         map { it.replaceFirst(koptsPrefix, "").trim() }
 
     //support for @file:KotlinOpts see #47
-    val annotatonPrefix = "@file:KotlinOpts("
+    val annotatonPrefix = "^@file:KotlinOpts[(]".toRegex()
     kotlinOpts += scriptText
-        .filter { it.startsWith(annotatonPrefix) }
+        .filter { it.contains(annotatonPrefix) }
         .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
         .map { it.trim(' ', '"') }
 
@@ -330,16 +301,66 @@ fun collectRuntimeOptions(scriptText: List<String>): String {
     return kotlinOpts.joinToString(" ")
 }
 
+
 //
 // Entry directive
 //
 
-private const val ENTRY_ANNOT_PREFIX = "@file:EntryPoint("
-private const val ENTRY_COMMENT_PREFIX = "//ENTRY"
+
+private val DEPS_COMMENT_PREFIX = "//DEPS "
+private val DEPS_ANNOT_PREFIX = "^@file:DependsOn[(]".toRegex()
+private val DEPSMAVEN_ANNOT_PREFIX = "^@file:DependsOnMaven[(]".toRegex()
+
+
+private fun extractDependencies(line: String) = when {
+    line.contains(DEPS_ANNOT_PREFIX) -> line
+        .replaceFirst(DEPS_ANNOT_PREFIX, "")
+        .split(")")[0].split(",")
+        .map { it.trim(' ', '"') }
+
+    line.contains(DEPSMAVEN_ANNOT_PREFIX) -> line
+        .replaceFirst(DEPSMAVEN_ANNOT_PREFIX, "")
+        .split(")")[0].trim(' ', '"').let { listOf(it) }
+
+    line.startsWith(DEPS_COMMENT_PREFIX) ->
+        line.split("[ ;,]+".toRegex()).drop(1).map(String::trim)
+
+    else ->
+        throw IllegalArgumentException("can not extract entry point from non-directive")
+}
+
+
+internal fun isDependDeclare(line: String) =
+    line.startsWith(DEPS_COMMENT_PREFIX) || line.contains(DEPS_ANNOT_PREFIX) || line.contains(DEPSMAVEN_ANNOT_PREFIX)
+
+
+fun collectDependencies(scriptText: List<String>): List<String> {
+    val dependencies = scriptText.filter {
+        isDependDeclare(it)
+    }.flatMap {
+        extractDependencies(it)
+    }.toMutableList()
+
+
+    // if annotations are used add dependency on kscript-annotations
+    if (scriptText.any { isKscriptAnnotation(it) }) {
+        dependencies += "com.github.holgerbrandl:kscript-annotations:1.1"
+    }
+
+    return dependencies.distinct()
+}
+
+
+//
+// Entry directive
+//
+
+private val ENTRY_ANNOT_PREFIX = "^@file:EntryPoint[(]".toRegex()
+private const val ENTRY_COMMENT_PREFIX = "//ENTRY "
 
 
 internal fun isEntryPointDirective(line: String) =
-    line.startsWith(ENTRY_COMMENT_PREFIX) || line.startsWith(ENTRY_ANNOT_PREFIX)
+    line.startsWith(ENTRY_COMMENT_PREFIX) || line.contains(ENTRY_ANNOT_PREFIX)
 
 
 internal fun findEntryPoint(scriptText: List<String>): String? {
@@ -347,7 +368,7 @@ internal fun findEntryPoint(scriptText: List<String>): String? {
 }
 
 private fun extractEntryPoint(line: String) = when {
-    line.startsWith(ENTRY_ANNOT_PREFIX) ->
+    line.contains(ENTRY_ANNOT_PREFIX) ->
         line
             .replaceFirst(ENTRY_ANNOT_PREFIX, "")
             .split(")")[0].trim(' ', '"')
@@ -412,34 +433,39 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
         scriptFile = fetchFromURL(scriptResource)
     }
 
-    // Support for support process substitution and direct scripts
+    // Support for support process substitution and direct script arguments
     if (scriptFile == null && !scriptResource.endsWith(".kts") && !scriptResource.endsWith(".kt")) {
         val scriptText = if (File(scriptResource).canRead()) {
             File(scriptResource).readText().trim()
-
         } else {
-            // the last resout is to assume the input to be a kotlin program
-            var script = scriptResource.trim()
-
-            //auto-prefix one-liners with kscript-support api
-            //            if (numLines(script) == 1 && (script.startsWith("lines") || script.startsWith("stdin"))) {
-            if (enableSupportApi) {
-                val prefix = """
-                //DEPS com.github.holgerbrandl:kscript-support:1.2.4
-
-                import kscript.text.*
-                val lines = resolveArgFile(args)
-
-                """.trimIndent()
-
-                script = prefix + script
-            }
-
-            script.trim()
+            // the last resort is to assume the input to be a kotlin program
+            scriptResource.trim()
         }
 
         scriptFile = createTmpScript(scriptText)
     }
+
+
+    // include preamble for custom interpreters (see https://github.com/holgerbrandl/kscript/issues/67)
+    val interpPreamble = System.getenv("CUSTOM_KSCRIPT_PREAMBLE")
+    if (interpPreamble != null && scriptFile != null) {
+        scriptFile = createTmpScript(interpPreamble + scriptFile.readText().stripShebang())
+    }
+
+    // prefix with text-processing preamble if kscript-support api is enabled
+    if (enableSupportApi && scriptFile != null) {
+        val prefix = """
+            //DEPS com.github.holgerbrandl:kscript-support:1.2.4
+
+            import kscript.text.*
+            val lines = resolveArgFile(args)
+
+            """.trimIndent()
+
+        scriptFile = createTmpScript(prefix + scriptFile.readText().stripShebang())
+    }
+
+    //        System.err.println("[kscript] temp script file is ${scriptFile}")
 
 
     // support //INCLUDE directive (see https://github.com/holgerbrandl/kscript/issues/34)
@@ -452,5 +478,3 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
 
     return scriptFile!!
 }
-
-

@@ -1,8 +1,13 @@
-# Kscript User Guide
+# Complementary User Guide
+
+
+See [README](../README.md) for general instructions about how to use `kscript.
 
 
 __{work in progress}__
 
+
+Feel welcome to submit a [ticket](https://github.com/holgerbrandl/kscript/issues) if you think something should be detailed out better in here.
 
 [TOC levels=3]: # " "
 

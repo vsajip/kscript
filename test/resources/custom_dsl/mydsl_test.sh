@@ -2,7 +2,8 @@
 
 # see https://github.com/holgerbrandl/kscript/issues/67
 
-#note: make sure to add $KSCRIPT_HOME/test/resources/custom_dsl to PATH
+#note: make sure to add mydsl to PATH
+# export PATH=${PATH}:${KSCRIPT_HOME}/test/resources/custom_dsl
 
 kscript - <<"EOF"
 #!/usr/bin/env mydsl

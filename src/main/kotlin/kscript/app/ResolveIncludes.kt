@@ -25,6 +25,10 @@ private fun resolveIncludesInternal(template: File): File {
 
     // collect up the set of imports in this
     val imports = emptySet<String>().toMutableSet()
+    val annotations = emptySet<String>().toMutableSet()
+
+
+    //    data class ScriptResource(imports:List<String>, directives: List<String>, code:List<String>)
 
     scriptLines.forEach {
         if (isIncludeDirective(it)) {
@@ -41,19 +45,24 @@ private fun resolveIncludesInternal(template: File): File {
             try {
                 // collect the import or emit
                 includeURL.readText().lines().forEach {
-                    if (it.startsWith(IMPORT_TEXT)) {
-                        imports.add(it)
-                    } else {
-                        sb.appendln(it)
+                    when {
+                        it.startsWith(IMPORT_TEXT) -> imports.add(it)
+                        isKscriptAnnotation(it) -> annotations.add(it)
+                    // strip away package statments in child-scripts
+                        it.startsWith("package ") -> {
+                        }
+                        else -> sb.appendln(it)
                     }
                 }
             } catch (e: FileNotFoundException) {
                 errorMsg("Failed to resolve //INCLUDE '${include}'")
-                System.err.println(e.message?.lines()!!.map { it.prependIndent("[ERROR] ") })
+                System.err.println(e.message?.lines()!!.map { it.prependIndent("[kscript] [ERROR] ") })
                 quit(1)
             }
         } else if (it.startsWith(IMPORT_TEXT)) {
             imports.add(it)
+        } else if (isKscriptAnnotation(it)) {
+            annotations.add(it)
         } else if (!it.startsWith("#!/")) {
             // if its not an include directive or an import or a bang line, emit as is
             sb.appendln(it)
@@ -61,7 +70,17 @@ private fun resolveIncludesInternal(template: File): File {
     }
 
     val incResolved = StringBuilder().apply {
-        imports.map { appendln(it) }
+        // preserve package statment if present
+        scriptLines.firstOrNull { it.startsWith("package ") }?.let {
+            appendln(it)
+        }
+
+        // note: if no import are declared @file annotations won't compile
+        annotations.sorted().map(String::trim).distinct().map { appendln(it) }
+        appendln()
+        imports.sorted().map(String::trim).distinct().map { appendln(it) }
+
+        // append actual script
         appendln(sb)
     }
 
@@ -80,7 +99,6 @@ private fun extractIncludeTarget(incDirective: String) = when {
         .split(")")[0].trim(' ', '"')
     else -> incDirective.split("[ ]+".toRegex()).last()
 }
-
 
 
 // basic launcher used for testing

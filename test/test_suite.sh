@@ -70,7 +70,7 @@ assert "kscript ${KSCRIPT_HOME}/test/resources/dot.Test.kts" "dot alarm!"
 
 ## missing script
 assert_raises "kscript i_do_not_exist.kts" 1
-assert "kscript i_do_not_exist.kts 2>&1" "[ERROR] Could not read script argument 'i_do_not_exist.kts'"
+assert "kscript i_do_not_exist.kts 2>&1" "[kscript] [ERROR] Could not read script argument 'i_do_not_exist.kts'"
 
 ## make sure that it runs with remote URLs
 assert "kscript https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/url_test.kts" "I came from the internet"
@@ -130,7 +130,7 @@ assert "resolve_deps log4j:1.0" "false"
 assert_stderr "resolve_deps log4j:1.0" "[ERROR] Invalid dependency locator: 'log4j:1.0'.  Expected format is groupId:artifactId:version[:classifier]"
 
 ## other version of wrong format should die with useful error.
-assert_stderr "resolve_deps log4j:::1.0" "Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript"
+assert_raises "resolve_deps log4j:::1.0" 1
 
 ## one good dependency,  one wrong
 assert_raises "resolve_deps org.org.docopt:org.docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
@@ -188,6 +188,17 @@ assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/default_entry_nopckg.kt"
 assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/default_entry_withpckg.kt" "main was called"
 
 assert_end kt_support
+
+
+
+########################################################################################################################
+##  custom interpreters
+
+export PATH=${PATH}:${KSCRIPT_HOME}/test/resources/custom_dsl
+
+assert 'mydsl "println(foo)"' "bar"
+
+assert_end custom_interpreters
 
 
 

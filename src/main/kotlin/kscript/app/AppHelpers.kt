@@ -99,7 +99,7 @@ object ShellUtils {
 
 
 fun errorMsg(msg: String) {
-    System.err.println("[ERROR] " + msg)
+    System.err.println("[kscript] [ERROR] " + msg)
 }
 
 
@@ -129,6 +129,10 @@ fun createTmpScript(scriptText: String): File {
         writeText(scriptText)
     }
 }
+
+
+fun String.stripShebang(): String = lines().dropWhile { it.startsWith("#!/") }.joinToString("\n")
+fun Iterable<String>.stripShebang(): Iterable<String> = dropWhile { it.startsWith("#!/") }
 
 
 fun fetchFromURL(scriptURL: String): File? {
