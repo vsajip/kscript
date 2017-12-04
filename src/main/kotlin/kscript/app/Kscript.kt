@@ -433,6 +433,7 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
         scriptFile = fetchFromURL(scriptResource)
     }
 
+
     // Support for support process substitution and direct script arguments
     if (scriptFile == null && !scriptResource.endsWith(".kts") && !scriptResource.endsWith(".kt")) {
         val scriptText = if (File(scriptResource).canRead()) {
@@ -445,16 +446,22 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
         scriptFile = createTmpScript(scriptText)
     }
 
+    // just proceed if the script file is a regular file at this point
+    errorIf(scriptFile == null || !scriptFile.canRead()) {
+        "Could not read script argument '$scriptResource'"
+    }
+
+
+    // note script file must be not null at this point
 
     // include preamble for custom interpreters (see https://github.com/holgerbrandl/kscript/issues/67)
-    val interpPreamble = System.getenv("CUSTOM_KSCRIPT_PREAMBLE")
-    if (interpPreamble != null && scriptFile != null) {
-        scriptFile = createTmpScript(interpPreamble + scriptFile.readText().stripShebang())
+    System.getenv("CUSTOM_KSCRIPT_PREAMBLE")?.let { interpPreamble ->
+        scriptFile = Script(scriptFile!!).injectAfterPckgStmnt { interpPreamble }.createTmpScript()
     }
 
     // prefix with text-processing preamble if kscript-support api is enabled
-    if (enableSupportApi && scriptFile != null) {
-        val prefix = """
+    if (enableSupportApi) {
+        val textProcPreamble = """
             //DEPS com.github.holgerbrandl:kscript-support:1.2.4
 
             import kscript.text.*
@@ -462,19 +469,14 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
 
             """.trimIndent()
 
-        scriptFile = createTmpScript(prefix + scriptFile.readText().stripShebang())
+        scriptFile = Script(scriptFile!!).injectAfterPckgStmnt { textProcPreamble }.createTmpScript()
     }
 
-    //        System.err.println("[kscript] temp script file is ${scriptFile}")
-
+    //    System.err.println("[kscript] temp script file is ${scriptFile}")
+    System.err.println("[kscript] temp script file is \n${Script(scriptFile!!)}")
 
     // support //INCLUDE directive (see https://github.com/holgerbrandl/kscript/issues/34)
-    if (scriptFile != null) scriptFile = resolveIncludes(scriptFile)
-
-    // just proceed if the script file is a regular file at this point
-    errorIf(scriptFile == null || !scriptFile.canRead()) {
-        "Could not read script argument '$scriptResource'"
-    }
+    scriptFile = resolveIncludes(scriptFile!!)
 
     return scriptFile!!
 }

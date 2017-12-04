@@ -133,7 +133,6 @@ fun createTmpScript(scriptText: String): File {
 
 
 fun String.stripShebang(): String = lines().dropWhile { it.startsWith("#!/") }.joinToString("\n")
-fun Iterable<String>.stripShebang(): Iterable<String> = dropWhile { it.startsWith("#!/") }
 
 
 fun fetchFromURL(scriptURL: String): File? {

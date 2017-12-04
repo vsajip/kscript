@@ -1,4 +1,3 @@
-
 println("Let's resolve includes!")
 
 fun include_1() = println("include_1")
@@ -15,5 +14,3 @@ include_4()
 
 
 println("wow, so many includes")
-
-

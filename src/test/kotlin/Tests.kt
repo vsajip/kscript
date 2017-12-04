@@ -120,6 +120,7 @@ class Tests {
         result.readText() shouldBe (expected.readText())
     }
 
+
     @Test
     fun test_include_annotations() {
         val file = File("test/resources/includes/include_variations.kts")
