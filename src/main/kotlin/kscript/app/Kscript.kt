@@ -451,12 +451,13 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
         "Could not read script argument '$scriptResource'"
     }
 
+    val extension = scriptFile!!.extension
 
     // note script file must be not null at this point
 
     // include preamble for custom interpreters (see https://github.com/holgerbrandl/kscript/issues/67)
     System.getenv("CUSTOM_KSCRIPT_PREAMBLE")?.let { interpPreamble ->
-        scriptFile = Script(scriptFile!!).injectAfterPckgStmnt { interpPreamble }.createTmpScript()
+        scriptFile = Script(scriptFile!!).prependWith(interpPreamble).createTmpScript()
     }
 
     // prefix with text-processing preamble if kscript-support api is enabled
@@ -469,11 +470,11 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
 
             """.trimIndent()
 
-        scriptFile = Script(scriptFile!!).injectAfterPckgStmnt { textProcPreamble }.createTmpScript()
+        scriptFile = Script(scriptFile!!).prependWith(textProcPreamble).createTmpScript()
     }
 
     //    System.err.println("[kscript] temp script file is ${scriptFile}")
-    System.err.println("[kscript] temp script file is \n${Script(scriptFile!!)}")
+    //    System.err.println("[kscript] temp script file is \n${Script(scriptFile!!)}")
 
     // support //INCLUDE directive (see https://github.com/holgerbrandl/kscript/issues/34)
     scriptFile = resolveIncludes(scriptFile!!)

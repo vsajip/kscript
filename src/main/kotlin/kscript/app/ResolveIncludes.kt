@@ -45,7 +45,7 @@ fun resolveIncludes(template: File): File {
             } else {
                 listOf(it)
             }
-        }.let { Script(it) }
+        }.let { script.copy(it) }
     }
 
     return script.consolidateStructure().createTmpScript()

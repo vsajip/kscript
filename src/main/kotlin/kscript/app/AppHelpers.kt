@@ -125,8 +125,8 @@ fun guessKotlinHome(): String? {
 }
 
 
-fun createTmpScript(scriptText: String): File {
-    return File(SCRIPT_TEMP_DIR, "scriptlet.${md5(scriptText)}.kts").apply {
+fun createTmpScript(scriptText: String, extension: String = "kts"): File {
+    return File(SCRIPT_TEMP_DIR, "scriptlet.${md5(scriptText)}.$extension").apply {
         writeText(scriptText)
     }
 }
