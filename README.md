@@ -1,7 +1,6 @@
 # kscript - Having fun with Kotlin scripting
 
 [![Build Status](https://travis-ci.org/holgerbrandl/kscript.svg?branch=master)](https://travis-ci.org/holgerbrandl/kscript)
-
 [![Gitter](https://badges.gitter.im/holgerbrandl/kscript.svg)](https://gitter.im/holgerbrandl/kscript?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Enhanced scripting support for [Kotlin](https://kotlinlang.org/) on *nix-based systems.
