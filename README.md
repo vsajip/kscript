@@ -301,6 +301,8 @@ Using annotations instead of comment directives to configure scripts is cleaner 
 // declare application entry point (applies on for kt-files)
 @file:EntryPoint("Foo.bar") 
 
+import kscript.annotations.*
+
 print("1+1")
 ```
 
@@ -311,27 +313,79 @@ com.github.holgerbrandl:kscript-annotations:1.1
 
 `kscript` will automatically detect an annotation-driven script, and if so will declare a dependency on this artifact internally.
 
-Support API
------------
+Text Processing Mode
+--------------------
+
+`kscript` can be used as a speedier and more flexible substitute for built-in terminal tools such as `awk` or `sed`
 
 
-`kscript` is complemented by a [support library](https://github.com/holgerbrandl/kscript-support-api) to ease the writing of Kotlin scriptlets for text-processing. The latter includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the development of kscript applications.
+`kscript` is complemented by
 
 The text processing mode can be enabled with `-t` or `--text`. If so, `kscript` will
-* declare `com.github.holgerbrandl:kscript-support:1.2.4` as dependency for the script
-* import the  `kscript.*` namespace
+
+* Declare `com.github.holgerbrandl:kscript-support:1.2.4` as dependency for the script. This [support library](https://github.com/holgerbrandl/kscript-support-api) eases the writing of Kotlin scriptlets for text-processing. It includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the writing of scriptlets for text processing.
+* Import the  `kscript.*` namespace
 * Define variable `val lines = kscript.text.StreamUtilKt.resolveArgFile(args)` which returns an iterator over the lines in the first input argument of the script, or the standard input if no file arguments are provided to the script
 
-This allows for `sed`/`awk`/`perl`-like constructs such as
+
+This allows to to replace `awk`ward constructs (or `sed` or`perl`) with _kotlinesque_ solutions such as
 
 ```bash
-cat some_file | kscript -t 'lines.filter { "^de0[-0]*".toRegex().matches(it) }.map { it + "foo:" }.print()'
+cat some_file | kscript -t 'lines
+    .filter { "^de0[-0]*".toRegex().matches(it) }
+    .map { it + "foo:" }
+    .print()
+'
 ```
 
 In this example, the extension method [`Iterable<String>.print()`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/text/StreamUtil.kt#L34) to print the lines to stdout comes from the support API. The rest is stdlib Kotlin.
 
  For more  examples using the support library see this [blog post](http://holgerbrandl.github.io/kotlin/2017/05/08/kscript_as_awk_substitute.html).
 
+Treat yourself a REPL with `--interactive`
+------------------------------------------
+
+To create an interactive kotlin shell (aka [REPL](https://kotlinlang.org/docs/tutorials/command-line.html#running-the-repl)) with all script dependencies added to the classpath you can use `--interactive`.
+
+For example, let's assume the following short script, named `count_records.kts`
+```kotlin
+#!/usr/bin/env kscript
+@file:DependsOn("de.mpicbg.scicomp:kutils:0.4")
+
+import de.mpicbg.scicomp.bioinfo.openFasta
+
+if (args.size != 1) {
+    System.err.println("Usage: CountRecords <fasta>")
+    kotlin.system.exitProcess(-1)
+}
+
+val records = openFasta(java.io.File(args[0]))
+println(records.count())
+```
+
+To build a REPL that has the declared artifact in its classpath, we can just do
+
+```bash
+kscript --interactive count_records.kts
+```
+which will bring up the classpath-enhanced REPL:
+```
+Creating REPL from count_records.kts
+Welcome to Kotlin version 1.1.51 (JRE 1.8.0_151-b12)
+>>> import de.mpicbg.scicomp.bioinfo.openFasta
+>>> 
+```
+
+Boostrap IDEA from a `kscript`let
+-----------------------------------
+
+Artifacts and versions will differ between scripts, so it is hard to maintain them all in a single project. To nevertheless provide optimal tooling when scripting with Kotlin `kscript` allows to create temporary projects for `<script>` arguments. .
+
+```bash
+kscript --idea CountRecords.kts
+```
+This will open [IntelliJ IDEA](https://www.jetbrains.com/idea/) with a minimalistic project containing just your (1) `<script>` and  (2) a generated `gradle.build` file:
+![](misc/readme_images/minus_idea.png)
 
 
 FAQ
@@ -346,11 +400,11 @@ print("hello kotlin!")
 is a valid Kotlin `kts` script. Plain and simple, no `main`, no `companion`, just a few bits of code.
 
 
-### Ok, but does `kscript` also work for regular kotlin `.kt` source files  with a `main` as entry point?
+### Does `kscript` also work for regular kotlin `.kt` source files  with a `main` as entry point?
 
 Yes, (since v1.6) you can run kotlin source files through `kscript`. By default it will assume a top-level `main` method as entry-point.
 
-However in case you're using a companion object to declare the entry point, you need to indicate this via the `//ENTRY` directive:
+However in case you're using a companion object to declare the entry point, you need to indicate this via the `//ENTRY`/`@file:Entry` directive:
 
 
 ### Why does it fail to read my script file when using cygwin?
@@ -359,6 +413,21 @@ In order to use cygwin you need to use windows paths to provide your scripts. Yo
 ```bash
 kscript $(cygpath -w /cygdrive/z/some/path/my_script.kts)
 ```
+
+## What are performance and resource usage difference between scripting with kotlin and python?
+
+Kotlin is a compiled language, so there is a compilation overhead when you run a script/application written in Kotlin for the first time.
+
+Kotlin runs (mainly) on the JVM which needs some time (~200ms) to start up. In contrast, the python interpreter has close to zero warmup time.
+
+I think there is a consensus that JVM programs execute much faster than python equivalents. Still, python might be faster depending on your specific usecase. Also, with kotlin-native becoming more mature, you could compile into native binaries directly, which should bring it close to C/C++ performance.
+
+Main motivations for using Kotlin over Python for scripting and development are
+* Kotlin is the better designed, more fluent language with much better tooling around it
+* The JVM dependency ecosystem allows for strict versioning. No more messing around with virtualenv, e.g. to run a short 10liner against a specific version of numpy.
+
+
+
 
 
 ### Can I use custom artifact repositories?
