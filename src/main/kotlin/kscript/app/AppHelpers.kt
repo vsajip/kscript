@@ -94,7 +94,7 @@ object ShellUtils {
 
     fun isInPath(tool: String) = evalBash("which $tool").stdout.trim().isNotBlank()
 
-    fun requireInPath(tool: String) = errorIf(!isInPath(tool)) { "$tool is not in PATH" }
+    fun requireInPath(tool: String, msg: String = "$tool is not in PATH") = errorIf(!isInPath(tool)) { msg }
 
 }
 
@@ -193,7 +193,7 @@ fun info(msg: String) = System.err.println(msg)
 
 
 fun launchIdeaWithKscriptlet(scriptFile: File, dependencies: List<String>, customRepos: List<MavenRepo>): String {
-    requireInPath("idea")
+    requireInPath("idea", "Could not find 'idea' in your PATH. It can be created in IntelliJ under `Tools -> Create Command-line Launcher`")
 
     System.err.println("Setting up idea project from ${scriptFile}")
 
