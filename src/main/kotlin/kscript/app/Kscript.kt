@@ -6,7 +6,6 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
-import java.lang.IllegalArgumentException
 import java.net.URL
 import java.net.UnknownHostException
 import kotlin.system.exitProcess
@@ -114,17 +113,12 @@ fun main(args: Array<String>) {
     val scriptResource = docopt.getString("script")
     val scriptFile = prepareScript(scriptResource, enableSupportApi = docopt.getBoolean("text"))
 
+    val script = Script(scriptFile)
 
-    val scriptText = scriptFile.readLines()
-
-    // Make sure that dependencies declarations are well formatted
-    if (scriptText.any { it.startsWith("// DEPS") }) {
-        error("Dependencies must be declared by using the line prefix //DEPS")
-    }
 
     // Find all //DEPS directives and concatenate their values
-    val dependencies = collectDependencies(scriptText)
-    val customRepos = collectRepos(scriptText)
+    val dependencies = script.collectDependencies()
+    val customRepos = script.collectRepos()
 
 
     //  Create temopary dev environment
@@ -137,7 +131,7 @@ fun main(args: Array<String>) {
     val classpath = resolveDependencies(dependencies, customRepos, loggingEnabled)
 
     // Extract kotlin arguments
-    val kotlinOpts = collectRuntimeOptions(scriptText)
+    val kotlinOpts = script.collectRuntimeOptions()
 
 
     //  Optionally enter interactive mode
@@ -155,7 +149,7 @@ fun main(args: Array<String>) {
 
     // Even if we just need and support the //ENTRY directive in case of kt-class
     // files, we extract it here to fail if it was used in kts files.
-    val entryDirective = findEntryPoint(scriptText)
+    val entryDirective = script.findEntryPoint()
 
     errorIf(entryDirective != null && scriptFileExt == "kts") {
         "@Entry directive is just supported for kt class files"
@@ -179,16 +173,13 @@ fun main(args: Array<String>) {
         "Main_${className}"
     } else {
         // extract package from kt-file
-        val pckg = scriptText.find { it.startsWith("package ") }
-            ?.split("[ ]+".toRegex())?.get(1)?.run { this + "." }
-
-        """${pckg ?: ""}${entryDirective ?: "${className}Kt"}"""
+        """${script.pckg ?: ""}${entryDirective ?: "${className}Kt"}"""
     }
 
 
     // infer KOTLIN_HOME if not set
-    @Suppress("LocalVariableName")
     val KOTLIN_HOME = System.getenv("KOTLIN_HOME") ?: guessKotlinHome()
+
     errorIf(KOTLIN_HOME == null) {
         "KOTLIN_HOME is not set and could not be inferred from context"
     }
@@ -225,19 +216,6 @@ fun main(args: Array<String>) {
             }
             """.trimIndent())
 
-            //            // compile the wrapper
-            //            with(evalBash("kotlinc '${mainKotlin}'", wd = mainKotlin.parentFile)) {
-            //                errorIf(exitCode != 0) { "Compilation of script-wrapper failed:$stderr" }
-            //            }
-            //
-            //            // update the jar to include main-wrapper
-            //            // requireInPath("jar") // disabled because it's another process invocation
-            //            val jarUpdateCmd = "jar uf '${jarFile.absoluteFile}' ${mainKotlin.nameWithoutExtension}*.class"
-            //            with(evalBash(jarUpdateCmd, wd = mainKotlin.parentFile)) {
-            //                errorIf(exitCode != 0) { "Update of script jar with wrapper class failed\n${stderr}" }
-            //            }
-
-            //            if(loggingEnabled) System.err.println("Done")
             "'${mainKotlin.absolutePath}'"
         } else {
             ""
@@ -251,132 +229,11 @@ fun main(args: Array<String>) {
 
 
     // print the final command to be run by exec
-    //    val joinedUserArgs = args.drop(1 + args.indexOfFirst { it == scriptResource }).joinToString(" ")
     val joinedUserArgs = userArgs.joinToString(" ")
 
     println("kotlin ${kotlinOpts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${joinedUserArgs} ")
 }
 
-data class MavenRepo(val id: String, val url: String)
-
-fun collectRepos(scriptText: List<String>): List<MavenRepo> {
-    val dependsOnMavenPrefix = "^@file:MavenRepository[(]".toRegex()
-    // only supported annotation format for now
-
-    // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/")
-    return scriptText
-        .filter { it.contains(dependsOnMavenPrefix) }
-        .map { it.replaceFirst(dependsOnMavenPrefix, "").split(")")[0] }
-        .map { it.split(",").map { it.trim(' ', '"', '(') }.let { MavenRepo(it[0], it[1]) } }
-
-    // todo add credential support https://stackoverflow.com/questions/36282168/how-to-add-custom-maven-repository-to-gradle
-}
-
-
-fun isKscriptAnnotation(line: String) =
-    listOf("DependsOn", "KotlinOpts", "Include", "EntryPoint", "MavenRepository", "DependsOnMaven")
-        .any { line.contains("^@file:${it}[(]".toRegex()) }
-
-
-fun collectRuntimeOptions(scriptText: List<String>): String {
-    val koptsPrefix = "//KOTLIN_OPTS "
-
-    var kotlinOpts = scriptText.
-        filter { it.startsWith(koptsPrefix) }.
-        map { it.replaceFirst(koptsPrefix, "").trim() }
-
-    //support for @file:KotlinOpts see #47
-    val annotatonPrefix = "^@file:KotlinOpts[(]".toRegex()
-    kotlinOpts += scriptText
-        .filter { it.contains(annotatonPrefix) }
-        .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
-        .map { it.trim(' ', '"') }
-
-
-    // Append $KSCRIPT_KOTLIN_OPTS if defined in the parent environment
-    System.getenv()["KSCRIPT_KOTLIN_OPTS"]?.run {
-        kotlinOpts = kotlinOpts + this
-    }
-
-    return kotlinOpts.joinToString(" ")
-}
-
-
-//
-// Entry directive
-//
-
-
-private val DEPS_COMMENT_PREFIX = "//DEPS "
-private val DEPS_ANNOT_PREFIX = "^@file:DependsOn[(]".toRegex()
-private val DEPSMAVEN_ANNOT_PREFIX = "^@file:DependsOnMaven[(]".toRegex()
-
-
-private fun extractDependencies(line: String) = when {
-    line.contains(DEPS_ANNOT_PREFIX) -> line
-        .replaceFirst(DEPS_ANNOT_PREFIX, "")
-        .split(")")[0].split(",")
-        .map { it.trim(' ', '"') }
-
-    line.contains(DEPSMAVEN_ANNOT_PREFIX) -> line
-        .replaceFirst(DEPSMAVEN_ANNOT_PREFIX, "")
-        .split(")")[0].trim(' ', '"').let { listOf(it) }
-
-    line.startsWith(DEPS_COMMENT_PREFIX) ->
-        line.split("[ ;,]+".toRegex()).drop(1).map(String::trim)
-
-    else ->
-        throw IllegalArgumentException("can not extract entry point from non-directive")
-}
-
-
-internal fun isDependDeclare(line: String) =
-    line.startsWith(DEPS_COMMENT_PREFIX) || line.contains(DEPS_ANNOT_PREFIX) || line.contains(DEPSMAVEN_ANNOT_PREFIX)
-
-
-fun collectDependencies(scriptText: List<String>): List<String> {
-    val dependencies = scriptText.filter {
-        isDependDeclare(it)
-    }.flatMap {
-        extractDependencies(it)
-    }.toMutableList()
-
-
-    // if annotations are used add dependency on kscript-annotations
-    if (scriptText.any { isKscriptAnnotation(it) }) {
-        dependencies += "com.github.holgerbrandl:kscript-annotations:1.1"
-    }
-
-    return dependencies.distinct()
-}
-
-
-//
-// Entry directive
-//
-
-private val ENTRY_ANNOT_PREFIX = "^@file:EntryPoint[(]".toRegex()
-private const val ENTRY_COMMENT_PREFIX = "//ENTRY "
-
-
-internal fun isEntryPointDirective(line: String) =
-    line.startsWith(ENTRY_COMMENT_PREFIX) || line.contains(ENTRY_ANNOT_PREFIX)
-
-
-internal fun findEntryPoint(scriptText: List<String>): String? {
-    return scriptText.find { isEntryPointDirective(it) }?.let { extractEntryPoint(it) }
-}
-
-private fun extractEntryPoint(line: String) = when {
-    line.contains(ENTRY_ANNOT_PREFIX) ->
-        line
-            .replaceFirst(ENTRY_ANNOT_PREFIX, "")
-            .split(")")[0].trim(' ', '"')
-    line.startsWith(ENTRY_COMMENT_PREFIX) ->
-        line.split("[ ]+".toRegex()).last()
-    else ->
-        throw IllegalArgumentException("can not extract entry point from non-directive")
-}
 
 
 /** Determine the latest version by checking github repo and print info if newer version is available. */
@@ -401,6 +258,7 @@ private fun versionCheck() {
         info("""A new version (v${latestVersion}) of kscript is available. Use 'kscript --self-update' to update your local kscript installation""")
     }
 }
+
 
 fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
     var scriptFile: File?
@@ -451,8 +309,6 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
         "Could not read script argument '$scriptResource'"
     }
 
-    val extension = scriptFile!!.extension
-
     // note script file must be not null at this point
 
     // include preamble for custom interpreters (see https://github.com/holgerbrandl/kscript/issues/67)
@@ -476,7 +332,7 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
     //    System.err.println("[kscript] temp script file is ${scriptFile}")
     //    System.err.println("[kscript] temp script file is \n${Script(scriptFile!!)}")
 
-    // support //INCLUDE directive (see https://github.com/holgerbrandl/kscript/issues/34)
+    // resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
     scriptFile = resolveIncludes(scriptFile!!)
 
     return scriptFile!!

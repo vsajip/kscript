@@ -25,7 +25,7 @@ class Tests {
             "log4j:log4j:1.2.14"
         )
 
-        collectDependencies(lines) shouldBe expected
+        Script(lines).collectDependencies() shouldBe expected
     }
 
     @Test
@@ -42,7 +42,7 @@ class Tests {
             "com.github.holgerbrandl:kscript-annotations:1.1"
         )
 
-        collectDependencies(lines) shouldBe expected
+        Script(lines).collectDependencies() shouldBe expected
     }
 
 
@@ -55,11 +55,19 @@ class Tests {
             """println("foo")"""
         )
 
-        collectRepos(lines) shouldBe listOf(
-            MavenRepo("imagej-releases", "http://maven.imagej.net/content/repositories/releases")
-        )
+        with(Script(lines)) {
 
-        collectDependencies(lines) shouldBe listOf("net.clearvolume:cleargl:2.0.1", "log4j:log4j:1.2.14", "com.github.holgerbrandl:kscript-annotations:1.1")
+            collectRepos() shouldBe listOf(
+                MavenRepo("imagej-releases", "http://maven.imagej.net/content/repositories/releases")
+            )
+
+            collectDependencies() shouldBe listOf(
+                "net.clearvolume:cleargl:2.0.1",
+                "log4j:log4j:1.2.14",
+                "com.github.holgerbrandl:kscript-annotations:1.1"
+            )
+        }
+
     }
 
 
@@ -71,7 +79,7 @@ class Tests {
             "//KOTLIN_OPTS  --bar"
         )
 
-        collectRuntimeOptions(lines) shouldBe "-foo 3 'some file.txt' --bar"
+        Script(lines).collectRuntimeOptions() shouldBe "-foo 3 'some file.txt' --bar"
     }
 
     @Test
@@ -81,7 +89,7 @@ class Tests {
             """@file:KotlinOpts("--bar")"""
         )
 
-        collectRuntimeOptions(lines) shouldBe "-foo 3 'some file.txt' --bar"
+        Script(lines).collectRuntimeOptions() shouldBe "-foo 3 'some file.txt' --bar"
     }
 
     @Test
@@ -99,14 +107,16 @@ class Tests {
             fun a = ""
             """.trimIndent()
 
+        Script(commentDriven.lines()).findEntryPoint() shouldBe "Foo"
+
+
         val annotDriven = """
             // comment
             @file:EntryPoint("Foo")
             fun a = ""
             """.trimIndent()
 
-        findEntryPoint(annotDriven.lines()) shouldBe "Foo"
-        findEntryPoint(commentDriven.lines()) shouldBe "Foo"
+        Script(annotDriven.lines()).findEntryPoint() shouldBe "Foo"
     }
 
 
