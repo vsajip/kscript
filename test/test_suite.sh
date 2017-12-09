@@ -187,7 +187,14 @@ assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/default_entry_nopckg.kt"
 
 assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/default_entry_withpckg.kt" "main was called"
 
+
+## also make sure that kts in package can be run via kscript
+assert "${KSCRIPT_HOME}/test/resources/script_in_pckg.kts" "I live in a package!"
+
+
 assert_end kt_support
+
+
 
 
 

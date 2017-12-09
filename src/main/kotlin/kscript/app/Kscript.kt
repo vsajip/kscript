@@ -204,12 +204,15 @@ fun main(args: Array<String>) {
 
         val wrapperSrcArg = if (scriptFileExt == "kts") {
             val mainKotlin = File(createTempDir("kscript"), execClassName + ".kt")
+
+            val classReference = (script.pckg ?: "") + className
+
             mainKotlin.writeText("""
             class Main_${className}{
                 companion object {
                     @JvmStatic
                     fun main(args: Array<String>) {
-                        val script = Main_${className}::class.java.classLoader.loadClass("${className}")
+                        val script = Main_${className}::class.java.classLoader.loadClass("${classReference}")
                         script.getDeclaredConstructor(Array<String>::class.java).newInstance(args);
                     }
                 }
@@ -233,7 +236,6 @@ fun main(args: Array<String>) {
 
     println("kotlin ${kotlinOpts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${joinedUserArgs} ")
 }
-
 
 
 /** Determine the latest version by checking github repo and print info if newer version is available. */
