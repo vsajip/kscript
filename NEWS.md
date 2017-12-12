@@ -1,3 +1,28 @@
+
+
+## v2.3
+
+
+Major Enhancements:
+
+* Replaced javac with kotlinc for wrapper compilation
+* Added symlink support
+* Allow to derive custom DSL interpreters from kscript (fixes  [#67](https://github.com/holgerbrandl/kscript/issues/67))
+* Implemented `@file:Include` and `@EntryPoint` as documented in README (fixes [#73](https://github.com/holgerbrandl/kscript/issues/73))
+* Added [gitter](https://gitter.im/holgerbrandl/kscript?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) channel
+
+Minor Enhancements:
+* Consolidate imports and dependencies when `//INCLUDE` is used (fixes [#75](https://github.com/holgerbrandl/kscript/pull/75)) …
+* Support artifact should have better namespace (fixes [#57](https://github.com/holgerbrandl/kscript/issues/57))
+* Fixed [#76](https://github.com/holgerbrandl/kscript/issues/76): Unspecific error when dependency resolution fails
+* Fixed [#66](https://github.com/holgerbrandl/kscript/issues/66): It should die more gracefully if `idea` is not present
+* Fixed [#81](https://github.com/holgerbrandl/kscript/issues/81): Allow package declarations for scripts
+* Fixed [#78](https://github.com/holgerbrandl/kscript/issues/78): When using `--idea` the script argument should be symlinked
+* Fixed [#79](https://github.com/holgerbrandl/kscript/pull/79): Provide setup instructions if idea launcher is missing
+* Simplified build instructions (fixes [#60](https://github.com/holgerbrandl/kscript/issues/60))
+* Document dependencies of kscript (fixes [#69](https://github.com/holgerbrandl/kscript/issues/69))
+
+
 ## v2.2
 
 * Logging of maven artifact downloads to stderr (fixes [#23](https://github.com/holgerbrandl/kscript/issues/23))

@@ -3,6 +3,8 @@
 
 See [README](../README.md) for general instructions about how to use `kscript.
 
+In here more specific use-cases are discussed.
+
 
 __{work in progress}__
 
