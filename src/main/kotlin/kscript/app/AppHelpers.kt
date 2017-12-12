@@ -1,10 +1,7 @@
 package kscript.app
 
 import kscript.app.ShellUtils.requireInPath
-import java.io.BufferedReader
-import java.io.File
-import java.io.InputStream
-import java.io.InputStreamReader
+import java.io.*
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -256,11 +253,19 @@ buildscript {
 
     File(tmpProjectDir, "build.gradle").writeText(gradleScript)
 
-    // also copy script reource in
-    File(tmpProjectDir, "src").apply {
+    // also copy/symlink script resource in
+    File(tmpProjectDir, "src").run {
         mkdir()
-        scriptFile.copyTo(File(this, scriptFile.name))
 
+        val tmpProjectScript = File(this, scriptFile.name)
+
+        // https://stackoverflow.com/questions/17926459/creating-a-symbolic-link-with-java
+        try {
+            Files.createSymbolicLink(tmpProjectScript.toPath(), scriptFile.toPath());
+        } catch (e: IOException) {
+            errorMsg("Failed to create symbolic link to script. Copying instead...")
+            scriptFile.copyTo(tmpProjectScript)
+        }
     }
 
     return "idea ${tmpProjectDir.absolutePath}"
