@@ -301,8 +301,6 @@ Using annotations instead of comment directives to configure scripts is cleaner 
 // declare application entry point (applies on for kt-files)
 @file:EntryPoint("Foo.bar") 
 
-import kscript.annotations.*
-
 print("1+1")
 ```
 
