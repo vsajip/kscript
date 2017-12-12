@@ -38,14 +38,23 @@ Actually the repo contains a docker container spec that details out what is need
 
 ## Create interpreters for custom DSLs
 
-`kscript` makes it easy to derive custom interpreters. All you need to do is to write a wrapper that declares a preamble. See https://github.com/holgerbrandl/kscript/tree/master/test/resources/custom_dsl for an example interpreter called `mydsl`.
+`kscript` makes it easy to derive custom interpreters. All you need to do is to write a wrapper that declares a preamble. See [`mydsl`](https://github.com/holgerbrandl/kscript/tree/master/test/resources/custom_dsl/mydsl) for an example interpreter called `mydsl`.
+
+Before you can start using `mydsl` you need to add it to it to your `$PATH`
+
+```
+export PATH=${PATH}:${KSCRIPT_HOME}/test/resources/custom_dsl
+```
+
+
 It can be used in the same way as `kscript` including all command-line arguments:
 
 ```bash
 mydsl "1+1"
 ```
 
-Usage help is customized (within some limits)
+Usage help is customized (within some limits).
+For more customizability you could for sure also fork the repo, and take it from there. :-)
 ```bash
 mydsl --help
 ```
@@ -59,19 +68,42 @@ Usage:
 ...
 ```
 
+_Feel_ the preamble:
+```bash
+mydsl - <<"EOF"
+
+println(foo)
+included()
+EOF
+```
+
 ```
 bar
 ```
 
-However it differ from `kscript` that it provides a dependency and/or code context (via the preamble)
-```bash
-mydsl "println(foo)"
-# bar
+Here `foo` and `included()` were declared in the `mydsl` preamble.
+
+
+For sure you can still declare additional dependencies, and `kscript` will consolidate the file structure internally
+```
+mydsl - <<"EOF"
+@file:DependsOn("com.beust:klaxon:0.24")
+
+import com.beust.klaxon.Parser
+
+val p = Parser()
+
+println(foo)
+included()
+EOF
 ```
 
-Here `foo` was declared in the `mydsl` preamble.
 
-For more customizability you could for sure also fork the repo take it from there. :-)
+Note: For remote debugging export the preamble and run the instrumented version of `kscript`
+```
+$KSCRIPT_HOME/misc/experimental/kscriptD "42"
+```
+
 
 ## Tips and tricks
 

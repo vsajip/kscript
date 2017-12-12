@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 export CUSTOM_KSCRIPT_NAME='mydsl'
 
 export CUSTOM_KSCRIPT_PREAMBLE='
