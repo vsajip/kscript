@@ -5,10 +5,10 @@
 
 Major Enhancements:
 
-* Replaced javac with kotlinc for wrapper compilation
+* Replaced `javac` with `kotlinc` for faster script compilation
 * Added symlink support
-* Allow to derive custom DSL interpreters from kscript (fixes  [#67](https://github.com/holgerbrandl/kscript/issues/67))
-* Implemented `@file:Include` and `@EntryPoint` as documented in README (fixes [#73](https://github.com/holgerbrandl/kscript/issues/73))
+* Allow to derive [custom DSL interpreters](https://github.com/holgerbrandl/kscript/blob/master/docs/user_guide.md#create-interpreters-for-custom-dsls) from kscript (fixes  [#67](https://github.com/holgerbrandl/kscript/issues/67))
+* Implemented `@file:Include` and `@EntryPoint` as [documented](https://github.com/holgerbrandl/kscript#annotation-driven-script-configuration) in README (fixes [#73](https://github.com/holgerbrandl/kscript/issues/73))
 * Added [gitter](https://gitter.im/holgerbrandl/kscript?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) channel
 
 Minor Enhancements:
