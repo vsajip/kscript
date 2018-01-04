@@ -139,7 +139,9 @@ fun main(args: Array<String>) {
         System.err.println("Creating REPL from ${scriptFile}")
         //        System.err.println("kotlinc ${kotlinOpts} -classpath '${classpath}'")
 
-        println("kotlinc ${kotlinOpts} -classpath ${classpath}")
+        val optionalCP = if (classpath != null && classpath.isNotEmpty()) "-classpath ${classpath}" else ""
+        println("kotlinc ${kotlinOpts} ${optionalCP}")
+
         exitProcess(0)
     }
 

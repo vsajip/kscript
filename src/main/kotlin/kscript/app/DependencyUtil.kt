@@ -13,7 +13,7 @@ fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emp
 
     // if no dependencies were provided we stop here
     if (depIds.isEmpty()) {
-        return ""
+        return null
     }
 
     val depsHash = depIds.joinToString(CP_SEPARATOR_CHAR)
