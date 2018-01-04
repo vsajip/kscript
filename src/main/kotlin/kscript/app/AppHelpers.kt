@@ -261,7 +261,7 @@ buildscript {
 
         // https://stackoverflow.com/questions/17926459/creating-a-symbolic-link-with-java
         try {
-            Files.createSymbolicLink(tmpProjectScript.toPath(), scriptFile.toPath());
+            Files.createSymbolicLink(tmpProjectScript.toPath(), scriptFile.absoluteFile.toPath());
         } catch (e: IOException) {
             errorMsg("Failed to create symbolic link to script. Copying instead...")
             scriptFile.copyTo(tmpProjectScript)
