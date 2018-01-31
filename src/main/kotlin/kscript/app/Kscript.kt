@@ -128,7 +128,8 @@ fun main(args: Array<String>) {
     }
 
 
-    val classpath = resolveDependencies(dependencies, customRepos, loggingEnabled)
+    val classpath = resolveDependencies(dependencies, customRepos, loggingEnabled) ?: ""
+    val optionalCpArg = if (classpath.isNotEmpty()) "-classpath '${classpath}'" else ""
 
     // Extract kotlin arguments
     val kotlinOpts = script.collectRuntimeOptions()
@@ -139,8 +140,7 @@ fun main(args: Array<String>) {
         System.err.println("Creating REPL from ${scriptFile}")
         //        System.err.println("kotlinc ${kotlinOpts} -classpath '${classpath}'")
 
-        val optionalCP = if (classpath != null && classpath.isNotEmpty()) "-classpath ${classpath}" else ""
-        println("kotlinc ${kotlinOpts} ${optionalCP}")
+        println("kotlinc ${kotlinOpts} ${optionalCpArg}")
 
         exitProcess(0)
     }
@@ -226,7 +226,7 @@ fun main(args: Array<String>) {
             ""
         }
 
-        val scriptCompileResult = evalBash("kotlinc -classpath '$classpath' -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}' ${wrapperSrcArg}")
+        val scriptCompileResult = evalBash("kotlinc ${optionalCpArg} -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}' ${wrapperSrcArg}")
         with(scriptCompileResult) {
             errorIf(exitCode != 0) { "compilation of '$scriptResource' failed\n$stderr" }
         }
@@ -236,7 +236,11 @@ fun main(args: Array<String>) {
     // print the final command to be run by exec
     val joinedUserArgs = userArgs.joinToString(" ")
 
-    println("kotlin ${kotlinOpts} -classpath ${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar${CP_SEPARATOR_CHAR}${classpath} ${execClassName} ${joinedUserArgs} ")
+    var extClassPath = "${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar"
+    if (classpath.isNotEmpty())
+        extClassPath = kscript.app.CP_SEPARATOR_CHAR + classpath
+
+    println("kotlin ${kotlinOpts} -classpath $extClassPath${extClassPath} ${execClassName} ${joinedUserArgs} ")
 }
 
 
