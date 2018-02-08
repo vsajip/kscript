@@ -138,7 +138,7 @@ assert_raises "resolve_deps org.org.docopt:org.docopt:0.9.0-SNAPSHOT log4j:log4j
 assert_end dependency_lookup
 
 ########################################################################################################################
-## annotation-drive configuration
+## annotation-driven configuration
 
 # make sure that @file:DependsOn is parsed correctly
 assert "kscript ${KSCRIPT_HOME}/test/resources/depends_on_annot.kts" "kscript with annotations rocks!"
@@ -148,6 +148,9 @@ assert "kscript ${KSCRIPT_HOME}/test/resources/depends_on_maven_annot.kts" "kscr
 
 # make sure that @file:MavenRepository is parsed correctly
 assert "kscript ${KSCRIPT_HOME}/test/resources/custom_mvn_repo_annot.kts" "kscript with annotations rocks!"
+
+
+assert_stderr "kscript ${KSCRIPT_HOME}/test/resources/illegal_depends_on_arg.kts" '[kscript] [ERROR] Artifact locators must be provided as separate annotation arguments and not as comma-separated list: [com.squareup.moshi:moshi:1.5.0,com.squareup.moshi:moshi-adapters:1.5.0]'
 
 
 assert_end annotation_config

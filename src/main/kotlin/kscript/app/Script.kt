@@ -136,11 +136,30 @@ fun Script.collectDependencies(): List<String> {
 }
 
 
-private fun extractDependencies(line: String) = when {
+private fun String.extractAnnotParams(): List<String> {
+    // https://stackoverflow.com/questions/171480/regex-grabbing-values-between-quotation-marks
+    val annotationArgs = """(["'])(\\?.*?)\1""".toRegex()
+        .findAll(this).toList().map {
+        it.groupValues[2]
+    }
+
+    // fail if any argument is a comma separated list of artifacts (see #101)
+    annotationArgs.filter { it.contains(',') }.let {
+        errorIf(it.isNotEmpty()) {
+            "Artifact locators must be provided as separate annotation arguments and not as comma-separated list: " + it
+        }
+    }
+
+    return annotationArgs
+}
+
+internal fun extractDependencies(line: String) = when {
     line.contains(DEPS_ANNOT_PREFIX) -> line
         .replaceFirst(DEPS_ANNOT_PREFIX, "")
-        .split(")")[0].split(",")
-        .map { it.trim(' ', '"') }
+        .extractAnnotParams()
+//        .split(")")[0].split(",")
+//        .map { it.trim(' ', '"') }
+
 
     line.contains(DEPSMAVEN_ANNOT_PREFIX) -> line
         .replaceFirst(DEPSMAVEN_ANNOT_PREFIX, "")
@@ -193,9 +212,7 @@ fun Script.collectRepos(): List<MavenRepo> {
 fun Script.collectRuntimeOptions(): String {
     val koptsPrefix = "//KOTLIN_OPTS "
 
-    var kotlinOpts = lines.
-        filter { it.startsWith(koptsPrefix) }.
-        map { it.replaceFirst(koptsPrefix, "").trim() }
+    var kotlinOpts = lines.filter { it.startsWith(koptsPrefix) }.map { it.replaceFirst(koptsPrefix, "").trim() }
 
     //support for @file:KotlinOpts see #47
     val annotatonPrefix = "^@file:KotlinOpts[(]".toRegex()

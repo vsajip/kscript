@@ -1,4 +1,5 @@
 import io.kotlintest.matchers.shouldBe
+import io.kotlintest.matchers.shouldThrow
 import kscript.app.*
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -27,6 +28,25 @@ class Tests {
 
         Script(lines).collectDependencies() shouldBe expected
     }
+
+    @Test
+    fun parseAnnotDependencies() {
+        val lines = listOf("""@file:DependsOn("something:dev-1.1.0-alpha3(T2):1.2.14", "de.mpicbg.scicomp:kutils:0.7")""")
+
+        val expected = listOf(
+            "something:dev-1.1.0-alpha3(T2):1.2.14",
+            "de.mpicbg.scicomp:kutils:0.7",
+            "com.github.holgerbrandl:kscript-annotations:1.1"
+        )
+
+        Script(lines).collectDependencies() shouldBe expected
+
+        // but reject comma separation within dependency entries
+        shouldThrow<IllegalArgumentException> {
+            extractDependencies("""@file:DependsOn("com.squareup.moshi:moshi:1.5.0,com.squareup.moshi:moshi-adapters:1.5.0")""")
+        }
+    }
+
 
     @Test
     fun mixedDependencyCollect() {
