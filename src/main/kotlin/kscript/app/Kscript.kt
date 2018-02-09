@@ -61,7 +61,7 @@ fun main(args: Array<String>) {
     }
 
     // note: with current impt we still don't support `kscript -1` where "-1" is a valid kotlin expression
-    val userArgs = args.dropWhile { it.startsWith("-") }.drop(1)
+    val userArgs = args.dropWhile { it.startsWith("-") && it != "-" }.drop(1)
     val kscriptArgs = args.take(args.size - userArgs.size)
 
     val docopt = DocOptWrapper(kscriptArgs, USAGE)

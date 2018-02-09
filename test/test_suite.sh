@@ -47,6 +47,9 @@ assert 'kscript -s "println(args.joinToString(\"\"))" --arg u ments' '--argument
 ## provide script via stidin
 assert "echo 'println(1+1)' | kscript -" "2"
 
+## provide script via stidin with further switch (to avoid regressions of #94)
+assert "echo 'println(1+3)' | kscript - --foo"  "4"
+
 ## make sure that heredoc is accepted as argument
 assert "source ${KSCRIPT_HOME}/test/resources/here_doc_test.sh" "hello kotlin"
 
