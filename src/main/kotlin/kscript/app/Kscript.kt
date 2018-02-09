@@ -42,6 +42,8 @@ Options:
  -t --text               Enable stdin support API for more streamlined text processing
  --idea                  Open script in temporary Intellij session
  -s --silent             Suppress status logging to stderr
+ --package               Package script and dependencies into self-dependent binary
+
 
 Copyright : 2017 Holger Brandl
 License   : MIT
@@ -122,7 +124,7 @@ fun main(args: Array<String>) {
     val customRepos = script.collectRepos()
 
 
-    //  Create temopary dev environment
+    //  Create temporary dev environment
     if (docopt.getBoolean("idea")) {
         println(launchIdeaWithKscriptlet(scriptFile, dependencies, customRepos))
         exitProcess(0)
@@ -237,6 +239,19 @@ fun main(args: Array<String>) {
 
     // print the final command to be run by exec
     val joinedUserArgs = userArgs.joinToString(" ")
+
+    //if requested try to package the into a standalone binary
+    if (docopt.getBoolean("package")) {
+        val binaryName = if (File(scriptResource).run { canRead() && listOf("kts", "kt").contains(extension) }) {
+            File(scriptResource).nameWithoutExtension
+        } else {
+            "k" + scriptFile.nameWithoutExtension
+        }
+
+        packageKscript(jarFile, execClassName, dependencies, customRepos, kotlinOpts, binaryName)
+
+        quit(0)
+    }
 
     var extClassPath = "${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar"
     if (classpath.isNotEmpty())

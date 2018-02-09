@@ -129,7 +129,7 @@ fun Script.collectDependencies(): List<String> {
 
     // if annotations are used add dependency on kscript-annotations
     if (lines.any { isKscriptAnnotation(it) }) {
-        dependencies += " com.github.holgerbrandl:kscript-annotations:1.2"
+        dependencies += "com.github.holgerbrandl:kscript-annotations:1.2"
     }
 
     return dependencies.distinct()

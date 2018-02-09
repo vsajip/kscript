@@ -249,3 +249,109 @@ sourceSets.main.java.srcDirs 'src'
 
     return "idea ${tmpProjectDir.absolutePath}"
 }
+
+
+/**
+ * Create and use a temporary gradle project to package the compiled script using capsule.
+ * See https://github.com/puniverse/capsule
+ */
+fun packageKscript(scriptJar: File, wrapperClassName: String, dependencies: List<String>, customRepos: List<MavenRepo>, runtimeOptions: String, appName: String) {
+    requireInPath("gradle", "gradle is required to package kscripts")
+
+    infoMsg("Packaging script '$appName' into standalone executable...")
+
+
+    val tmpProjectDir = KSCRIPT_CACHE_DIR
+        .run { File(this, "kscript_tmp_project__${scriptJar.name}_${System.currentTimeMillis()}") }
+        .apply { mkdir() }
+
+    val stringifiedDeps = dependencies.map { "    compile \"$it\"" }.joinToString("\n")
+    val stringifiedRepos = customRepos.map { "    maven {\n        url '${it.url}'\n    }\n" }.joinToString("\n")
+
+    val jvmOptions = runtimeOptions.split(" ")
+        .filter { it.startsWith("-J") }
+        .map { it.removePrefix("-J") }
+        .map { '"' + it + '"' }
+        .joinToString(", ")
+
+    // https://shekhargulati.com/2015/09/10/gradle-tip-using-gradle-plugin-from-local-maven-repository/
+
+    val gradleScript = """
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.2.10"
+    id "us.kirchmeier.capsule" version "1.0.2"
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+$stringifiedRepos
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib"
+$stringifiedDeps
+
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-script-runtime', version: '1.2.21'
+
+    // https://stackoverflow.com/questions/20700053/how-to-add-local-jar-file-dependency-to-build-gradle-file
+    compile files('${scriptJar}')
+}
+
+// http://www.capsule.io/user-guide/#really-executable-capsules
+def reallyExecutable(jar) {
+    ant.concat(destfile: "tmp.jar", binary: true) {
+        //zipentry(zipfile: configurations.capsule.singleFile, name: 'capsule/execheader.sh')
+        fileset(dir: '.', includes: 'exec_header.sh')
+
+        fileset(dir: jar.destinationDir) {
+            include(name: jar.archiveName)
+        }
+    }
+    copy {
+        from 'tmp.jar'
+        into jar.destinationDir
+        rename { jar.archiveName }
+    }
+    delete 'tmp.jar'
+}
+
+task simpleCapsule(type: FatCapsule){
+  applicationClass '$wrapperClassName'
+
+  baseName '$appName'
+
+  capsuleManifest {
+    jvmArgs = [$jvmOptions]
+    //args = []
+    //systemProperties['java.awt.headless'] = true
+  }
+}
+
+simpleCapsule.doLast { task -> reallyExecutable(task) }
+    """.trimIndent()
+
+    val pckgedJar = File(Paths.get("").toAbsolutePath().toFile(), appName).absoluteFile
+
+
+    // create exec_header to allow for direction execution (see http://www.capsule.io/user-guide/#really-executable-capsules)
+    // from https://github.com/puniverse/capsule/blob/master/capsule-util/src/main/resources/capsule/execheader.sh
+    File(tmpProjectDir, "exec_header.sh").writeText("""#!/usr/bin/env bash
+exec java -jar ${'$'}0 "${'$'}@"
+""")
+
+    File(tmpProjectDir, "build.gradle").writeText(gradleScript)
+
+    val pckgResult = evalBash("cd ${tmpProjectDir} && gradle simpleCapsule && cp build/libs/${appName}*.jar ${pckgedJar} && chmod +x ${pckgedJar}")
+
+    infoMsg("Finished packaging into ${pckgedJar}")
+
+    //    evalBash("idea ${tmpProjectDir.absolutePath}")
+
+    with(pckgResult) {
+        kscript.app.errorIf(exitCode != 0) { "packaging of '$appName' failed:\n$stderr" }
+        quit(1)
+    }
+
+    //    return "idea ${tmpProjectDir.absolutePath}"
+}

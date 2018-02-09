@@ -204,9 +204,10 @@ assert "${KSCRIPT_HOME}/test/resources/script_in_pckg.kts" "I live in a package!
 
 
 ## can we resolve relative imports when using tmp-scripts  (see #95)
-assert "echo foo | kscript -t ${KSCRIPT_HOME}/test/resources/includes/include_context.kts" "include_3"
+assert "kscript --package test/resources/package_example.kts &>/dev/null; ./package_example 1" "package_me_args_1_mem_4772593664"
 
-
+## https://unix.stackexchange.com/questions/17064/how-to-print-only-last-column
+assert 'eval $(kscript --package "println(args.size)" 2>&1 | tail -n1 | grep -o '\S\+$') three arg uments' "3"
 
 
 

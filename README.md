@@ -13,6 +13,7 @@ In particular this wrapper around `kotlinc` adds
 * More options to provide scripts including interpreter mode, reading from stdin, local files or URLs
 * Embedded configuration for Kotlin runtime options
 * Support library to ease the writing of Kotlin scriptlets
+* Deploy scripts as stand-alone binaries
 
 Taken all these features together, `kscript` provides an easy-to-use, very flexible, and almost zero-overhead solution to write self-contained mini-applications with Kotlin.
 
@@ -309,7 +310,7 @@ print("1+1")
 
 To enable the use of these annotations in Intellij, the user must add the following artifact (hosted on jcenter) to the project dependencies:
 ```
- com.github.holgerbrandl:kscript-annotations:1.2
+com.github.holgerbrandl:kscript-annotations:1.2
 ```
 
 `kscript` will automatically detect an annotation-driven script, and if so will declare a dependency on this artifact internally.
