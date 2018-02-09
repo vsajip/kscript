@@ -6,6 +6,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import java.net.URI
 import java.net.URL
 import java.net.UnknownHostException
 import kotlin.system.exitProcess
@@ -238,9 +239,9 @@ fun main(args: Array<String>) {
 
     var extClassPath = "${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar"
     if (classpath.isNotEmpty())
-        extClassPath = kscript.app.CP_SEPARATOR_CHAR + classpath
+        extClassPath += kscript.app.CP_SEPARATOR_CHAR + classpath
 
-    println("kotlin ${kotlinOpts} -classpath $extClassPath${extClassPath} ${execClassName} ${joinedUserArgs} ")
+    println("kotlin ${kotlinOpts} -classpath ${extClassPath} ${execClassName} ${joinedUserArgs} ")
 }
 
 
@@ -268,8 +269,12 @@ private fun versionCheck() {
 }
 
 
+
 fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
     var scriptFile: File?
+
+    // we need to keep track of the scripts dir or the working dir in case of stdin script to correctly resolve includes
+    var includeContext: URI = File(".").toURI()
 
     // map script argument to script file
     scriptFile = with(File(scriptResource)) {
@@ -277,6 +282,9 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
             // not a file so let's keep the script-file undefined here
             null
         } else if (listOf("kts", "kt").contains(extension)) {
+            // update include context
+            includeContext = this.absoluteFile.parentFile.toURI()
+
             // script input is a regular script or clas file
             this
         } else {
@@ -297,6 +305,8 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
     // Support URLs as script files
     if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")) {
         scriptFile = fetchFromURL(scriptResource)
+
+        includeContext = URI(scriptResource.run { substring(lastIndexOf('/') + 1) })
     }
 
 
@@ -341,7 +351,7 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
     //    System.err.println("[kscript] temp script file is \n${Script(scriptFile!!)}")
 
     // resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
-    scriptFile = resolveIncludes(scriptFile!!)
+    scriptFile = resolveIncludes(scriptFile!!, includeContext)
 
     return scriptFile!!
 }

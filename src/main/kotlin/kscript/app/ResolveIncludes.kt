@@ -2,6 +2,7 @@ package kscript.app
 
 import java.io.File
 import java.io.FileNotFoundException
+import java.net.URI
 import java.net.URL
 
 /**
@@ -13,7 +14,7 @@ const val PACKAGE_STATEMENT_PREFIX = "package "
 const val IMPORT_STATMENT_PREFIX = "import " // todo make more solid by using operator including regex
 
 /** Resolve include declarations in a script file. Resolved script will be put into another temporary script */
-fun resolveIncludes(template: File): File {
+fun resolveIncludes(template: File, includeContext: URI = template.parentFile.toURI()): File {
     var script = Script(template)
 
     // just rewrite user scripts if includes a
@@ -30,9 +31,8 @@ fun resolveIncludes(template: File): File {
                 val includeURL = when {
                     include.startsWith("http://") -> URL(include)
                     include.startsWith("https://") -> URL(include)
-                    include.startsWith("./") || include.startsWith("../") -> File(template.parentFile, include).toURI().toURL()
                     include.startsWith("/") -> File(include).toURI().toURL()
-                    else -> File(template.parentFile, include).toURI().toURL()
+                    else -> includeContext.resolve(URI(include.removePrefix("./"))).toURL()
                 }
 
                 try {

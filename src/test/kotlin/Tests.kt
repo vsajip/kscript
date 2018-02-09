@@ -1,5 +1,4 @@
 import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldThrow
 import kscript.app.*
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -42,9 +41,10 @@ class Tests {
         Script(lines).collectDependencies() shouldBe expected
 
         // but reject comma separation within dependency entries
-        shouldThrow<IllegalArgumentException> {
-            extractDependencies("""@file:DependsOn("com.squareup.moshi:moshi:1.5.0,com.squareup.moshi:moshi-adapters:1.5.0")""")
-        }
+        // note: disabled because quits kscript by design
+        //        shouldThrow<IllegalArgumentException> {
+        //            extractDependencies("""@file:DependsOn("com.squareup.moshi:moshi:1.5.0,com.squareup.moshi:moshi-adapters:1.5.0")""")
+        //        }
     }
 
 

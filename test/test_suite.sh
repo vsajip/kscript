@@ -195,7 +195,9 @@ assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/default_entry_withpckg.k
 assert "${KSCRIPT_HOME}/test/resources/script_in_pckg.kts" "I live in a package!"
 
 
-assert_end kt_support
+
+## can we resolve relative imports when using tmp-scripts  (see #95)
+assert "echo foo | kscript -t ${KSCRIPT_HOME}/test/resources/includes/include_context.kts" "include_3"
 
 
 
