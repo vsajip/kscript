@@ -413,6 +413,9 @@ kscript --package some_script.kts
 ./some_script --arg u ments
 ```
 
+The created binary will contain a compiled copy of the script, as well as all declared dependencies (fatjar). Also runtime jvm parameters declared via `@file:KotlinOpts` are used to spin up the JVM.
+
+
 Just `java` is required to run these binaries.
 
 FAQ
