@@ -206,6 +206,8 @@ println("Parsed script arguments are: \n" + doArgs)
 println("Hello from Kotlin with 5g of heap memory running in server mode!")
 ```
 
+Note: Similar to the runtime you can also tweak the compile step by providing `//COMPILER_OPTS`.
+
 ### Ease prototyping with `//INCLUDE`
 
 `kscript` supports an `//INLCUDE` directive to directly include other source files without prior compilation. Absolute and relative paths, as well as URLs are supported. Example:
@@ -297,6 +299,7 @@ Using annotations instead of comment directives to configure scripts is cleaner 
 // Define kotlin options
 @file:KotlinOpts("-J-Xmx5g")
 @file:KotlinOpts("-J-server")
+@file:CompilerOpts("-jvm-target 1.8")
 
 // declare application entry point (applies on for kt-files)
 @file:EntryPoint("Foo.bar") 
@@ -306,7 +309,7 @@ print("1+1")
 
 To enable the use of these annotations in Intellij, the user must add the following artifact (hosted on jcenter) to the project dependencies:
 ```
-com.github.holgerbrandl:kscript-annotations:1.1
+ com.github.holgerbrandl:kscript-annotations:1.2
 ```
 
 `kscript` will automatically detect an annotation-driven script, and if so will declare a dependency on this artifact internally.

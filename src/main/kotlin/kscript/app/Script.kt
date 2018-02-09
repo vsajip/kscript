@@ -129,7 +129,7 @@ fun Script.collectDependencies(): List<String> {
 
     // if annotations are used add dependency on kscript-annotations
     if (lines.any { isKscriptAnnotation(it) }) {
-        dependencies += "com.github.holgerbrandl:kscript-annotations:1.1"
+        dependencies += " com.github.holgerbrandl:kscript-annotations:1.2"
     }
 
     return dependencies.distinct()
@@ -228,4 +228,22 @@ fun Script.collectRuntimeOptions(): String {
     }
 
     return kotlinOpts.joinToString(" ")
+}
+
+
+/**
+ * Collect compiler options declared using //COMPILER_OPTS or @file:CompilerOpts
+ */
+fun Script.collectCompilerOptions(): String {
+    val koptsPrefix = "//COMPILER_OPTS "
+
+    var compilerOpts = lines.filter { it.startsWith(koptsPrefix) }.map { it.replaceFirst(koptsPrefix, "").trim() }
+
+    val annotatonPrefix = "^@file:CompilerOpts[(]".toRegex()
+    compilerOpts += lines
+        .filter { it.contains(annotatonPrefix) }
+        .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
+        .map { it.trim(' ', '"') }
+
+    return compilerOpts.joinToString(" ")
 }

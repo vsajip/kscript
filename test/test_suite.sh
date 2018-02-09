@@ -156,6 +156,10 @@ assert "kscript ${KSCRIPT_HOME}/test/resources/custom_mvn_repo_annot.kts" "kscri
 assert_stderr "kscript ${KSCRIPT_HOME}/test/resources/illegal_depends_on_arg.kts" '[kscript] [ERROR] Artifact locators must be provided as separate annotation arguments and not as comma-separated list: [com.squareup.moshi:moshi:1.5.0,com.squareup.moshi:moshi-adapters:1.5.0]'
 
 
+# make sure that @file:MavenRepository is parsed correctly
+assert "kscript ${KSCRIPT_HOME}/test/resources/script_with_compile_flags.kts" "hoo_ray"
+
+
 assert_end annotation_config
 
 

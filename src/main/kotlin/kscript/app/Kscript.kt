@@ -134,6 +134,7 @@ fun main(args: Array<String>) {
 
     // Extract kotlin arguments
     val kotlinOpts = script.collectRuntimeOptions()
+    val compilerOpts = script.collectCompilerOptions()
 
 
     //  Optionally enter interactive mode
@@ -141,7 +142,7 @@ fun main(args: Array<String>) {
         infoMsg("Creating REPL from ${scriptFile}")
         //        System.err.println("kotlinc ${kotlinOpts} -classpath '${classpath}'")
 
-        println("kotlinc ${kotlinOpts} ${optionalCpArg}")
+        println("kotlinc ${compilerOpts} ${kotlinOpts} ${optionalCpArg}")
 
         exitProcess(0)
     }
@@ -227,7 +228,7 @@ fun main(args: Array<String>) {
             ""
         }
 
-        val scriptCompileResult = evalBash("kotlinc ${optionalCpArg} -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}' ${wrapperSrcArg}")
+        val scriptCompileResult = evalBash("kotlinc ${compilerOpts} ${optionalCpArg} -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}' ${wrapperSrcArg}")
         with(scriptCompileResult) {
             errorIf(exitCode != 0) { "compilation of '$scriptResource' failed\n$stderr" }
         }
