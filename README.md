@@ -19,8 +19,24 @@ Taken all these features together, `kscript` provides an easy-to-use, very flexi
 
 
 ---
-### [`kscript` presentation from KotlinConf2017!](https://holgerbrandl.github.io/kscript_kotlinconf_2017/kscript_kotlinconf.html)
+**[`kscript` presentation from KotlinConf2017!](https://holgerbrandl.github.io/kscript_kotlinconf_2017/kscript_kotlinconf.html)**
+
 ---
+
+[TOC levels=2,2]: # " "
+
+- [Installation](#installation)
+- [Script Input Modes](#script-input-modes)
+- [Script Configuration](#script-configuration)
+- [Text Processing Mode](#text-processing-mode)
+- [Treat yourself a REPL with `--interactive`](#treat-yourself-a-repl-with---interactive)
+- [Boostrap IDEA from a `kscript`let](#boostrap-idea-from-a-kscriptlet)
+- [Deploy scripts as standalone binaries](#deploy-scripts-as-standalone-binaries)
+- [FAQ](#faq)
+- [Support](#support)
+- [How to contribute?](#how-to-contribute)
+- [Acknowledgements](#acknowledgements)
+
 
 Installation
 ------------
@@ -387,6 +403,18 @@ This will open [IntelliJ IDEA](https://www.jetbrains.com/idea/) with a minimalis
 
 This assumes that you have the Intellij IDEA command line launcher `idea` in your `PATH`. It can be created in IntelliJ under `Tools -> Create Command-line Launcher`
 
+Deploy scripts as standalone binaries
+--------------------------------------
+
+To deploy a script simply do
+
+```bash
+kscript --package some_script.kts
+./some_script --arg u ments
+```
+
+Just `java` is required to run these binaries.
+
 FAQ
 ---
 
@@ -413,7 +441,7 @@ In order to use cygwin you need to use windows paths to provide your scripts. Yo
 kscript $(cygpath -w /cygdrive/z/some/path/my_script.kts)
 ```
 
-## What are performance and resource usage difference between scripting with kotlin and python?
+### What are performance and resource usage difference between scripting with kotlin and python?
 
 Kotlin is a compiled language, so there is a compilation overhead when you run a script/application written in Kotlin for the first time.
 
