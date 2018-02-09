@@ -96,9 +96,10 @@ object ShellUtils {
 }
 
 
-fun errorMsg(msg: String) {
-    System.err.println("[kscript] [ERROR] " + msg)
-}
+fun infoMsg(msg: String) = System.err.println("[kscript] " + msg)
+
+
+fun errorMsg(msg: String) = System.err.println("[kscript] [ERROR] " + msg)
 
 
 fun errorIf(value: Boolean, lazyMessage: () -> Any) {

@@ -137,7 +137,7 @@ fun main(args: Array<String>) {
 
     //  Optionally enter interactive mode
     if (docopt.getBoolean("interactive")) {
-        System.err.println("Creating REPL from ${scriptFile}")
+        infoMsg("Creating REPL from ${scriptFile}")
         //        System.err.println("kotlinc ${kotlinOpts} -classpath '${classpath}'")
 
         println("kotlinc ${kotlinOpts} ${optionalCpArg}")
