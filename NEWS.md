@@ -3,8 +3,8 @@
 ## v2.4
 
 Major Enhancements:
-* Allow to set `kotlinc` compiler flags with @file:CompilerOpts or `//COMPILER_OPTS` (#84). See [here](https://github.com/holgerbrandl/kscript#deploy-scripts-as-standalone-binaries).
-* Provide a way to "package" kscripts (#63). See [here](https://github.com/holgerbrandl/kscript#configure-the-runtime--with-kotlin_opts).
+* Allow to set `kotlinc` compiler flags with `@file:CompilerOpts` or `//COMPILER_OPTS` (#84). See [here](https://github.com/holgerbrandl/kscript#deploy-scripts-as-standalone-binaries).
+* Provide a way to _package_ kscripts (#63). See [here](https://github.com/holgerbrandl/kscript#configure-the-runtime--with-kotlin_opts).
 
 Minor Enhancements:
 
@@ -12,11 +12,11 @@ Minor Enhancements:
 * Fixed #94: stdin does not allow further switches
 * Allow for round brackets in artifact ids (fixes #100).
 * Fixed #83: interactive fails unless your script contains dependencies
-* Fixed #82: Symlinking does not work correctly with --idea and relati…
+* Fixed #82: Sym-linking does not work correctly with --idea and relative script paths
 * New: Implemented benchmarking suite to assess runtime impact of `kscript`
 * Fixed: Don't use null in classpath arguments if classpath is empty
 * Fixed: Use `exec` for derived interpreter
-* Simplify Gradle config for script boostraping with IDEA (#86)
+* Simplify Gradle config for script bootstrapping with IDEA (#86)
 * Added Gradle wrapper to the project (#87 and #88)
 
 
