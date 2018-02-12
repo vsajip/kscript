@@ -350,7 +350,6 @@ exec java -jar ${'$'}0 "${'$'}@"
 
     with(pckgResult) {
         kscript.app.errorIf(exitCode != 0) { "packaging of '$appName' failed:\n$stderr" }
-        quit(1)
     }
 
     //    return "idea ${tmpProjectDir.absolutePath}"
