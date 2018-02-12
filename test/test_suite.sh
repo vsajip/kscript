@@ -207,8 +207,9 @@ assert "${KSCRIPT_HOME}/test/resources/script_in_pckg.kts" "I live in a package!
 #assert "rm -f ./package_example && kscript --package test/resources/package_example.kts &>/dev/null && ./package_example 1" "package_me_args_1_mem_4772593664"
 
 assert "kscript --package test/resources/package_example.kts" "foo"
-#assert "./package_example 1" "package_me_args_1_mem_4772593664"
+#assert "./package_example 1" "package_me_args_1_mem_4772593664"da
 #assert "echo 1" "package_me_args_1_mem_4772593664"
+assert_statement 'rm -f kscriptlet* && kscript --package "println(args.size)"' "foo" "bar" 0
 
 ## https://unix.stackexchange.com/questions/17064/how-to-print-only-last-column
 assert 'rm -f kscriptlet* && cmd=$(kscript --package "println(args.size)" 2>&1 | tail -n1 | cut -f 5 -d " ")  && $cmd three arg uments' "3"
