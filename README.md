@@ -247,7 +247,7 @@ Which can be now used using the `//INCLUDE` directive with
 val robustMean = listOf(1.3, 42.3, 7.).median()
 println(robustMean)
 ```
-The argument file can be an url, absolute or relative path.
+The argument can be an URL, absolute or relative file path. Note that URLs used in include directives are cached locally to speed up processing, that is `kscript` won't fetch URLs again unless the user actively clears the cache with `kscript --clear-cache`.
 
 For more examples see [here](test/resources/includes/include_variations.kts).
 
@@ -501,7 +501,7 @@ Acknowledgements
 
 The initial version of `kscript` was kindly contributed by [Oscar Gonzalez](https://github.com/oskargb).
 
-Special thanks to [Ilan Pillemer](https://github.com/ilanpillemer) for contributing [PR75](https://github.com/holgerbrandl/kscript/pull/75/).
+Special thanks to [Ilan Pillemer](https://github.com/ilanpillemer), [Andrey Mischenko ](https://github.com/gildor), [Stephen Byrne](https://github.com/stephenbyrne-mfj), [Eugene Susla](https://github.com/EugeneSusla) and [Eli Hart](https://github.com/elihart) for [contributing](https://github.com/holgerbrandl/kscript/graphs/contributors) PRs to this repo.
 
 Thanks also to the [Scionics Computer Innovation GmbH](https://www.scionics.com/) and the [MPI-CBG](http://www.mpi-cbg.de) for supporting this project.
 
