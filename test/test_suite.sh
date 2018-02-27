@@ -230,6 +230,20 @@ assert_end custom_interpreters
 
 
 ########################################################################################################################
+##  misc
+
+## prevent regressions of #98 (it fails to process empty or space-containing arguments)
+assert 'kscript "println(args.size)" foo bar' 2         ## regaular args
+assert 'kscript "println(args.size)" "" foo bar' 3      ## accept empty args
+assert 'kscript "println(args.size)" "--params foo"' 1  ## make sure dash args are not confused with options
+assert 'kscript "println(args.size)" "foo bar"' 1       ## allow for spaces
+assert 'kscript "println(args[0])" "foo bar"' "foo bar" ## make sure quotes are not propagated into args
+
+
+assert_end misc
+
+
+########################################################################################################################
 ##  run junit-test suite
 
 # exit code of `true` is expected to be 0 (see https://github.com/lehmannro/assert.sh)
