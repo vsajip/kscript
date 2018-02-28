@@ -114,19 +114,26 @@ fun main(args: Array<String>) {
 
     // Resolve the script resource argument into an actual file
     val scriptResource = docopt.getString("script")
-    val scriptFile = prepareScript(scriptResource, enableSupportApi = docopt.getBoolean("text"))
+
+    val enableSupportApi = docopt.getBoolean("text")
+    val (rawScript, includeContext) = prepareScript(scriptResource, enableSupportApi)
+
+    // post process script (text-processing mode, custom dsl preamble, resolve includes)
+    // finally resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
+    val (scriptFile, includeURLs) = resolveIncludes(rawScript, includeContext)
+
 
     val script = Script(scriptFile)
 
 
     // Find all //DEPS directives and concatenate their values
-    val dependencies = script.collectDependencies()
-    val customRepos = script.collectRepos()
+    val dependencies = (script.collectDependencies() + Script(rawScript).collectDependencies()).distinct()
+    val customRepos = (script.collectRepos() + Script(rawScript).collectRepos()).distinct()
 
 
     //  Create temporary dev environment
     if (docopt.getBoolean("idea")) {
-        println(launchIdeaWithKscriptlet(scriptFile, dependencies, customRepos))
+        println(launchIdeaWithKscriptlet(rawScript, dependencies, customRepos, includeURLs))
         exitProcess(0)
     }
 
@@ -285,8 +292,7 @@ private fun versionCheck() {
 }
 
 
-
-fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
+fun prepareScript(scriptResource: String, enableSupportApi: Boolean): Pair<File, URI> {
     var scriptFile: File?
 
     // we need to keep track of the scripts dir or the working dir in case of stdin script to correctly resolve includes
@@ -363,11 +369,10 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): File {
         scriptFile = Script(scriptFile!!).prependWith(textProcPreamble).createTmpScript()
     }
 
-    //    System.err.println("[kscript] temp script file is ${scriptFile}")
-    //    System.err.println("[kscript] temp script file is \n${Script(scriptFile!!)}")
 
-    // resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
-    scriptFile = resolveIncludes(scriptFile!!, includeContext)
-
-    return scriptFile!!
+    return Pair(scriptFile!!, includeContext)
 }
+
+
+private fun postProcessScript(inputFile: File?, includeContext: URI): IncludeResult =
+    resolveIncludes(inputFile!!, includeContext)

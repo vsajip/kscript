@@ -13,14 +13,18 @@ import java.net.URL
 const val PACKAGE_STATEMENT_PREFIX = "package "
 const val IMPORT_STATMENT_PREFIX = "import " // todo make more solid by using operator including regex
 
+data class IncludeResult(val scriptFile: File, val includes: List<URL> = emptyList())
+
 /** Resolve include declarations in a script file. Resolved script will be put into another temporary script */
-fun resolveIncludes(template: File, includeContext: URI = template.parentFile.toURI()): File {
+fun resolveIncludes(template: File, includeContext: URI = template.parentFile.toURI()): IncludeResult {
     var script = Script(template)
 
     // just rewrite user scripts if includes a
     if (!script.any { isIncludeDirective(it) }) {
-        return template
+        return IncludeResult(template)
     }
+
+    val includes = emptyList<URL>().toMutableList()
 
     // resolve as long as it takes. YAGNI but we do because we can!
     while (script.any { isIncludeDirective(it) }) {
@@ -29,11 +33,12 @@ fun resolveIncludes(template: File, includeContext: URI = template.parentFile.to
                 val include = extractIncludeTarget(it)
 
                 val includeURL = when {
-                    include.startsWith("http://") -> URL(include)
-                    include.startsWith("https://") -> URL(include)
+                    isUrl(include) -> URL(include)
                     include.startsWith("/") -> File(include).toURI().toURL()
                     else -> includeContext.resolve(URI(include.removePrefix("./"))).toURL()
                 }
+
+                includes.add(includeURL)
 
                 try {
                     includeURL.readText().lines()
@@ -48,16 +53,17 @@ fun resolveIncludes(template: File, includeContext: URI = template.parentFile.to
         }.let { script.copy(it) }
     }
 
-    return script.consolidateStructure().createTmpScript()
+    return IncludeResult(script.consolidateStructure().createTmpScript(), includes)
 }
 
+internal fun isUrl(s: String) = s.startsWith("http://") || s.startsWith("https://")
 
 private const val INCLUDE_ANNOT_PREFIX = "@file:Include("
 
-private fun isIncludeDirective(line: String) = line.startsWith("//INCLUDE") || line.startsWith(INCLUDE_ANNOT_PREFIX)
+internal fun isIncludeDirective(line: String) = line.startsWith("//INCLUDE") || line.startsWith(INCLUDE_ANNOT_PREFIX)
 
 
-private fun extractIncludeTarget(incDirective: String) = when {
+internal fun extractIncludeTarget(incDirective: String) = when {
     incDirective.startsWith(INCLUDE_ANNOT_PREFIX) -> incDirective
         .replaceFirst(INCLUDE_ANNOT_PREFIX, "")
         .split(")")[0].trim(' ', '"')

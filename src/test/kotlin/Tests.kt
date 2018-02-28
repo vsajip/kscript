@@ -147,7 +147,7 @@ class Tests {
 
         val result = resolveIncludes(file)
 
-        result.readText() shouldBe (expected.readText())
+        result.scriptFile.readText() shouldBe (expected.readText())
     }
 
 
@@ -158,6 +158,14 @@ class Tests {
 
         val result = resolveIncludes(file)
 
-        result.readText() shouldBe (expected.readText())
+        result.scriptFile.readText() shouldBe (expected.readText())
+    }
+
+    @Test
+    fun test_include_detection() {
+        val result = resolveIncludes(File("test/resources/includes/include_variations.kts"))
+
+        result.includes.filter { it.protocol == "file" }.map { File(it.toURI()).name } shouldBe List(4) { "include_${it + 1}.kt" }
+        result.includes.filter { it.protocol != "file" }.size shouldBe 1
     }
 }

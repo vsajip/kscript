@@ -99,6 +99,9 @@ object ShellUtils {
 fun infoMsg(msg: String) = System.err.println("[kscript] " + msg)
 
 
+fun warnMsg(msg: String) = System.err.println("[kscript] [WARN] " + msg)
+
+
 fun errorMsg(msg: String) = System.err.println("[kscript] [ERROR] " + msg)
 
 
@@ -130,12 +133,10 @@ fun createTmpScript(scriptText: String, extension: String = "kts"): File {
 }
 
 
-fun String.stripShebang(): String = lines().dropWhile { it.startsWith("#!/") }.joinToString("\n")
-
-
-fun fetchFromURL(scriptURL: String): File? {
+fun fetchFromURL(scriptURL: String): File {
     val urlHash = md5(scriptURL)
-    val urlCache = File(KSCRIPT_CACHE_DIR, "/url_cache_${urlHash}.kts")
+    val urlExtension = if (scriptURL.endsWith(".kt")) "kt" else "kts"
+    val urlCache = File(KSCRIPT_CACHE_DIR, "/url_cache_${urlHash}.$urlExtension")
 
     if (!urlCache.isFile) {
         urlCache.writeText(URL(scriptURL).readText())
@@ -190,7 +191,7 @@ fun numLines(str: String) = str.split("\r\n|\r|\n".toRegex()).dropLastWhile { it
 fun info(msg: String) = System.err.println(msg)
 
 
-fun launchIdeaWithKscriptlet(scriptFile: File, dependencies: List<String>, customRepos: List<MavenRepo>): String {
+fun launchIdeaWithKscriptlet(scriptFile: File, dependencies: List<String>, customRepos: List<MavenRepo>, includeURLs: List<URL>): String {
     requireInPath("idea", "Could not find 'idea' in your PATH. It can be created in IntelliJ under `Tools -> Create Command-line Launcher`")
 
     System.err.println("Setting up idea project from ${scriptFile}")
@@ -236,18 +237,34 @@ sourceSets.main.java.srcDirs 'src'
     File(tmpProjectDir, "src").run {
         mkdir()
 
-        val tmpProjectScript = File(this, scriptFile.name)
-
         // https://stackoverflow.com/questions/17926459/creating-a-symbolic-link-with-java
-        try {
-            Files.createSymbolicLink(tmpProjectScript.toPath(), scriptFile.absoluteFile.toPath());
-        } catch (e: IOException) {
-            errorMsg("Failed to create symbolic link to script. Copying instead...")
-            scriptFile.copyTo(tmpProjectScript)
+        createSymLink(File(this, scriptFile.name), scriptFile)
+
+
+        // also symlink all includes
+        includeURLs.forEach {
+            val includeFileName = it.toURI().path.split("/").last()
+
+            val includeFile = when {
+                it.protocol == "file" -> File(it.toURI())
+                else -> fetchFromURL(it.toString())
+            }
+
+            createSymLink(File(this, includeFileName), includeFile)
         }
     }
 
     return "idea ${tmpProjectDir.absolutePath}"
+}
+
+
+private fun createSymLink(link: File, target: File) {
+    try {
+        Files.createSymbolicLink(link.toPath(), target.absoluteFile.toPath());
+    } catch (e: IOException) {
+        errorMsg("Failed to create symbolic link to script. Copying instead...")
+        target.copyTo(link)
+    }
 }
 
 

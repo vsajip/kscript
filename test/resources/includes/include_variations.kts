@@ -1,4 +1,4 @@
-println("Let's resolve includes!")
+// Let's resolve includes!
 
 //INCLUDE rel_includes/include_1.kt
 //INCLUDE ./rel_includes//include_2.kt
@@ -6,11 +6,16 @@ println("Let's resolve includes!")
 @file:Include("./include_3.kt")
 @file:Include("include_4.kt")
 
+
+// also test a URL inclusion
+@file:Include("https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/includes/include_by_url.kt")
+
+
+
 include_1()
 include_2()
 include_3()
 include_4()
-
-
+url_included()
 
 println("wow, so many includes")
