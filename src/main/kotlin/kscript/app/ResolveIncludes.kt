@@ -79,11 +79,14 @@ internal fun extractIncludeTarget(incDirective: String) = when {
  * ```
  * cd $KSCRIPT_HOME
  * ./gradlew shadowJar
- * resolve_inc() { kotlin -classpath build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.app.ResolveIncludesKt "$@";}
+ * resolve_inc() { kotlin -classpath build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.app.ResolveIncludes "$@";}
  * resolve_inc /Users/brandl/projects/kotlin/kscript/test/resources/includes/include_variations.kts
  * cat $(resolve_inc /Users/brandl/projects/kotlin/kscript/test/resources/includes/include_variations.kts 2>&1)
  * ```
  */
-fun main(args: Array<String>) {
-    System.err.println(resolveIncludes(File(args[0])))
+object ResolveIncludes {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        System.err.println(resolveIncludes(File(args[0])).scriptFile.readText())
+    }
 }

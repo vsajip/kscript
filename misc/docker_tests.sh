@@ -49,7 +49,7 @@ ${KSCRIPT_HOME}/test/test_suite.sh
 ## manuallt test dependency lookup
 ./kscript --clear-cache
 rm -rf ~/.m2/; kscript --clear-cache
-resolve_deps() { kotlin -classpath kscript.jar kscript.app.DependencyUtilKt "$@";}
+resolve_deps() { kotlin -classpath kscript.jar kscript.app.DependencyUtil "$@";}
 
 resolve_deps log4j:log4j:1.2.14
 

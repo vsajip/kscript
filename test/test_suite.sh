@@ -118,7 +118,7 @@ assert_end environment_tests
 ## dependency_lookup
 
 # export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"; export PATH=${KSCRIPT_HOME}:${PATH}
-resolve_deps() { kotlin -classpath kscript.jar kscript.app.DependencyUtilKt "$@";}
+resolve_deps() { kotlin -classpath kscript.jar kscript.app.DependencyUtil "$@";}
 export -f resolve_deps
 
 

@@ -162,6 +162,9 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 
 
 // called by unit tests
-fun main(args: Array<String>) {
-    System.err.println(resolveDependencies(args.toList(), loggingEnabled = false))
+object DependencyUtil {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        System.err.println(resolveDependencies(args.toList(), loggingEnabled = false))
+    }
 }
