@@ -96,6 +96,9 @@ object ShellUtils {
 }
 
 
+fun info(msg: String) = System.err.println(msg)
+
+
 fun infoMsg(msg: String) = System.err.println("[kscript] " + msg)
 
 
@@ -188,13 +191,10 @@ private fun bytesToHex(buffer: ByteArray): String {
 fun numLines(str: String) = str.split("\r\n|\r|\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray().size
 
 
-fun info(msg: String) = System.err.println(msg)
-
-
 fun launchIdeaWithKscriptlet(scriptFile: File, dependencies: List<String>, customRepos: List<MavenRepo>, includeURLs: List<URL>): String {
     requireInPath("idea", "Could not find 'idea' in your PATH. It can be created in IntelliJ under `Tools -> Create Command-line Launcher`")
 
-    System.err.println("Setting up idea project from ${scriptFile}")
+    infoMsg("Setting up idea project from ${scriptFile}")
 
     //    val tmpProjectDir = createTempDir("edit_kscript", suffix="")
     //            .run { File(this, "kscript_tmp_project") }
@@ -225,6 +225,7 @@ $stringifiedRepos
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib"
+    compile "org.jetbrains.kotlin:kotlin-script-runtime"
 $stringifiedDeps
 }
 

@@ -240,6 +240,14 @@ assert 'kscript "println(args.size)" "foo bar"' 1       ## allow for spaces
 assert 'kscript "println(args[0])" "foo bar"' "foo bar" ## make sure quotes are not propagated into args
 
 
+kscript_nocall() { kotlin -classpath kscript.jar kscript.app.KscriptKt "$@";}
+export -f kscript_nocall
+
+## temp projects with include symlinks
+assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/include_variations.kts | cut -f2 -d" "); cd $tmpDir && gradle build' 0
+
+## todo reenable interactive mode tests using kscript_nocall
+
 assert_end misc
 
 
