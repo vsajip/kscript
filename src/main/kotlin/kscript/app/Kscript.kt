@@ -118,9 +118,10 @@ fun main(args: Array<String>) {
     val enableSupportApi = docopt.getBoolean("text")
     val (rawScript, includeContext) = prepareScript(scriptResource, enableSupportApi)
 
+
     // post process script (text-processing mode, custom dsl preamble, resolve includes)
-    // finally resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
-    val (scriptFile, includeURLs) = resolveIncludes(rawScript, includeContext)
+    // and finally resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
+    val (scriptFile, includeURLs) = resolveIncludes(resolvePreambles(rawScript, enableSupportApi), includeContext)
 
 
     val script = Script(scriptFile)
@@ -351,9 +352,21 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): Pair<File,
 
     // note script file must be not null at this point
 
+    return Pair(scriptFile!!, includeContext)
+}
+
+
+private fun resolvePreambles(scriptFile: File, enableSupportApi: Boolean): File {
     // include preamble for custom interpreters (see https://github.com/holgerbrandl/kscript/issues/67)
+    var scriptFile = scriptFile
+
     System.getenv("CUSTOM_KSCRIPT_PREAMBLE")?.let { interpPreamble ->
-        scriptFile = Script(scriptFile!!).prependWith(interpPreamble).createTmpScript()
+        //        scriptFile = Script(scriptFile!!).prependWith(interpPreamble).createTmpScript()
+        val preambleFile = File(SCRIPT_TEMP_DIR, "include_cache.${md5(interpPreamble)}.kt").apply {
+            writeText(interpPreamble)
+        }
+
+        scriptFile = Script(scriptFile!!).prependWith("//INCLUDE ${preambleFile.absolutePath}").createTmpScript()
     }
 
     // prefix with text-processing preamble if kscript-support api is enabled
@@ -366,11 +379,14 @@ fun prepareScript(scriptResource: String, enableSupportApi: Boolean): Pair<File,
 
             """.trimIndent()
 
-        scriptFile = Script(scriptFile!!).prependWith(textProcPreamble).createTmpScript()
+        //        scriptFile = Script(scriptFile!!).prependWith(textProcPreamble).createTmpScript()
+        val preambleFile = File(SCRIPT_TEMP_DIR, "include_cache.${md5(textProcPreamble)}.kt").apply {
+            writeText(textProcPreamble)
+        }
+
+        scriptFile = Script(scriptFile!!).prependWith("//INCLUDE ${preambleFile.absolutePath}").createTmpScript()
     }
-
-
-    return Pair(scriptFile!!, includeContext)
+    return scriptFile
 }
 
 
