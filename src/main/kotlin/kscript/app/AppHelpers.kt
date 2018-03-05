@@ -362,13 +362,9 @@ exec java -jar ${'$'}0 "${'$'}@"
 
     val pckgResult = evalBash("cd ${tmpProjectDir} && gradle simpleCapsule && cp build/libs/${appName}*.jar ${pckgedJar} && chmod +x ${pckgedJar}")
 
-    infoMsg("Finished packaging into ${pckgedJar}")
-
-    //    evalBash("idea ${tmpProjectDir.absolutePath}")
-
     with(pckgResult) {
-        kscript.app.errorIf(exitCode != 0) { "packaging of '$appName' failed:\n$stderr" }
+        kscript.app.errorIf(exitCode != 0) { "packaging of '$appName' failed:\n$pckgResult" }
     }
 
-    //    return "idea ${tmpProjectDir.absolutePath}"
+    infoMsg("Finished packaging into ${pckgedJar}")
 }
