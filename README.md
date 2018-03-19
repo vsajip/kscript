@@ -227,7 +227,7 @@ Note: Similar to the runtime you can also tweak the compile step by providing `/
 
 ### Ease prototyping with `//INCLUDE`
 
-`kscript` supports an `//INLCUDE` directive to directly include other source files without prior compilation. Absolute and relative paths, as well as URLs are supported. Example:
+`kscript` supports an `//INCLUDE` directive to directly include other source files without prior compilation. Absolute and relative paths, as well as URLs are supported. Example:
 
 ```kotlin
 //utils.kt
