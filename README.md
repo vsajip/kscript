@@ -470,7 +470,7 @@ Support
 
 Feel welcome to post ideas and suggestions to our [tracker](https://github.com/holgerbrandl/kscript/issues).
 
-More advanced use-cases are docucmented in the  [complementary user guide](docs/user_guide.md)
+More advanced use-cases are documented in the  [complementary user guide](docs/user_guide.md)
 
 How to contribute?
 ------------------
