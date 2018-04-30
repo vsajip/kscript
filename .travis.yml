@@ -45,16 +45,17 @@ install:
   - sdk install kotlin
   - sdk install gradle
 
-  ## install assert.h
-  - wget https://raw.github.com/lehmannro/assert.sh/v1.1/assert.sh && chmod +x assert.sh
-
   - export KSCRIPT_HOME="/home/travis/build/holgerbrandl/kscript"
+  - export KSCRIPT_BUILD_LIBS="$KSCRIPT_HOME/build/libs"
   - pwd
-  - export PATH=$KSCRIPT_HOME::$PATH
+  - export PATH=$KSCRIPT_BUILD_LIBS::$PATH
 
   # build it
-  - cd $KSCRIPT_HOME && ./gradlew shadowJar
+  - cd $KSCRIPT_HOME && ./gradlew assemble
+  - cd $KSCRIPT_BUILD_LIBS
 
+  ## install assert.h
+  - wget https://raw.github.com/lehmannro/assert.sh/v1.1/assert.sh && chmod +x assert.sh
 
   - which kscript
   - which assert.sh
@@ -67,6 +68,7 @@ install:
   - kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts
 #  - resdeps.kts org.org.docopt:org.docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14
 #  - kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts
+  - cd $KSCRIPT_HOME
 
 script: ./test/test_suite.sh
 

@@ -5,6 +5,7 @@
 # 3. Push and wait for travis CI results
 
 export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript";
+export KSCRIPT_BUILD_LIBS="$KSCRIPT_HOME/build/libs";
 export PATH=${KSCRIPT_HOME}:${PATH}
 export PATH=~/go/bin/:$PATH
 
@@ -24,12 +25,12 @@ echo "new version is $kscript_version"
 
 cd $KSCRIPT_HOME
 
-./gradlew clean shadowJar
+./gradlew clean assemble
 
 ## compile binary distribution (including jar and wrapper-script)
 mkdir -p $KSCRIPT_ARCHIVE/kscript-${kscript_version}/bin
-cp ${KSCRIPT_HOME}/kscript ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin
-cp ${KSCRIPT_HOME}/kscript.jar ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin/kscript.jar
+cp ${KSCRIPT_BUILD_LIBS}/kscript ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin
+cp ${KSCRIPT_BUILD_LIBS}/kscript.jar ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin/kscript.jar
 
 cd ${KSCRIPT_ARCHIVE}
 rm ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip
@@ -42,7 +43,8 @@ open ${KSCRIPT_ARCHIVE}
 #Java SE 6.0 = 50 (0x32 hex) (from https://en.wikipedia.org/wiki/Java_class_file)
 #Default is 50, see https://kotlinlang.org/docs/reference/using-gradle.html#attributes-common-for-jvm-and-js
 ## to insepct do
-#./gradlew clean shadowJar && cp build/libs/kscript-0.1-SNAPSHOT-all.jar kscript.jar
+#./gradlew clean assemble
+#cd ${KSCRIPT_BUILD_LIBS}
 #rm -rf kscript_target_test
 #cp -f kscript.jar kscript_target_test.zip
 #unzip kscript_target_test.zip -d kscript_target_test

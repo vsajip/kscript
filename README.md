@@ -81,10 +81,10 @@ brew install holgerbrandl/tap/kscript
 
 To build `kscript` yourself, simply clone the repo and do
 ```bash
-./gradlew shadowJar
+./gradlew assemble
 
-## Don't forget to prefix with `./` when running the freshly compiled version 
-./kscript
+## Run kscript from output dir
+./build/libs/kscript
 ```
 
 ## Script Input Modes
