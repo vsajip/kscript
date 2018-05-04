@@ -331,6 +331,8 @@ com.github.holgerbrandl:kscript-annotations:1.2
 
 `kscript` will automatically detect an annotation-driven script, and if so will declare a dependency on this artifact internally.
 
+Note, that if a script is located in a package other than the root package, you need to import the annotations with (e.g. `import DependsOn`).
+
 Text Processing Mode
 --------------------
 
