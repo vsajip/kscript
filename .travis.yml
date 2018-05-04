@@ -53,6 +53,8 @@ install:
 
   ## install assert.h
   - wget https://raw.github.com/lehmannro/assert.sh/v1.1/assert.sh && chmod +x assert.sh
+  - export PATH=$(pwd):$PATH
+
 
   - which kscript
   - which assert.sh
