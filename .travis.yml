@@ -63,10 +63,15 @@ install:
   - kscript --help
   - java  -version
   - mvn --version
-  - kscript 'println("kotlin rocks")'
-  - kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts
+
+##  - kscript 'println("kotlin rocks")'
+##  - kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts
+  - export tmpDir=$(kotlin -classpath ${KSCRIPT_HOME}/build/libs/kscript.jar kscript.app.KscriptKt --idea test/resources/includes/include_variations.kts | cut -f2 -d" ")
+    cd $tmpDir && gradle build
+
 #  - resdeps.kts org.org.docopt:org.docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14
 #  - kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts
+
   - cd $KSCRIPT_HOME
 
 script: ./test/test_suite.sh
