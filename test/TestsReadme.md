@@ -23,10 +23,6 @@ export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"
 #export KSCRIPT_HOME="/cygdrive/z/kscript"
 ## change into this/test directory
 
-## make sure to use devel-version
-export PATH=${KSCRIPT_HOME}:${PATH}
-which kscript
-
 ## make sure assert.h is in PATH
 which assert.sh || exit 1
 
@@ -35,6 +31,10 @@ cd ${KSCRIPT_HOME}
 ## build it
 ./gradlew assemble
 
+
+## make sure to use devel-version from build/libs
+export PATH=${KSCRIPT_HOME}/build/libs:${PATH}
+which kscript
 
 ## clean up the environment
 #sdk use kotlin 1.1-RC

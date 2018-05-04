@@ -5,7 +5,6 @@
 # 3. Push and wait for travis CI results
 
 export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript";
-export KSCRIPT_BUILD_LIBS="$KSCRIPT_HOME/build/libs";
 export PATH=${KSCRIPT_HOME}:${PATH}
 export PATH=~/go/bin/:$PATH
 
@@ -29,8 +28,8 @@ cd $KSCRIPT_HOME
 
 ## compile binary distribution (including jar and wrapper-script)
 mkdir -p $KSCRIPT_ARCHIVE/kscript-${kscript_version}/bin
-cp ${KSCRIPT_BUILD_LIBS}/kscript ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin
-cp ${KSCRIPT_BUILD_LIBS}/kscript.jar ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin/kscript.jar
+cp ${KSCRIPT_HOME}/kscript ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin
+cp ${KSCRIPT_HOME}/build/libs/kscript.jar ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin/kscript.jar
 
 cd ${KSCRIPT_ARCHIVE}
 rm ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip

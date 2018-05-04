@@ -46,13 +46,10 @@ install:
   - sdk install gradle
 
   - export KSCRIPT_HOME="/home/travis/build/holgerbrandl/kscript"
-  - export KSCRIPT_BUILD_LIBS="$KSCRIPT_HOME/build/libs"
-  - pwd
-  - export PATH=$KSCRIPT_BUILD_LIBS::$PATH
+  - export PATH=${KSCRIPT_HOME}/build/libs:$PATH
 
   # build it
   - cd $KSCRIPT_HOME && ./gradlew assemble
-  - cd $KSCRIPT_BUILD_LIBS
 
   ## install assert.h
   - wget https://raw.github.com/lehmannro/assert.sh/v1.1/assert.sh && chmod +x assert.sh

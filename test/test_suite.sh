@@ -118,7 +118,7 @@ assert_end environment_tests
 ## dependency_lookup
 
 # export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"; export PATH=${KSCRIPT_HOME}:${PATH}
-resolve_deps() { kotlin -classpath ${KSCRIPT_BUILD_LIBS}/kscript.jar kscript.app.DependencyUtil "$@";}
+resolve_deps() { kotlin -classpath ${KSCRIPT_HOME}/build/libs/kscript.jar kscript.app.DependencyUtil "$@";}
 export -f resolve_deps
 
 
@@ -240,7 +240,7 @@ assert 'kscript "println(args.size)" "foo bar"' 1       ## allow for spaces
 assert 'kscript "println(args[0])" "foo bar"' "foo bar" ## make sure quotes are not propagated into args
 
 
-kscript_nocall() { kotlin -classpath ${KSCRIPT_BUILD_LIBS}/kscript.jar kscript.app.KscriptKt "$@";}
+kscript_nocall() { kotlin -classpath ${KSCRIPT_HOME}/build/libs/kscript.jar kscript.app.KscriptKt "$@";}
 export -f kscript_nocall
 
 ## temp projects with include symlinks
