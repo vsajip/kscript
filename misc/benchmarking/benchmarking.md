@@ -20,7 +20,7 @@ misc/benchmarking/benchmark_kscript.kts scriptlet_runtimes_$(git rev-parse --abb
 
 ## roll back to master and redo the benchmarking
 git checkout master
-./gradlew clean shadowJar
+./gradlew clean assemble
 
 misc/benchmarking/benchmark_kscript.kts scriptlet_runtimes_$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD).txt
 
