@@ -61,13 +61,16 @@ install:
 
   ## does it run outside of test-suite?
   - kscript --help
-  - java  -version
+  - java -version
   - mvn --version
 
-##  - kscript 'println("kotlin rocks")'
+  ## create mock `idea` to allow for idea environment bootstrapping tests (see kscript_nocall)
+  - touch idea && chmod +x idea
+
+  - kscript 'println("kotlin rocks")'
 ##  - kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts
-  - export tmpDir=$(kotlin -classpath ${KSCRIPT_HOME}/build/libs/kscript.jar kscript.app.KscriptKt --idea test/resources/includes/include_variations.kts | cut -f2 -d" ")
-    cd $tmpDir && gradle build
+#  - export tmpDir=$(kotlin -classpath ${KSCRIPT_HOME}/build/libs/kscript.jar kscript.app.KscriptKt --idea test/resources/includes/include_variations.kts | cut -f2 -d" ")
+#    cd $tmpDir && gradle build
 
 #  - resdeps.kts org.org.docopt:org.docopt:0.6.0-SNAPSHOT log4j:log4j:1.2.14
 #  - kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts
