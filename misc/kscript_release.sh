@@ -28,7 +28,7 @@ cd $KSCRIPT_HOME
 
 ## compile binary distribution (including jar and wrapper-script)
 mkdir -p $KSCRIPT_ARCHIVE/kscript-${kscript_version}/bin
-cp ${KSCRIPT_HOME}/kscript ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin
+cp ${KSCRIPT_HOME}/build/libs/kscript ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin
 cp ${KSCRIPT_HOME}/build/libs/kscript.jar ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin/kscript.jar
 
 cd ${KSCRIPT_ARCHIVE}
