@@ -372,7 +372,7 @@ private fun resolvePreambles(rawScript: File, enableSupportApi: Boolean): File {
     // prefix with text-processing preamble if kscript-support api is enabled
     if (enableSupportApi) {
         val textProcPreamble = """
-            //DEPS com.github.holgerbrandl:kscript-support:1.2.4
+            //DEPS com.github.holgerbrandl:kscript-support:1.2.5
 
             import kscript.text.*
             val lines = resolveArgFile(args)
