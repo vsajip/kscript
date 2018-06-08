@@ -20,7 +20,7 @@ import kotlin.system.exitProcess
  * @author Holger Brandl
  */
 
-const val KSCRIPT_VERSION = "2.4.3"
+const val KSCRIPT_VERSION = "2.4.4"
 
 val selfName = System.getenv("CUSTOM_KSCRIPT_NAME") ?: "kscript"
 

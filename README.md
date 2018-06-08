@@ -128,6 +128,7 @@ println("Hello Kotlin.")
 
 
 * Using `heredoc` (preferred solution for inlining) which gives you some more flexibility to also use single quotes in your script:
+
 ```{bash}
 kscript - <<"EOF"
 println("It's a beautiful day!")
