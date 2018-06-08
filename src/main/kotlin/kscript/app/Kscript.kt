@@ -52,7 +52,10 @@ Website   : https://github.com/holgerbrandl/kscript
 """.trim()
 
 val KSCRIPT_CACHE_DIR = File(System.getenv("HOME")!!, ".kscript")
-val SCRIPT_TEMP_DIR = createTempDir()
+
+// use lazy here prevent empty dirs for regular scripts https://github.com/holgerbrandl/kscript/issues/130
+val SCRIPT_TEMP_DIR by lazy { createTempDir() }
+
 
 fun main(args: Array<String>) {
     // skip org.docopt for version and help to allow for lazy version-check
