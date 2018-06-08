@@ -32,8 +32,8 @@ cp ${KSCRIPT_HOME}/build/libs/kscript ${KSCRIPT_ARCHIVE}/kscript-${kscript_versi
 cp ${KSCRIPT_HOME}/build/libs/kscript.jar ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin/kscript.jar
 
 cd ${KSCRIPT_ARCHIVE}
-rm ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip
-zip  -r ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip kscript-${kscript_version}
+rm -f ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip
+zip -r ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip kscript-${kscript_version}
 open ${KSCRIPT_ARCHIVE}
 
 
