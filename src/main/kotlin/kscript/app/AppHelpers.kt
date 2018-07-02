@@ -241,23 +241,23 @@ sourceSets.main.java.srcDirs 'src'
         // https://stackoverflow.com/questions/17926459/creating-a-symbolic-link-with-java
         createSymLink(File(this, scriptFile.name), scriptFile)
 
-
         // also symlink all includes
-        includeURLs.forEach {
-            val includeFileName = it.toURI().path.split("/").last()
-
+        includeURLs.distinctBy { it.fileName() }
+          .forEach {
+            
             val includeFile = when {
                 it.protocol == "file" -> File(it.toURI())
                 else -> fetchFromURL(it.toString())
             }
 
-            createSymLink(File(this, includeFileName), includeFile)
+            createSymLink(File(this, it.fileName()), includeFile)
         }
     }
 
     return "idea ${tmpProjectDir.absolutePath}"
 }
 
+private fun URL.fileName() = this.toURI().path.split("/").last()
 
 private fun createSymLink(link: File, target: File) {
     try {
