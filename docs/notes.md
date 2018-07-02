@@ -1,5 +1,17 @@
 
 
+## KEEP Kotlin Scripting support
+
+From
+
+https://blog.jetbrains.com/kotlin/2018/06/kotlin-1-2-50-is-out/
+
+* it is now possible to create a jar defining a script and if that jar is added to the compilation classpath, the scripts of this type will be automatically supported by the compiler and IDEA plugin
+* it is now possible to pass typed external variables to the script compilation, so they will be accessible as if they are global variables defined outside of the script
+* the structure of the scripting support is now much simpler and provided helpers allow to implement and embed a custom scripting host much easier than before
+
+
+
 ## macos setup
 
 change java version

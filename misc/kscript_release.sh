@@ -8,7 +8,7 @@ export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript";
 export PATH=${KSCRIPT_HOME}:${PATH}
 export PATH=~/go/bin/:$PATH
 
-KSCRIPT_ARCHIVE=~/Dropbox/archive/kscript_versions/
+KSCRIPT_ARCHIVE=~/archive/kscript_versions/
 
 
 kscript_version=$(grep 'val KSCRIPT_VERSION' ${KSCRIPT_HOME}/src/main/kotlin/kscript/app/Kscript.kt | cut -f2 -d'=' | tr -d ' "')
@@ -57,7 +57,7 @@ open ${KSCRIPT_ARCHIVE}
 ## create tag on github 
 #github-release --help
 
-source /Users/brandl/Dropbox/archive/gh_token.sh
+source ~/archive/gh_token.sh
 export GITHUB_TOKEN=${GH_TOKEN}
 #echo $GITHUB_TOKEN
 
@@ -126,7 +126,7 @@ git push origin releases
 # Summary: sequence of calls is as above, first **releasing** , then making it **default** , and finally **announce** it to the world.
 
 ## from .bash_profile
-source /Users/brandl/Dropbox/archive/kscript_sdkman_json.sh
+source ~/archive/kscript_sdkman_json.sh
 echo ${SDKMAN_CONSUMER_KEY} ${SDKMAN_CONSUMER_TOKEN} ${kscript_version}
 #echo ${SDKMAN_CONSUMER_KEY} | cut -c-5
 #echo ${SDKMAN_CONSUMER_TOKEN} | cut -c-5
