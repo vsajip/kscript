@@ -73,10 +73,14 @@ If you have Kotlin and Maven already and you would like to install the latest `k
 #### Installation with Homebrew
 
 On MacOS you can install `kscript` also with [Homebrew](https://brew.sh/)
-```
+```bash
 brew install holgerbrandl/tap/kscript
 ```
-
+To upgrade to latest version
+```bash
+brew update
+brew upgrade holgerbrandl/tap/kscript
+```
 #### Build it yourself
 
 To build `kscript` yourself, simply clone the repo and do
