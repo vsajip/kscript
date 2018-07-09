@@ -486,8 +486,8 @@ We always welcome pull requests. :-)
 
 You could also show your support by upvoting `kscript` here on github, or by voting for issues in Intellij IDEA which impact  `kscript`ing. Here are our top 3 tickets/annoyances that we would love to see fixed:
 
-1. [KT-11618](https://youtrack.jetbrains.com/issue/KT-11618) Idea does not allow to run scripts with dependencies
-2. [KT-15019](https://youtrack.jetbrains.com/issue/KT-15019) Editor: `args` reference in .kts file is red
+1. ~~[KT-11618](https://youtrack.jetbrains.com/issue/KT-11618) Idea does not allow to run scripts with dependencies~~ Fixed in 1.2.40
+2. ~~[KT-15019](https://youtrack.jetbrains.com/issue/KT-15019) Editor: `args` reference in .kts file is red~~ Fixed in 1.2.50
 3. [KT-13347](https://youtrack.jetbrains.com/issue/KT-13347) Good code is red in injected kotlin language snippets
 
 
@@ -512,5 +512,5 @@ Special thanks to [Ilan Pillemer](https://github.com/ilanpillemer), [Andrey Misc
 
 Thanks also to the [Scionics Computer Innovation GmbH](https://www.scionics.com/) and the [MPI-CBG](http://www.mpi-cbg.de) for supporting this project.
 
-`kscript` was inspired by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way to do scripting in Kotlin.
+`kscript` was inspired by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way (now deprecated) to do scripting in Kotlin.
 
