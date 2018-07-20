@@ -278,7 +278,7 @@ class Bar{
     }
 }
 
-fun main(args: Array<String>) =  println("main was called")
+fun main(args: Array<String>) = println("main was called")
 ```
 
 To run top-level main instead we would use `//ENTRY examples.FooKt`
@@ -345,7 +345,7 @@ Text Processing Mode
 `kscript` can be used as a speedier and more flexible substitute for built-in terminal text tools such as `awk` or `sed`. Its text processing mode can be enabled with `-t` or `--text`. If so, `kscript` will
 
 * Declare `com.github.holgerbrandl:kscript-support:1.2.4` as dependency for the script. This [support library](https://github.com/holgerbrandl/kscript-support-api) eases the writing of Kotlin scriptlets for text-processing. It includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the writing of scriptlets for text processing.
-* Import the  `kscript.*` namespace
+* Import the `kscript.*` namespace
 * Define variable `val lines = kscript.text.StreamUtilKt.resolveArgFile(args)` which returns an iterator over the lines in the first input argument of the script, or the standard input if no file arguments are provided to the script
 
 
@@ -361,7 +361,7 @@ cat some_file | kscript -t 'lines
 
 In this example, the extension method [`Iterable<String>.print()`](https://github.com/holgerbrandl/kscript-support-api/blob/master/src/main/kotlin/kscript/text/StreamUtil.kt#L34) to print the lines to stdout comes from the support API. The rest is stdlib Kotlin.
 
- For more  examples using the support library see this [blog post](http://holgerbrandl.github.io/kotlin/2017/05/08/kscript_as_awk_substitute.html).
+ For more examples using the support library see this [blog post](http://holgerbrandl.github.io/kotlin/2017/05/08/kscript_as_awk_substitute.html).
 
 Treat yourself a REPL with `--interactive`
 ------------------------------------------
@@ -405,7 +405,7 @@ Artifacts and versions will differ between scripts, so it is hard to maintain th
 ```bash
 kscript --idea CountRecords.kts
 ```
-This will open [IntelliJ IDEA](https://www.jetbrains.com/idea/) with a minimalistic project containing just your (1) `<script>` and  (2) a generated `gradle.build` file:
+This will open [IntelliJ IDEA](https://www.jetbrains.com/idea/) with a minimalistic project containing just your (1) `<script>` and (2) a generated `gradle.build` file:
 
 ![](misc/readme_images/minus_idea.png)
 
@@ -438,7 +438,7 @@ print("hello kotlin!")
 is a valid Kotlin `kts` script. Plain and simple, no `main`, no `companion`, just a few bits of code.
 
 
-### Does `kscript` also work for regular kotlin `.kt` source files  with a `main` as entry point?
+### Does `kscript` also work for regular kotlin `.kt` source files with a `main` as entry point?
 
 Yes, (since v1.6) you can run kotlin source files through `kscript`. By default it will assume a top-level `main` method as entry-point.
 
@@ -478,7 +478,7 @@ Support
 
 Feel welcome to post ideas and suggestions to our [tracker](https://github.com/holgerbrandl/kscript/issues).
 
-More advanced use-cases are documented in the  [complementary user guide](docs/user_guide.md)
+More advanced use-cases are documented in the [complementary user guide](docs/user_guide.md)
 
 How to contribute?
 ------------------
@@ -492,7 +492,7 @@ Help to spread the word. Great community articles about `kscript` include
 * [kscript as substitute for awk](https://holgerbrandl.github.io/kotlin/2017/05/08/kscript_as_awk_substitute.html)
 
 
-You could also show your support by upvoting `kscript` here on github, or by voting for issues in Intellij IDEA which impact  `kscript`ing. Here are our top 3 tickets/annoyances that we would love to see fixed:
+You could also show your support by upvoting `kscript` here on github, or by voting for issues in Intellij IDEA which impact `kscript`ing. Here are our top 2 tickets/annoyances that we would love to see fixed:
 
 * [KT-11473](https://youtrack.jetbrains.com/issue/KT-11473) Idea does not allow to debug scripts using the builtin debugger
 * [KT-13347](https://youtrack.jetbrains.com/issue/KT-13347) Good code is red in injected kotlin language snippets
