@@ -41,7 +41,7 @@ Taken all these features together, `kscript` provides an easy-to-use, very flexi
 Installation
 ------------
 
-To use `kscript` just Kotlin and Maven are required. To [install Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html) we recommend [sdkman](http://sdkman.io/install.html):
+To use `kscript` just Kotlin and Maven are required. To [install Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html) we recommend [sdkman](http://sdkman.io/install):
 ```
 curl -s "https://get.sdkman.io" | bash  # install sdkman
 source ~/.bash_profile                  # add sdkman to PATH
@@ -73,10 +73,15 @@ If you have Kotlin and Maven already and you would like to install the latest `k
 #### Installation with Homebrew
 
 On MacOS you can install `kscript` also with [Homebrew](https://brew.sh/)
-```
+```bash
 brew install holgerbrandl/tap/kscript
 ```
 
+To upgrade to latest version
+```bash
+brew update
+brew upgrade holgerbrandl/tap/kscript
+```
 #### Build it yourself
 
 To build `kscript` yourself, simply clone the repo and do
@@ -508,5 +513,5 @@ Special thanks to [Ilan Pillemer](https://github.com/ilanpillemer), [Andrey Misc
 
 Thanks also to the [Scionics Computer Innovation GmbH](https://www.scionics.com/) and the [MPI-CBG](http://www.mpi-cbg.de) for supporting this project.
 
-`kscript` was inspired by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way to do scripting in Kotlin.
+`kscript` was inspired by [kotlin-script](https://github.com/andrewoma/kotlin-script) which is another great way (now deprecated) to do scripting in Kotlin.
 
