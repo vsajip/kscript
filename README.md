@@ -478,14 +478,19 @@ More advanced use-cases are documented in the  [complementary user guide](docs/u
 How to contribute?
 ------------------
 
-We always welcome pull requests. :-)
+We always welcome pull requests and trouble tickets. :-)
+
+
+Help to spread the word. Great community articles about `kscript` include
+* [Type-safety in the shell with kscript](https://medium.com/@OhadShai/type-safety-in-the-shell-with-kscript-7dd40d022537)
+* [Using Kotlin kscript for Preprocessing Data](https://medium.com/@kenkyee/using-kotlin-kscript-for-preprocessing-data-1dbff4eae292)
+* [kscript as substitute for awk](https://holgerbrandl.github.io/kotlin/2017/05/08/kscript_as_awk_substitute.html)
+
 
 You could also show your support by upvoting `kscript` here on github, or by voting for issues in Intellij IDEA which impact  `kscript`ing. Here are our top 3 tickets/annoyances that we would love to see fixed:
 
-1. [KT-11618](https://youtrack.jetbrains.com/issue/KT-11618) Idea does not allow to run scripts with dependencies
-2. [KT-15019](https://youtrack.jetbrains.com/issue/KT-15019) Editor: `args` reference in .kts file is red
-3. [KT-13347](https://youtrack.jetbrains.com/issue/KT-13347) Good code is red in injected kotlin language snippets
-
+* [KT-11473](https://youtrack.jetbrains.com/issue/KT-11473) Idea does not allow to debug scripts using the builtin debugger
+* [KT-13347](https://youtrack.jetbrains.com/issue/KT-13347) Good code is red in injected kotlin language snippets
 
 
 To allow for more interactive script development, you could also vote/comment on the most annoying REPL issues.
@@ -494,17 +499,12 @@ To allow for more interactive script development, you could also vote/comment on
 * [KT-11409](https://youtrack.jetbrains.com/issue/KT-11409) Allow to "Send Selection To Kotlin Console"
 
 
-
-
-
-
-
 Acknowledgements
 ----------------
 
 The initial version of `kscript` was kindly contributed by [Oscar Gonzalez](https://github.com/oskargb).
 
-Special thanks to [Ilan Pillemer](https://github.com/ilanpillemer), [Andrey Mischenko ](https://github.com/gildor), [Stephen Byrne](https://github.com/stephenbyrne-mfj), [Eugene Susla](https://github.com/EugeneSusla) and [Eli Hart](https://github.com/elihart) for [contributing](https://github.com/holgerbrandl/kscript/graphs/contributors) PRs to this repo.
+Special thanks to [Ilan Pillemer](https://github.com/ilanpillemer), [Andrey Mischenko ](https://github.com/gildor), [Stephen Byrne](https://github.com/stephenbyrne-mfj), [Eugene Susla](https://github.com/EugeneSusla), [Eli Hart](https://github.com/elihart) and [oshai](https://github.com/oshai) for [contributing](https://github.com/holgerbrandl/kscript/graphs/contributors) PRs to this repo.
 
 Thanks also to the [Scionics Computer Innovation GmbH](https://www.scionics.com/) and the [MPI-CBG](http://www.mpi-cbg.de) for supporting this project.
 
