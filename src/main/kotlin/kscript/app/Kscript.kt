@@ -181,8 +181,9 @@ fun main(args: Array<String>) {
     }
 
     // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
+    // For valid characters see https://stackoverflow.com/questions/4814040/allowed-characters-in-filename
     val className = scriptFile.nameWithoutExtension
-        .replace("[.-]".toRegex(), "_")
+        .replace("[^A-Za-z0-9]".toRegex(), "_")
         .capitalize()
 
 
