@@ -34,7 +34,7 @@ data class Script(val lines: List<String>, val extension: String = "kts") : Iter
         val annotations = emptySet<String>().toMutableSet()
 
         stripShebang().forEach {
-            if (it.startsWith(IMPORT_STATMENT_PREFIX)) {
+            if (it.startsWith(IMPORT_STATEMENT_PREFIX)) {
                 imports.add(it)
             } else if (isKscriptAnnotation(it)) {
                 annotations.add(it)

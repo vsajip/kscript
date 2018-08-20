@@ -168,4 +168,14 @@ class Tests {
         result.includes.filter { it.protocol == "file" }.map { File(it.toURI()).name } shouldBe List(4) { "include_${it + 1}.kt" }
         result.includes.filter { it.protocol != "file" }.size shouldBe 1
     }
+
+    @Test
+    fun `test include detection - should not include dependency twice`() {
+      val result = resolveIncludes(File("test/resources/includes/dup_include/dup_include.kts"))
+
+      result.includes.map { File(it.toURI()).name } shouldBe listOf(
+            "dup_include_1.kt",
+            "dup_include_2.kt"
+        )
+    }
 }
