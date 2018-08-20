@@ -25,7 +25,6 @@ fun resolveIncludes(template: File, includeContext: URI = template.parentFile.to
     }
 
     val includes = emptyList<URL>().toMutableList()
-    val includeLines = emptySet<String>().toMutableSet()
 
     // resolve as long as it takes. YAGNI but we do because we can!
     while (script.any { isIncludeDirective(it) }) {
@@ -38,19 +37,21 @@ fun resolveIncludes(template: File, includeContext: URI = template.parentFile.to
                     include.startsWith("/") -> File(include).toURI().toURL()
                     else -> includeContext.resolve(URI(include.removePrefix("./"))).toURL()
                 }
-                if (includeLines.contains(includeURL.path)) {
-                  emptyList()
-                } else {
-                  includes.add(includeURL)
-                  includeLines.add(includeURL.path)
 
-                  try {
-                    includeURL.readText().lines()
-                  } catch (e: FileNotFoundException) {
-                    errorMsg("Failed to resolve //INCLUDE '${include}'")
-                    System.err.println(e.message?.lines()!!.map { it.prependIndent("[kscript] [ERROR] ") })
-                    quit(1)
-                  }
+                // test if include was processed already (aka include duplication, see #151)
+                if (includes.map { it.path }.contains(includeURL.path)) {
+                    // include was already resolved, so we return an emtpy result here to avoid duplication errors
+                    emptyList()
+                } else {
+                    includes.add(includeURL)
+
+                    try {
+                        includeURL.readText().lines()
+                    } catch (e: FileNotFoundException) {
+                        errorMsg("Failed to resolve //INCLUDE '${include}'")
+                        System.err.println(e.message?.lines()!!.map { it.prependIndent("[kscript] [ERROR] ") })
+                        quit(1)
+                    }
                 }
             } else {
                 listOf(line)
