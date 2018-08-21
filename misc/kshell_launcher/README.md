@@ -1,7 +1,7 @@
-# `Kshell` launcher `kscript`lets
+# KShell launcher for kscriptlets
 
 
-Based on https://github.com/khud/sparklin which is a proof-of-concept software that includes experimental new Kotlin REPL.
+Based on https://github.com/khud/sparklin which is a proof-of-concept software that includes experimental new Kotlin REPL called `KShell`.
 
 ## Installation
 
@@ -19,7 +19,7 @@ Simply provide any kscript as argument. E.g [`krangl_example.kts`](https://githu
 ```bash
 kshell_from_kscript.sh krangl_example.kts
 ```
-This will launch a kshell-session will all dependencies from the kscript in the class path
+This will launch a `kshell`-session with all dependencies from the kscriptlet in the class path
 
 ```
 Preparing interactive session by resolving script dependencies...
