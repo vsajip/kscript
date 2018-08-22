@@ -511,7 +511,7 @@ Acknowledgements
 
 The initial version of `kscript` was kindly contributed by [Oscar Gonzalez](https://github.com/oskargb).
 
-Special thanks to [Ilan Pillemer](https://github.com/ilanpillemer), [Andrey Mischenko ](https://github.com/gildor), [Stephen Byrne](https://github.com/stephenbyrne-mfj), [Eugene Susla](https://github.com/EugeneSusla), [Eli Hart](https://github.com/elihart) and [oshai](https://github.com/oshai) for [contributing](https://github.com/holgerbrandl/kscript/graphs/contributors) PRs to this repo.
+Special thanks to [Ilan Pillemer](https://github.com/ilanpillemer), [Andrey Mischenko ](https://github.com/gildor), [Stephen Byrne](https://github.com/stephenbyrne-mfj), [Eugene Susla](https://github.com/EugeneSusla), [Eli Hart](https://github.com/elihart), [Hwijae Lee](https://github.com/hj-lee) and [oshai](https://github.com/oshai) for [contributing](https://github.com/holgerbrandl/kscript/graphs/contributors) PRs to this repo.
 
 Thanks also to the [Scionics Computer Innovation GmbH](https://www.scionics.com/) and the [MPI-CBG](http://www.mpi-cbg.de) for supporting this project.
 
