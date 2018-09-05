@@ -47,7 +47,7 @@ fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emp
             <groupId>${splitDepId[0]}</groupId>
             <artifactId>${splitDepId[1]}</artifactId>
             <version>${splitDepId[2]}</version>
-            ${if (splitDepId.size == 4) "<classifier>" + splitDepId[2] + "<classifier>" else ""}
+            ${if (splitDepId.size == 4) "<classifier>" + splitDepId[3] + "<classifier>" else ""}
     </dependency>
     """
     }
