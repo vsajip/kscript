@@ -1,5 +1,22 @@
 
 
+## v2.5
+
+Major Improvements
+
+* Support dependencies with different types (pom instead of jar)
+* Use current kotlin for temporary project when using `--idea`
+* Started [kshell launcher](https://github.com/holgerbrandl/kscript/tree/master/misc/kshell_launcher) for kscriptlets
+* Support `--idea` with includes
+
+Minor Enhancements
+
+* Avoid dependency duplications when using `//INCLUDE` recursively
+* Fixed: Unable to run script with plus character in filename
+* Allow to include same file from multiple files
+* Fixed: Space-containing argument propagation
+
+
 ## v2.4
 
 Major Enhancements:
