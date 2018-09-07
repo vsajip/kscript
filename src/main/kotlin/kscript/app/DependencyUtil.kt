@@ -1,6 +1,11 @@
 package kscript.app
 
-import kscript.app.ShellUtils.requireInPath
+import com.jcabi.aether.Aether
+import org.sonatype.aether.RepositoryException
+import org.sonatype.aether.artifact.Artifact
+import org.sonatype.aether.repository.RemoteRepository
+import org.sonatype.aether.util.artifact.DefaultArtifact
+import org.sonatype.aether.util.artifact.JavaScopes.COMPILE
 import java.io.File
 
 
@@ -32,138 +37,59 @@ fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emp
     }
 
 
-    if (loggingEnabled) System.err.print("[kscript] Resolving dependencies...")
-    var hasLoggedDownload = false
+    if (loggingEnabled) infoMsg("[kscript] Resolving dependencies...")
 
-    fun runMaven(pom: String, goal: String): Iterable<String> {
-        val temp = File.createTempFile("__resdeps__temp__", "_pom.xml")
-        temp.writeText(pom)
+    try {
+        val artifacts = resolveDependenciesViaAether(depIds, customRepos, loggingEnabled)
+        val classPath = artifacts.map { it.file.absolutePath }.joinToString(CP_SEPARATOR_CHAR)
 
-        requireInPath("mvn")
+        if (loggingEnabled) infoMsg("Dependencies resolved")
 
-        val mavenCmd = if (System.getenv("PATH").run { this != null && contains("cygwin") }) {
-            // when running with cygwin we need to map the pom path into windows space to work
-            "mvn -f $(cygpath -w '${temp.absolutePath}') ${goal}"
-        } else {
-            "mvn -f ${temp.absolutePath} ${goal}"
-        }
+        // Add classpath to cache
+        DEP_LOOKUP_CACHE_FILE.appendText(depsHash + " " + classPath + "\n")
 
-        return evalBash(mavenCmd, stdoutConsumer = object : StringBuilderConsumer() {
-            override fun accept(t: String) {
-                super.accept(t)
-
-
-                // log artifact downloading (see https://github.com/holgerbrandl/kscript/issues/23)
-                if (loggingEnabled && t.startsWith("Downloading: ")) {
-                    if (!hasLoggedDownload) System.err.println()
-                    hasLoggedDownload = true
-
-                    System.err.println("[kscript] " + t)
-                }
-            }
-        }).stdout.lines()
-    }
-
-    val pom = buildPom(depIds, customRepos)
-    val mavenResult = runMaven(pom, "dependency:build-classpath")
-
-
-    // The following artifacts could not be resolved: log4ja:log4ja:jar:9.8.87, log4j:log4j:jar:9.8.105: Could not
-
-    // Check for errors (e.g. when using non-existing deps resdeps.kts log4j:log4j:1.2.14 org.org.docopt:org.docopt:22.3-MISSING)
-    mavenResult.filter { it.startsWith("[ERROR]") }.find { it.contains("Could not resolve dependencie") }?.let {
-        System.err.println("Failed to lookup dependencies. Maven reported the following error:")
-        System.err.println(it)
-
-        quit(1)
-    }
-
-
-    // Extract the classpath from the maven output
-    val classPath = mavenResult.dropWhile { !it.contains("Dependencies classpath:") }.drop(1).firstOrNull()
-
-    if (classPath == null) {
+        // Print the classpath
+        return classPath
+    } catch (e: RepositoryException) {
         errorMsg("Failed to lookup dependencies. Check dependency locators or file a bug on https://github.com/holgerbrandl/kscript")
-        System.err.println("[kscript] The error reported by maven was:")
-        mavenResult.map { it.prependIndent("[kscript] [mvn] ") }.forEach { System.err.println(it) }
-
-        System.err.println("[kscript] Generated pom file was:")
-        pom.lines()
-                //            .map{it.prependIndent("[kscript] [pom] ")}
-                .forEach { System.err.println(it) }
+        errorMsg("Exception: $e")
         quit(1)
     }
-
-
-    // Add classpath to cache
-    if (loggingEnabled && !hasLoggedDownload) {
-        System.err.println("Done")
-    }
-
-    DEP_LOOKUP_CACHE_FILE.appendText(depsHash + " " + classPath + "\n")
-
-    // Print the classpath
-    return classPath
 }
 
+fun resolveDependenciesViaAether(depIds: List<String>, customRepos: List<MavenRepo>, loggingEnabled: Boolean): List<Artifact> {
+    val jcenter = RemoteRepository("jcenter", "default", "http://jcenter.bintray.com/")
+    val customRemoteRepos = customRepos.map { it -> RemoteRepository(it.id, "default", it.url) }
+    val remoteRepos = customRemoteRepos + jcenter
 
-internal fun buildPom(depIds: List<String>, customRepos: List<MavenRepo>): String {
-    val depTags = depIds.map {
-        val regex = Regex("^([^:]*):([^:]*):([^:@]*)(:(.*))?(@(.*))?\$")
-        val matchResult = regex.find(it)
+    val aether = Aether(remoteRepos, File(System.getProperty("user.home") + "/.m2/repository"))
+    return depIds.flatMap {
+        if (loggingEnabled) System.err.print("[kscript]     Resolving $it...")
 
-        if (matchResult == null) {
-            System.err.println("[ERROR] Invalid dependency locator: '${it}'.  Expected format is groupId:artifactId:version[:classifier][@type]")
-            quit(1)
-        }
+        val artifacts = aether.resolve(depIdToArtifact(it), COMPILE)
 
-        """
-    <dependency>
-            <groupId>${matchResult.groupValues[1]}</groupId>
-            <artifactId>${matchResult.groupValues[2]}</artifactId>
-            <version>${matchResult.groupValues[3]}</version>
-            ${matchResult.groups[5]?.let { "<classifier>" + it.value + "</classifier>" } ?: ""}
-            ${matchResult.groups[7]?.let { "<type>" + it.value + "</type>" } ?: ""}
-    </dependency>
-    """
+        if (loggingEnabled) System.err.println("Done")
+
+        artifacts
+    }
+}
+
+fun depIdToArtifact(depId: String): Artifact {
+    val regex = Regex("^([^:]*):([^:]*):([^:@]*)(:(.*))?(@(.*))?\$")
+    val matchResult = regex.find(depId)
+
+    if (matchResult == null) {
+        System.err.println("[ERROR] Invalid dependency locator: '${depId}'.  Expected format is groupId:artifactId:version[:classifier][@type]")
+        quit(1)
     }
 
-    // see https://github.com/holgerbrandl/kscript/issues/22
-    val repoTags = customRepos.map {
-        """
-    <repository>
-            <id>${it.id}</id>
-            <url>${it.url}</url>
-    </repository>
-    """
+    val groupId = matchResult.groupValues[1]
+    val artifactId = matchResult.groupValues[2]
+    val version = matchResult.groupValues[3]
+    val classifier = matchResult.groups[5]?.value
+    val type = matchResult.groups[7]?.value ?: "jar"
 
-    }
-
-    return """
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-    <modelVersion>4.0.0</modelVersion>
-
-    <groupId>kscript</groupId>
-    <artifactId>maven_template</artifactId>
-    <version>1.0</version>
-
-     <repositories>
-        <repository>
-            <id>jcenter</id>
-            <url>http://jcenter.bintray.com/</url>
-        </repository>
-        ${repoTags.joinToString("\n")}
-    </repositories>
-
-    <dependencies>
-    ${depTags.joinToString("\n")}
-    </dependencies>
-</project>
-"""
+    return DefaultArtifact(groupId, artifactId, classifier, type, version)
 }
 
 
