@@ -496,7 +496,7 @@ Help to spread the word. Great community articles about `kscript` include
 
 You could also show your support by upvoting `kscript` here on github, or by voting for issues in Intellij IDEA which impact `kscript`ing. Here are our top 2 tickets/annoyances that we would love to see fixed:
 
-* [KT-11473](https://youtrack.jetbrains.com/issue/KT-11473) Idea does not allow to debug scripts using the builtin debugger
+* [KT-23526](https://youtrack.jetbrains.com/issue/KT-11473) In *.kts scripts, debugger ignores breakpoints in top-level statements and members
 * [KT-13347](https://youtrack.jetbrains.com/issue/KT-13347) Good code is red in injected kotlin language snippets
 
 
