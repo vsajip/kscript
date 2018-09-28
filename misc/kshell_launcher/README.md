@@ -6,8 +6,8 @@ Based on https://github.com/khud/sparklin which is a proof-of-concept software t
 ## Installation
 
 ```bash
-wget https://raw.githubusercontent.com/holgerbrandl/kscript/master/misc/kshell_launcher/kshell_from_kscript.sh
-chmod +x kshell_from_kscript.sh
+wget https://raw.githubusercontent.com/holgerbrandl/kscript/master/misc/kshell_launcher/kshell_kts.sh
+chmod +x kshell_kts.sh
 ```
 
 You may want to add it to your `PATH` as well.
@@ -17,7 +17,7 @@ You may want to add it to your `PATH` as well.
 Simply provide any kscript as argument. E.g [`krangl_example.kts`](https://github.com/holgerbrandl/kscript/blob/master/misc/kshell_launcher/krangl_example.kts)
 
 ```bash
-kshell_from_kscript.sh krangl_example.kts
+kshell_kts.sh krangl_example.kts
 ```
 This will launch a `kshell`-session with all dependencies from the kscriptlet in the class path
 

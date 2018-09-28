@@ -2,7 +2,7 @@
 
 
 if [ $# -ne 1 ]; then
-    echo "Usage: kshell_from_kscript.sh <kscript.kts>"
+    echo "Usage: kshell_kts.sh <kscript.kts>"
     exit 0
 fi
 
