@@ -3,7 +3,12 @@
 package gradle2deps
 
 import java.io.File
+import kotlin.system.exitProcess
 
+if (args.size == 0) {
+    System.err.println("Usage: gradle2deps.kts <gradle_build_file>")
+    exitProcess(-1)
+}
 
 val gradleFileName = args[0]
 //val gradleFile = File("/Users/brandl/projects/kotlin/krangl/examples/smile/build.gradle")
