@@ -26,7 +26,7 @@ echo '' >> $tmpfile
 argScript=$1
 #argScript=krangl_example.kts
 
-cat $argScript >> $tmpfile
+cat $argScript | grep '@file' >> $tmpfile
 
 #cat $tmpfile
 
