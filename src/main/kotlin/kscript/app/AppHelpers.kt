@@ -244,7 +244,7 @@ sourceSets.main.java.srcDirs 'src'
         // also symlink all includes
         includeURLs.distinctBy { it.fileName() }
           .forEach {
-            
+
             val includeFile = when {
                 it.protocol == "file" -> File(it.toURI())
                 else -> fetchFromURL(it.toString())
@@ -254,7 +254,7 @@ sourceSets.main.java.srcDirs 'src'
         }
     }
 
-    return "idea ${tmpProjectDir.absolutePath}"
+    return "idea \"${tmpProjectDir.absolutePath}\""
 }
 
 private fun URL.fileName() = this.toURI().path.split("/").last()
@@ -313,7 +313,7 @@ $stringifiedDeps
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-script-runtime', version: '${KotlinVersion.CURRENT}'
 
     // https://stackoverflow.com/questions/20700053/how-to-add-local-jar-file-dependency-to-build-gradle-file
-    compile files('${scriptJar}')
+    compile files('${scriptJar.invariantSeparatorsPath}')
 }
 
 // http://www.capsule.io/user-guide/#really-executable-capsules
@@ -360,11 +360,14 @@ exec java -jar ${'$'}0 "${'$'}@"
 
     File(tmpProjectDir, "build.gradle").writeText(gradleScript)
 
-    val pckgResult = evalBash("cd ${tmpProjectDir} && gradle simpleCapsule && cp build/libs/${appName}*.jar ${pckgedJar} && chmod +x ${pckgedJar}")
+    val pckgResult = evalBash("cd '${tmpProjectDir}' && gradle simpleCapsule")
 
     with(pckgResult) {
         kscript.app.errorIf(exitCode != 0) { "packaging of '$appName' failed:\n$pckgResult" }
     }
+
+    pckgedJar.delete()
+    File(tmpProjectDir, "build/libs/${appName}-capsule.jar").copyTo(pckgedJar, true)
 
     infoMsg("Finished packaging into ${pckgedJar}")
 }

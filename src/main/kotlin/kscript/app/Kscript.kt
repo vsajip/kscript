@@ -270,7 +270,7 @@ fun main(args: Array<String>) {
     if (classpath.isNotEmpty())
         extClassPath += kscript.app.CP_SEPARATOR_CHAR + classpath
 
-    println("kotlin ${kotlinOpts} -classpath ${extClassPath} ${execClassName} ${joinedUserArgs} ")
+    println("kotlin ${kotlinOpts} -classpath \"${extClassPath}\" ${execClassName} ${joinedUserArgs} ")
 }
 
 
