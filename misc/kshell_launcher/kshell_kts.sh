@@ -15,7 +15,7 @@ echo '
 // should be now on maven central
 @file:DependsOn("com.github.khud:kshell-repl-api:0.2.4-1.2.60")
 
-@file:DependsOn("sparklin:jline3-shaded:0.2-SNAPSHOT")
+@file:DependsOn("sparklin:jline3-shaded:0.2")
 
 //@file:DependsOn("sparklin:kshell:0.2-SNAPSHOT")
 @file:DependsOn("sparklin:kshell:0.2.5")
