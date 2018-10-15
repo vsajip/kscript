@@ -316,28 +316,11 @@ $stringifiedDeps
     compile files('${scriptJar.invariantSeparatorsPath}')
 }
 
-// http://www.capsule.io/user-guide/#really-executable-capsules
-def reallyExecutable(jar) {
-    ant.concat(destfile: "tmp.jar", binary: true) {
-        //zipentry(zipfile: configurations.capsule.singleFile, name: 'capsule/execheader.sh')
-        fileset(dir: '.', includes: 'exec_header.sh')
-
-        fileset(dir: jar.destinationDir) {
-            include(name: jar.archiveName)
-        }
-    }
-    copy {
-        from 'tmp.jar'
-        into jar.destinationDir
-        rename { jar.archiveName }
-    }
-    delete 'tmp.jar'
-}
-
 task simpleCapsule(type: FatCapsule){
   applicationClass '$wrapperClassName'
 
-  baseName '$appName'
+  archiveName '$appName'
+  reallyExecutable
 
   capsuleManifest {
     jvmArgs = [$jvmOptions]
@@ -345,8 +328,6 @@ task simpleCapsule(type: FatCapsule){
     //systemProperties['java.awt.headless'] = true
   }
 }
-
-simpleCapsule.doLast { task -> reallyExecutable(task) }
     """.trimIndent()
 
     val pckgedJar = File(Paths.get("").toAbsolutePath().toFile(), appName).absoluteFile
@@ -367,7 +348,7 @@ exec java -jar ${'$'}0 "${'$'}@"
     }
 
     pckgedJar.delete()
-    File(tmpProjectDir, "build/libs/${appName}-capsule.jar").copyTo(pckgedJar, true)
+    File(tmpProjectDir, "build/libs/${appName}").copyTo(pckgedJar, true)
 
     infoMsg("Finished packaging into ${pckgedJar}")
 }
