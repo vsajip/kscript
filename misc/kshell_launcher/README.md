@@ -5,7 +5,24 @@ Based on https://github.com/khud/sparklin which is a proof-of-concept software t
 
 ## Installation
 
+Since not all dependencies of `sparklin` are hosted on jcenter/maven-central yet, we need to install some of its dependencies manually into our local maven repo
+
 ```bash
+git clone https://github.com/khud/sparklin
+cd sparklin
+git checkout f200d1
+mvn clean install
+
+cd ..
+git clone https://github.com/khud/kshell-repl-api
+cd kshell-repl-api
+git checkout c32e4e
+mvn install
+```
+
+Now since all dependencies are met we can simply fetch the launcher script
+```bash
+cd ~/bin
 wget https://raw.githubusercontent.com/holgerbrandl/kscript/master/misc/kshell_launcher/kshell_kts.sh
 chmod +x kshell_kts.sh
 ```
