@@ -320,6 +320,8 @@ task simpleCapsule(type: FatCapsule){
   applicationClass '$wrapperClassName'
 
   archiveName '$appName'
+
+  // http://www.capsule.io/user-guide/#really-executable-capsules
   reallyExecutable
 
   capsuleManifest {
