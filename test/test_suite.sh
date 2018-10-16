@@ -250,10 +250,10 @@ kscript_nocall() { kotlin -classpath ${KSCRIPT_HOME}/build/libs/kscript.jar kscr
 export -f kscript_nocall
 
 ## temp projects with include symlinks
-assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/include_variations.kts | cut -f2 -d" "); cd $tmpDir && gradle build' 0
+assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/include_variations.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
 
 ## support diamond-shaped include schemes (see #133)
-assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/diamond.kts | cut -f2 -d" "); cd $tmpDir && gradle build' 0
+assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/diamond.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
 
 ## todo reenable interactive mode tests using kscript_nocall
 
