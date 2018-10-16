@@ -350,7 +350,7 @@ exec java -jar ${'$'}0 "${'$'}@"
     }
 
     pckgedJar.delete()
-    File(tmpProjectDir, "build/libs/${appName}").copyTo(pckgedJar, true)
+    File(tmpProjectDir, "build/libs/${appName}").copyTo(pckgedJar, true).setExecutable(true)
 
     infoMsg("Finished packaging into ${pckgedJar}")
 }
