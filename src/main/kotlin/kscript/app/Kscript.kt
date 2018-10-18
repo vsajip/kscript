@@ -185,6 +185,8 @@ fun main(args: Array<String>) {
     val className = scriptFile.nameWithoutExtension
         .replace("[^A-Za-z0-9]".toRegex(), "_")
         .capitalize()
+        // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
+        .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_" + it else it }
 
 
     // Define the entrypoint for the scriptlet jar
