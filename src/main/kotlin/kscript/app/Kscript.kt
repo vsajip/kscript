@@ -52,7 +52,9 @@ Website   : https://github.com/holgerbrandl/kscript
 """.trim()
 
 // see https://stackoverflow.com/questions/585534/what-is-the-best-way-to-find-the-users-home-directory-in-java
-val KSCRIPT_CACHE_DIR = File(System.getProperty("user.home")!!, ".kscript")
+// See #146 "allow kscript cache dir to be configurable" for details
+val KSCRIPT_CACHE_DIR = System.getenv("KSCRIPT_CACHE_DIR")?.let { File(it) }
+    ?: File(System.getProperty("user.home")!!, ".kscript")
 
 // use lazy here prevent empty dirs for regular scripts https://github.com/holgerbrandl/kscript/issues/130
 val SCRIPT_TEMP_DIR by lazy { createTempDir() }
