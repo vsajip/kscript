@@ -1,7 +1,6 @@
 package kscript.app
 
 import java.io.File
-import java.lang.IllegalArgumentException
 
 /* Immutable script class */
 data class Script(val lines: List<String>, val extension: String = "kts") : Iterable<String> {
@@ -71,7 +70,7 @@ data class Script(val lines: List<String>, val extension: String = "kts") : Iter
 }
 
 
-private val KSCRIPT_DIRECTIVE_ANNO: List<Regex> = listOf("DependsOn", "KotlinOpts", "Include", "EntryPoint", "MavenRepository", "DependsOnMaven")
+private val KSCRIPT_DIRECTIVE_ANNO: List<Regex> = listOf("DependsOn", "KotlinOpts", "Include", "EntryPoint", "MavenRepository", "DependsOnMaven", "CompilerOpts")
     .map { "^@file:$it[(]".toRegex() }
 
 private fun isKscriptAnnotation(line: String) =

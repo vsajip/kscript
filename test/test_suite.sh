@@ -253,6 +253,9 @@ assert 'echo "println(123)" > 123foo.kts; kscript 123foo.kts' "123"
 ## prevent regression of #185
 assert "source ${KSCRIPT_HOME}/test/resources/home_dir_include.sh" "42"
 
+## prevent regression of #173
+assert "source ${KSCRIPT_HOME}/test/resources/compiler_opts_with_includes.sh" "hello42"
+
 
 kscript_nocall() { kotlin -classpath ${KSCRIPT_HOME}/build/libs/kscript.jar kscript.app.KscriptKt "$@";}
 export -f kscript_nocall
