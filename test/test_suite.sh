@@ -245,8 +245,12 @@ assert 'kscript "println(args.size)" "--params foo"' 1  ## make sure dash args a
 assert 'kscript "println(args.size)" "foo bar"' 1       ## allow for spaces
 assert 'kscript "println(args[0])" "foo bar"' "foo bar" ## make sure quotes are not propagated into args
 
-## prevent regression of 181
+## prevent regression of #181
 assert 'echo "println(123)" > 123foo.kts; kscript 123foo.kts' "123"
+
+
+## prevent regression of #185
+assert "source ${KSCRIPT_HOME}/test/resources/home_dir_include.sh" "42"
 
 
 kscript_nocall() { kotlin -classpath ${KSCRIPT_HOME}/build/libs/kscript.jar kscript.app.KscriptKt "$@";}
