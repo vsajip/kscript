@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "1.2.41"
+    kotlin("jvm") version "1.2.70"
     id("com.github.johnrengelman.shadow") version "2.0.4"
 }
 
@@ -25,6 +25,7 @@ dependencies {
 
     testCompile("junit:junit:4.12")
     testCompile( "io.kotlintest:kotlintest:2.0.7")
+    testCompile(kotlin("script-runtime"))
 }
 
 repositories {

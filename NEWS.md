@@ -1,5 +1,22 @@
 
 
+## v2.6
+
+
+Major Improvents
+
+* [#166](https://github.com/holgerbrandl/kscript/issues/166): Support dynamic versions ending with `+`
+* [#185](https://github.com/holgerbrandl/kscript/issues/185): Support "~" in INCLUDE ()
+* [#187](https://github.com/holgerbrandl/kscript/issues/187): Added support for shortened URLs
+* [#146](https://github.com/holgerbrandl/kscript/issues/146): Allow kscript cache directory to be configurable via `KSCRIPT_CACHE_DIR` environment variable
+* [#175](https://github.com/holgerbrandl/kscript/issues/175): `cygwin` support improvements
+* Improved `kshell` launcher to also launch scripts with invalid code
+
+Notable Bug Fixes
+* Confusing error when filename starts with a number
+* Fixed usage `@file:CompilerOpts` in combination with `@file:Include`
+* Renamed `kshell_from_kscript` to `kshell_kts`
+
 ## v2.5
 
 Major Improvements

@@ -32,7 +32,15 @@ fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emp
             .associateBy({ it.split(" ")[0] }, { it.split(" ")[1] })
 
         if (cache.containsKey(depsHash)) {
-            return cache.get(depsHash)
+            val cachedCP = cache.get(depsHash)!!
+
+
+            // Make sure that local dependencies have not been wiped since resolving them (like by deleting .m2) (see #146)
+            if (cachedCP.split(":").all { File(it).exists() }) {
+                return cachedCP
+            } else {
+                System.err.println("[kscript] Detected missing dependencies in cache.")
+            }
         }
     }
 
@@ -85,13 +93,23 @@ fun depIdToArtifact(depId: String): Artifact {
 
     val groupId = matchResult.groupValues[1]
     val artifactId = matchResult.groupValues[2]
-    val version = matchResult.groupValues[3]
+    val version = formatVersion(matchResult.groupValues[3])
     val classifier = matchResult.groups[5]?.value
     val type = matchResult.groups[7]?.value ?: "jar"
 
     return DefaultArtifact(groupId, artifactId, classifier, type, version)
 }
 
+fun formatVersion(version: String): String {
+    // replace + with open version range for maven
+    return version.let { it ->
+        if (it.endsWith("+")) {
+            "[${it.dropLast(1)},)"
+        } else {
+            it
+        }
+    }
+}
 
 // called by unit tests
 object DependencyUtil {

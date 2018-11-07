@@ -20,7 +20,7 @@ import kotlin.system.exitProcess
  * @author Holger Brandl
  */
 
-const val KSCRIPT_VERSION = "2.5.0"
+const val KSCRIPT_VERSION = "2.6.0"
 
 val selfName = System.getenv("CUSTOM_KSCRIPT_NAME") ?: "kscript"
 
@@ -52,7 +52,9 @@ Website   : https://github.com/holgerbrandl/kscript
 """.trim()
 
 // see https://stackoverflow.com/questions/585534/what-is-the-best-way-to-find-the-users-home-directory-in-java
-val KSCRIPT_CACHE_DIR = File(System.getProperty("user.home")!!, ".kscript")
+// See #146 "allow kscript cache dir to be configurable" for details
+val KSCRIPT_CACHE_DIR = System.getenv("KSCRIPT_CACHE_DIR")?.let { File(it) }
+    ?: File(System.getProperty("user.home")!!, ".kscript")
 
 // use lazy here prevent empty dirs for regular scripts https://github.com/holgerbrandl/kscript/issues/130
 val SCRIPT_TEMP_DIR by lazy { createTempDir() }
@@ -185,6 +187,8 @@ fun main(args: Array<String>) {
     val className = scriptFile.nameWithoutExtension
         .replace("[^A-Za-z0-9]".toRegex(), "_")
         .capitalize()
+        // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
+        .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_" + it else it }
 
 
     // Define the entrypoint for the scriptlet jar
@@ -270,7 +274,7 @@ fun main(args: Array<String>) {
     if (classpath.isNotEmpty())
         extClassPath += kscript.app.CP_SEPARATOR_CHAR + classpath
 
-    println("kotlin ${kotlinOpts} -classpath ${extClassPath} ${execClassName} ${joinedUserArgs} ")
+    println("kotlin ${kotlinOpts} -classpath \"${extClassPath}\" ${execClassName} ${joinedUserArgs} ")
 }
 
 

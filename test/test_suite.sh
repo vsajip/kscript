@@ -77,6 +77,7 @@ assert "kscript i_do_not_exist.kts 2>&1" "[kscript] [ERROR] Could not read scrip
 
 ## make sure that it runs with remote URLs
 assert "kscript https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/url_test.kts" "I came from the internet"
+assert "kscript https://git.io/fxHBv" "main was called"
 
 ## there are some dependencies which are not jar, but maybe pom, aar, ..
 ## make sure they work, too
@@ -151,6 +152,9 @@ assert "kscript ${KSCRIPT_HOME}/test/resources/depends_on_annot.kts" "kscript wi
 
 # make sure that @file:DependsOnMaven is parsed correctly
 assert "kscript ${KSCRIPT_HOME}/test/resources/depends_on_maven_annot.kts" "kscript with annotations rocks!"
+
+# make sure that dynamic versions are matched properly
+assert "kscript ${KSCRIPT_HOME}/test/resources/depends_on_dynamic.kts" "dynamic kscript rocks!"
 
 # make sure that @file:MavenRepository is parsed correctly
 assert "kscript ${KSCRIPT_HOME}/test/resources/custom_mvn_repo_annot.kts" "kscript with annotations rocks!"
@@ -242,15 +246,25 @@ assert 'kscript "println(args.size)" "--params foo"' 1  ## make sure dash args a
 assert 'kscript "println(args.size)" "foo bar"' 1       ## allow for spaces
 assert 'kscript "println(args[0])" "foo bar"' "foo bar" ## make sure quotes are not propagated into args
 
+## prevent regression of #181
+assert 'echo "println(123)" > 123foo.kts; kscript 123foo.kts' "123"
+
+
+## prevent regression of #185
+assert "source ${KSCRIPT_HOME}/test/resources/home_dir_include.sh" "42"
+
+## prevent regression of #173
+assert "source ${KSCRIPT_HOME}/test/resources/compiler_opts_with_includes.sh" "hello42"
+
 
 kscript_nocall() { kotlin -classpath ${KSCRIPT_HOME}/build/libs/kscript.jar kscript.app.KscriptKt "$@";}
 export -f kscript_nocall
 
 ## temp projects with include symlinks
-assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/include_variations.kts | cut -f2 -d" "); cd $tmpDir && gradle build' 0
+assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/include_variations.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
 
 ## support diamond-shaped include schemes (see #133)
-assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/diamond.kts | cut -f2 -d" "); cd $tmpDir && gradle build' 0
+assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/diamond.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
 
 ## todo reenable interactive mode tests using kscript_nocall
 

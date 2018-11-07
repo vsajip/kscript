@@ -138,11 +138,20 @@ fun createTmpScript(scriptText: String, extension: String = "kts"): File {
 
 fun fetchFromURL(scriptURL: String): File {
     val urlHash = md5(scriptURL)
-    val urlExtension = if (scriptURL.endsWith(".kt")) "kt" else "kts"
+    val scriptText = URL(scriptURL).readText()
+    val urlExtension = when {
+        scriptURL.endsWith(".kt") -> "kt"
+        scriptURL.endsWith(".kts") -> "kts"
+        else -> if (scriptText.contains("fun main")) {
+            "kt"
+        } else {
+            "kts"
+        }
+    }
     val urlCache = File(KSCRIPT_CACHE_DIR, "/url_cache_${urlHash}.$urlExtension")
 
     if (!urlCache.isFile) {
-        urlCache.writeText(URL(scriptURL).readText())
+        urlCache.writeText(scriptText)
     }
 
     return urlCache
@@ -244,7 +253,7 @@ sourceSets.main.java.srcDirs 'src'
         // also symlink all includes
         includeURLs.distinctBy { it.fileName() }
           .forEach {
-            
+
             val includeFile = when {
                 it.protocol == "file" -> File(it.toURI())
                 else -> fetchFromURL(it.toString())
@@ -254,7 +263,7 @@ sourceSets.main.java.srcDirs 'src'
         }
     }
 
-    return "idea ${tmpProjectDir.absolutePath}"
+    return "idea \"${tmpProjectDir.absolutePath}\""
 }
 
 private fun URL.fileName() = this.toURI().path.split("/").last()
@@ -313,31 +322,16 @@ $stringifiedDeps
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-script-runtime', version: '${KotlinVersion.CURRENT}'
 
     // https://stackoverflow.com/questions/20700053/how-to-add-local-jar-file-dependency-to-build-gradle-file
-    compile files('${scriptJar}')
-}
-
-// http://www.capsule.io/user-guide/#really-executable-capsules
-def reallyExecutable(jar) {
-    ant.concat(destfile: "tmp.jar", binary: true) {
-        //zipentry(zipfile: configurations.capsule.singleFile, name: 'capsule/execheader.sh')
-        fileset(dir: '.', includes: 'exec_header.sh')
-
-        fileset(dir: jar.destinationDir) {
-            include(name: jar.archiveName)
-        }
-    }
-    copy {
-        from 'tmp.jar'
-        into jar.destinationDir
-        rename { jar.archiveName }
-    }
-    delete 'tmp.jar'
+    compile files('${scriptJar.invariantSeparatorsPath}')
 }
 
 task simpleCapsule(type: FatCapsule){
   applicationClass '$wrapperClassName'
 
-  baseName '$appName'
+  archiveName '$appName'
+
+  // http://www.capsule.io/user-guide/#really-executable-capsules
+  reallyExecutable
 
   capsuleManifest {
     jvmArgs = [$jvmOptions]
@@ -345,8 +339,6 @@ task simpleCapsule(type: FatCapsule){
     //systemProperties['java.awt.headless'] = true
   }
 }
-
-simpleCapsule.doLast { task -> reallyExecutable(task) }
     """.trimIndent()
 
     val pckgedJar = File(Paths.get("").toAbsolutePath().toFile(), appName).absoluteFile
@@ -360,11 +352,14 @@ exec java -jar ${'$'}0 "${'$'}@"
 
     File(tmpProjectDir, "build.gradle").writeText(gradleScript)
 
-    val pckgResult = evalBash("cd ${tmpProjectDir} && gradle simpleCapsule && cp build/libs/${appName}*.jar ${pckgedJar} && chmod +x ${pckgedJar}")
+    val pckgResult = evalBash("cd '${tmpProjectDir}' && gradle simpleCapsule")
 
     with(pckgResult) {
         kscript.app.errorIf(exitCode != 0) { "packaging of '$appName' failed:\n$pckgResult" }
     }
+
+    pckgedJar.delete()
+    File(tmpProjectDir, "build/libs/${appName}").copyTo(pckgedJar, true).setExecutable(true)
 
     infoMsg("Finished packaging into ${pckgedJar}")
 }

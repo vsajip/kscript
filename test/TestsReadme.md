@@ -54,6 +54,18 @@ export PATH=`echo ${PATH} | awk -v RS=: -v ORS=: '/kscript/ {next} {print}'`
 
 For more examples see https://github.com/lehmannro/assert.sh/blob/master/tests.sh
 
+
+## Tests for dynamic dependencies
+
+To allow for dynamic dependency resolution, dependencies need to be present in local `.m2` cache already. So before we can run
+```bash
+${KSCRIPT_HOME}/test/resources/depends_on_dynamic.kts
+```
+we need to resolve actual versions into the local cache with something like
+```bash
+${KSCRIPT_HOME}/test/resources/depends_on_maven_annot.kts
+```
+
 ## Notes
 
 How to modulate PATH?

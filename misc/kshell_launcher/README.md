@@ -5,9 +5,26 @@ Based on https://github.com/khud/sparklin which is a proof-of-concept software t
 
 ## Installation
 
+Since not all dependencies of `sparklin` are hosted on jcenter/maven-central yet, we need to install some of its dependencies manually into our local maven repo
+
 ```bash
-wget https://raw.githubusercontent.com/holgerbrandl/kscript/master/misc/kshell_launcher/kshell_from_kscript.sh
-chmod +x kshell_from_kscript.sh
+git clone https://github.com/khud/sparklin
+cd sparklin
+git checkout f200d1
+mvn clean install
+
+cd ..
+git clone https://github.com/khud/kshell-repl-api
+cd kshell-repl-api
+git checkout c32e4e
+mvn install
+```
+
+Now since all dependencies are met we can simply fetch the launcher script
+```bash
+cd ~/bin
+wget https://raw.githubusercontent.com/holgerbrandl/kscript/master/misc/kshell_launcher/kshell_kts.sh
+chmod +x kshell_kts.sh
 ```
 
 You may want to add it to your `PATH` as well.
@@ -17,7 +34,7 @@ You may want to add it to your `PATH` as well.
 Simply provide any kscript as argument. E.g [`krangl_example.kts`](https://github.com/holgerbrandl/kscript/blob/master/misc/kshell_launcher/krangl_example.kts)
 
 ```bash
-kshell_from_kscript.sh krangl_example.kts
+kshell_kts.sh krangl_example.kts
 ```
 This will launch a `kshell`-session with all dependencies from the kscriptlet in the class path
 
