@@ -45,7 +45,7 @@ fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emp
     }
 
 
-    if (loggingEnabled) infoMsg("[kscript] Resolving dependencies...")
+    if (loggingEnabled) infoMsg("Resolving dependencies...")
 
     try {
         val artifacts = resolveDependenciesViaAether(depIds, customRepos, loggingEnabled)
