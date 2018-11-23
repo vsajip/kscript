@@ -11,7 +11,7 @@ Kotlin has some built-in support for scripting already but it is not yet feature
 
 In particular this wrapper around `kotlinc` adds
 * Compiled script caching (using md5 checksums)
-* Dependency declarations using gradle-style resource locators and automatic dependency resolution with maven
+* Dependency declarations using gradle-style resource locators and automatic dependency resolution with [jcabi-aether](https://github.com/jcabi/jcabi-aether)
 * More options to provide scripts including interpreter mode, reading from stdin, local files or URLs
 * Embedded configuration for Kotlin runtime options
 * Support library to ease the writing of Kotlin scriptlets
@@ -49,10 +49,9 @@ curl -s "https://get.sdkman.io" | bash  # install sdkman
 source ~/.bash_profile                  # add sdkman to PATH
 
 sdk install kotlin                      # install Kotlin
-sdk install maven                       # install Maven
 ```
 
-Once Maven and Kotlin are ready, you can install `kscript` with
+Once Kotlin is ready, you can install `kscript` with
 ```
 sdk install kscript
 ```
