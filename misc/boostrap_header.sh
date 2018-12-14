@@ -5,6 +5,9 @@ _in_path kscript && echo "kscript is already installed at $(which kscript)" 1>&2
         curl "https://get.sdkman.io" | bash 1>&2 && \
             echo_and_eval source "$"SDKMAN_DIR/bin/sdkman-init.sh
     }
+
+    sdkman_auto_answer=true
+
     _in_path kotlin || echo_and_eval sdk install kotlin
     _in_path gradle || echo_and_eval sdk install gradle
     echo_and_eval sdk install kscript
