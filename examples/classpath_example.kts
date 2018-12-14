@@ -19,7 +19,6 @@ Usage:
     kscript ( -t | --text ) <version>
     kscript [ --interactive | --idea | --package ] [--] ( - | <file or URL> ) [<args>]...
     kscript (-h | --help)
-    kscript ( --self-update | --clear-cache )
 
 Options:
     -t, --text         Enable stdin support API for more streamlined text processing  [default: latest]
@@ -28,7 +27,6 @@ Options:
     -i, --interactive  Create interactive shell with dependencies as declared in script
     -                  Read script from the STDIN
     -h, --help         Print this text
-    --self-update      Update kscript to the latest version
     --clear-cache      Wipe cached script jars and urls
 """
 

@@ -34,7 +34,7 @@ Taken all these features together, `kscript` provides an easy-to-use, very flexi
 - [Treat yourself a REPL with `--interactive`](#treat-yourself-a-repl-with---interactive)
 - [Boostrap IDEA from a `kscript`let](#boostrap-idea-from-a-kscriptlet)
 - [Deploy scripts as standalone binaries](#deploy-scripts-as-standalone-binaries)
-- [Embed kscript installer within a script](#embed-kscript-installer-within-a-script)
+- [Embed kscript installer within your script](#embed-kscript-installer-within-your-script)
 - [FAQ](#faq)
 - [Support](#support)
 - [How to contribute?](#how-to-contribute)
@@ -63,10 +63,7 @@ To test your installation simply run
 kscript --help
 ```
 
-`kscript` can update itself to its latest version by running
-```bash
-kscript --self-update
-```
+This will check and inform about udpates. To update `kscript` simply install it again as described above.
 
 #### Installation without `sdkman`
 

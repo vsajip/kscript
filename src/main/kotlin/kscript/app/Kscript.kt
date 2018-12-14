@@ -31,12 +31,10 @@ $selfName - Enhanced scripting support for Kotlin on *nix-based systems.
 Usage:
  $selfName [options] <script> [<script_args>]...
  $selfName --clear-cache
- $selfName --self-update
 
 The <script> can be a  script file (*kts), a script URL, - for stdin, a *.kt source file with a main method, or some kotlin code.
 
 Use '--clear-cache' to wipe cached script jars and urls
-Use '--self-update' to update kscript to the latest version
 
 Options:
  -i --interactive        Create interactive shell with dependencies as declared in script
@@ -102,35 +100,6 @@ fun main(args: Array<String>) {
         //        evalBash("rm -f ${KSCRIPT_CACHE_DIR}/*")
         quit(0)
     }
-
-    // optionally self-update kscript ot the newest version
-    // (if not local copy is not being maintained by sdkman)
-    if (docopt.getBoolean(("self-update"))) {
-        if (true || evalBash("which kscript | grep .sdkman").stdout.isNotBlank()) {
-            info("Installing latest version of kscript...")
-            //            println("sdkman_auto_answer=true && sdk install kscript")
-
-            // create update script
-            val updateScript = File(KSCRIPT_CACHE_DIR, "self_update.sh").apply {
-                writeText("""
-                #!/usr/bin/env bash
-                export SDKMAN_DIR="${"$"}{HOME}/.sdkman"
-                source "${"$"}{SDKMAN_DIR}/bin/sdkman-init.sh"
-                sdkman_auto_answer=true && sdk install kscript
-                """.trimIndent())
-                setExecutable(true)
-            }
-
-            println(updateScript.absolutePath)
-        } else {
-            info("Self-update is currently just supported via sdkman.")
-            info("Please download a new release from https://github.com/holgerbrandl/kscript")
-            // todo port sdkman-indpendent self-update
-        }
-
-        quit(0)
-    }
-
 
     // Resolve the script resource argument into an actual file
     val scriptResource = docopt.getString("script")
@@ -338,7 +307,7 @@ private fun versionCheck() {
     fun padVersion(version: String) = java.lang.String.format("%03d%03d%03d", *version.split(".").map { Integer.valueOf(it) }.toTypedArray())
 
     if (padVersion(latestVersion) > padVersion(KSCRIPT_VERSION)) {
-        info("""A new version (v${latestVersion}) of kscript is available. Use 'kscript --self-update' to update your local kscript installation""")
+        info("""A new version (v${latestVersion}) of kscript is available.""")
     }
 }
 

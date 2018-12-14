@@ -26,7 +26,6 @@ docker attach `docker ps -q -l` # reattach the terminal & stdin
 #curl -Lso /bin/kscript https://www.dropbox.com/s/l5g8vr0wz78y3zy/kscript?dl=1 && chmod u+x /bin/kscript
 
 #kscript --help
-#kscript --self-update
 
 
 ## or using github repo
