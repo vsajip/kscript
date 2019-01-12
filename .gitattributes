@@ -1,0 +1,3 @@
+# https://techblog.dorogin.com/case-of-windows-line-ending-in-bash-script-7236f056abe
+* text=auto
+*.sh text eol=lf
