@@ -2,7 +2,12 @@
 * text=auto
 *.sh text eol=lf
 
-# also use lix style file endings for bash scripts without sh extension
+
+# Use linux file endings for kts scripts because some of them contain shebangs and are thus partially interpreted by bash
+*.sh text eol=lf
+
+
+# also use linux style file endings for bash scripts without sh extension
 kscript text eol=lf
 gradlew text eol=lf
 mydsl text eol=lf
