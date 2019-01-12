@@ -4,7 +4,7 @@
 
 
 # Use linux file endings for kts scripts because some of them contain shebangs and are thus partially interpreted by bash
-*.sh text eol=lf
+*.kts text eol=lf
 
 
 # also use linux style file endings for bash scripts without sh extension
