@@ -2,7 +2,7 @@
 ## 2.7
 
 Improvements & Fixes
-
+* [#159](https://github.com/holgerbrandl/kscript/issues/159) Use aether instead of maven to pull dependencies
 * [#210](https://github.com/holgerbrandl/kscript/issues/210): Updated gradle capsule plugin
 * [#102](https://github.com/holgerbrandl/kscript/issues/102): Removed `--self-update`
 * Use resource from repo for resolve boostrap header
