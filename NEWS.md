@@ -1,9 +1,20 @@
 
+## 2.7
+
+Improvements & Fixes
+
+* [#210](https://github.com/holgerbrandl/kscript/issues/210): Updated gradle capsule plugin
+* [#102](https://github.com/holgerbrandl/kscript/issues/102): Removed `--self-update`
+* Use resource from repo for resolve boostrap header
+* [#203](https://github.com/holgerbrandl/kscript/issues/203): Fix cache check bug on Windows
+* [#199](https://github.com/holgerbrandl/kscript/issues/199): Allow to bootstrap kscript installation with `--add-bootstrap-header`
+* [#200](https://github.com/holgerbrandl/kscript/issues/200): Expose script file name to script
+
 
 ## v2.6
 
 
-Major Improvents
+Major Improvements
 
 * [#166](https://github.com/holgerbrandl/kscript/issues/166): Support dynamic versions ending with `+`
 * [#185](https://github.com/holgerbrandl/kscript/issues/185): Support "~" in INCLUDE ()
@@ -155,7 +166,7 @@ Other changes
 
 ## v1.1
 
-* Support for stdin and process substitution as script source. See [examples](examples/unit_tests.sh)
+* Support for stdin and process substitution as script source. See [examples](examples)
 * versioning and auto-update
 * basic command-line help
 * Added support for `KOTLIN_OPTS` (see [#8](https://github.com/holgerbrandl/kscript/issues/8))
