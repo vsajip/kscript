@@ -33,7 +33,14 @@ cp ${KSCRIPT_HOME}/build/libs/kscript.jar ${KSCRIPT_ARCHIVE}/kscript-${kscript_v
 
 cd ${KSCRIPT_ARCHIVE}
 rm -f ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip
+
+# on linux
 zip -r ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip kscript-${kscript_version}
+# on windows
+#docker run -it --rm -e kscript_version="${kscript_version}" -v  c:/Users/brandl/archive/kscript_versions:/data alpine
+#apk add zip && cd /data &&  zip -r kscript-${kscript_version}.zip kscript-${kscript_version}
+
+
 open ${KSCRIPT_ARCHIVE}
 
 
