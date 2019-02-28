@@ -71,6 +71,9 @@ export GITHUB_TOKEN=${GH_TOKEN}
 # make your tag and upload
 cd ${KSCRIPT_HOME}
 
+git config  user.email "holgerbrandl@users.noreply.github.com"
+
+
 #git tag v${kscript_version} && git push --tags
 (git diff --exit-code && git tag v${kscript_version})  || echo "could not tag current branch"
 git push --tags
@@ -107,6 +110,9 @@ cd $KSCRIPT_HOME && rm -rf kscript_releases_*
 
 git clone git@github.com:holgerbrandl/kscript.git kscript_releases_${kscript_version}
 cd kscript_releases_${kscript_version}
+
+git config  user.email "holgerbrandl@users.noreply.github.com"
+
 #git checkout --orphan releases
 #git reset --hard
 #git rm --cached -r .
@@ -181,6 +187,8 @@ curl -X POST \
 cd $KSCRIPT_HOME && rm -rf homebrew-tap
 git clone https://github.com/holgerbrandl/homebrew-tap.git
 cd homebrew-tap
+
+git config  user.email "holgerbrandl@users.noreply.github.com"
 
 archiveMd5=$(shasum -a 256 ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip | cut -f1 -d ' ')
 
