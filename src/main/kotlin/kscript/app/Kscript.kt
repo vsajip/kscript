@@ -333,6 +333,7 @@ fun prepareScript(scriptResource: String): Pair<File, URI> {
             // if we can "just" read from script resource create tmp file
             // i.e. script input is process substitution file handle
             // not FileInputStream(this).bufferedReader().use{ readText()} does not work nor does this.readText
+            includeContext = this.absoluteFile.parentFile.toURI()
             createTmpScript(FileInputStream(this).bufferedReader().readText())
         }
     }
