@@ -10,7 +10,9 @@ RUN apt-get install -y curl unzip zip wget git
 RUN  apt-get install -y default-jdk
 
 # Define commonly used JAVA_HOME variable
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+#ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/
+
 
 
 # install sdkman (see http://sdkman.io/install.html)

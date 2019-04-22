@@ -16,6 +16,8 @@ docker run -it --rm -v $(pwd)/kscript_docker:/kscript kscript_tester
 
 cd $KSCRIPT_HOME
 docker run -it --rm -v $(pwd):/kscript kscript_tester
+docker run -it --rm -v d://projects/misc/kscript:/kscript kscript_tester
+docker run -it --rm kscript_tester
 
 
 #docker rm  `docker ps -q -l` # restart it in the background
@@ -38,6 +40,7 @@ export KSCRIPT_HOME=$(pwd)
 wget https://raw.githubusercontent.com/lehmannro/assert.sh/master/assert.sh
 chmod u+x assert.sh
 
+#export PATH=/kscript/build/libs:$PATH
 export PATH=$(pwd):${PATH}
 kscript --clear-cache
 
