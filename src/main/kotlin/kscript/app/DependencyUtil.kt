@@ -6,6 +6,7 @@ import org.sonatype.aether.artifact.Artifact
 import org.sonatype.aether.repository.RemoteRepository
 import org.sonatype.aether.util.artifact.DefaultArtifact
 import org.sonatype.aether.util.artifact.JavaScopes.COMPILE
+import org.sonatype.aether.util.artifact.JavaScopes.RUNTIME
 import java.io.File
 
 
@@ -74,7 +75,7 @@ fun resolveDependenciesViaAether(depIds: List<String>, customRepos: List<MavenRe
     return depIds.flatMap {
         if (loggingEnabled) System.err.print("[kscript]     Resolving $it...")
 
-        val artifacts = aether.resolve(depIdToArtifact(it), COMPILE)
+        val artifacts = aether.resolve(depIdToArtifact(it), RUNTIME)
 
         if (loggingEnabled) System.err.println("Done")
 
