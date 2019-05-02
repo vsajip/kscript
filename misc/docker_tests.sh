@@ -2,53 +2,67 @@
 
 
 
-# todo push image to docker registry
+########################################################################################################################
+## Build and upload the image to the registry
+
 cd ${KSCRIPT_HOME}/misc
+#docker run --name kscript_interactive -it ubuntu:18.04
+
 #docker build --no-cache -t kscript_tester .
 docker build -t kscript_tester .
-docker run -it kscript_tester
+
+# quick test -> does it work (see section below)
+
+#docker login
+
+## create the versioned tag
+docker tag kscript_tester holgerbrandl/kscript_tester:jdk11_kotlin1.3.31_gradle4.10
+docker push holgerbrandl/kscript_tester:jdk11_kotlin1.3.31_gradle4.10
+
+## create the latest tag
+docker tag kscript_tester holgerbrandl/kscript_tester
+docker push holgerbrandl/kscript_tester
 
 
-## or with host-local repo-copy
-#cd ~/Desktop/
-#git clone https://github.com/holgerbrandl/kscript.git kscript_docker
+
+########################################################################################################################
+## Use the image for testing and debugging
+
+cd ${KSCRIPT_HOME}
+
+
 docker run -it --rm -v $(pwd)/kscript_docker:/kscript kscript_tester
+docker run -it --rm -v $(pwd)/kscript_docker:/kscript a9945a6a860d
 
-cd $KSCRIPT_HOME
-docker run -it --rm -v $(pwd):/kscript kscript_tester
-docker run -it --rm -v d://projects/misc/kscript:/kscript kscript_tester
-docker run -it --rm kscript_tester
+## with slash escaped for windows
+#docker run -it --rm -v d:/projects/misc/kscript://kscript kscript_tester
+#docker run -it -v ${pwd}:/kscript kscript_tester
+
+## path path tp allow env usage within container
+export PATH=/kscript/build/libs:$PATH
+export KSCRIPT_HOME=/kscript
 
 
+# https://stackoverflow.com/questions/28302178/how-can-i-add-a-volume-to-an-existing-docker-container
+#docker commit a9945a6a860d kscript_tmp
 #docker rm  `docker ps -q -l` # restart it in the background
-docker start  `docker ps -q -l` # restart it in the background
-docker attach `docker ps -q -l` # reattach the terminal & stdin
+#docker start  `docker ps -q -l` # restart it in the background
+#docker attach `docker ps -q -l` # reattach the terminal & stdin
 
-#curl -Lso /bin/kscript https://raw.githubusercontent.com/holgerbrandl/kscript/abb5f4c6ee72ec90d22c0fe913284e92363cad0e/kscript && chmod u+x /bin/kscript
-#curl -Lso /bin/kscript https://www.dropbox.com/s/l5g8vr0wz78y3zy/kscript?dl=1 && chmod u+x /bin/kscript
-
-#kscript --help
-
-
-## or using github repo
-#git clone https://github.com/holgerbrandl/kscript.git
-cd kscript
-export KSCRIPT_HOME=$(pwd)
-
+## rebuild
+cd $KSCRIPT_HOME
 ./gradlew assemble
 
-wget https://raw.githubusercontent.com/lehmannro/assert.sh/master/assert.sh
-chmod u+x assert.sh
-
-#export PATH=/kscript/build/libs:$PATH
-export PATH=$(pwd):${PATH}
 kscript --clear-cache
 
-
+## run test suite
+# git clone https://github.com/holgerbrandl/kscript kscript_docker
+#cd kscript_docker
+#test/test_suite.sh
 ${KSCRIPT_HOME}/test/test_suite.sh
 
 
-## manuallt test dependency lookup
+## manual test dependency lookup
 ./kscript --clear-cache
 rm -rf ~/.m2/; kscript --clear-cache
 resolve_deps() { kotlin -classpath kscript.jar kscript.app.DependencyUtil "$@";}

@@ -1,5 +1,5 @@
 # Base Image for kscript testing
-FROM ubuntu
+FROM ubuntu:18.04
 
 ## update apt cache
 RUN  apt-get update
