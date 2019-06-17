@@ -92,7 +92,7 @@ As of this writing, testing the credentials is only done manually with a dockeri
 
 #### 1. Set up preconfigured artifactory with docker.
 
-```
+```bash
 # download and start artifactory container
 docker run --name artifactory -d -p 8081:8081 docker.bintray.io/jfrog/artifactory-oss:latest
 
@@ -109,7 +109,8 @@ docker restart artifactory
 ```
 
 #### 2. Create and upload a downloadable archive.
-```
+
+```bash
 tmpClass=$(mktemp --suffix ".class")
 tmpZipDir=$(mktemp -d)
 echo "public class something() {}" > $tmpClass
@@ -118,7 +119,8 @@ curl --request PUT -u admin:password -T $tmpZipDir/tmp.zip http://localhost:8081
 ```
 
 #### 3. Then run the following kotlin script with the encrypted password
-```
+
+```bash
 echo '
 @file:MavenRepository("my-art", "http://localhost:8081/artifactory/authenticated_repo", user="auth_user", password="password")
 @file:DependsOn("com.jcabi:jcabi-aether:0.10.1") // If unencrypted works via jcenter
