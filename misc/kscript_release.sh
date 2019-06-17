@@ -108,7 +108,7 @@ github-release upload \
 
 cd $KSCRIPT_HOME && rm -rf kscript_releases_*
 
-git clone git@github.com:holgerbrandl/kscript.git kscript_releases_${kscript_version}
+git clone https://github.com/holgerbrandl/kscript kscript_releases_${kscript_version}
 cd kscript_releases_${kscript_version}
 
 git config  user.email "holgerbrandl@users.noreply.github.com"
@@ -131,6 +131,8 @@ git commit -m "v${kscript_version} release"
 
 git push origin releases
 
+## test the updated version pointer
+curl https://raw.githubusercontent.com/holgerbrandl/kscript/releases/kscript
 
 ########################################################################
 ### release on sdkman
