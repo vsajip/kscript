@@ -1,4 +1,11 @@
 
+## 2.8
+
+Improvements & Fixes
+* [#214](https://github.com/holgerbrandl/kscript/pull/214) Added credentials support for `@file:MavenRepository` annotation (thanks to [@meonlol](https://github.com/meonlol)
+ for providing the PR and his patience)
+
+
 ## 2.7
 
 Improvements & Fixes

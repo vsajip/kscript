@@ -314,6 +314,10 @@ Using annotations instead of comment directives to configure scripts is cleaner 
 // Note that for compatibility reasons, only one locator argument is allowed for @DependsOnMaven
 
 
+// also protected artifact repositories are supported, see <https://github.com/holgerbrandl/kscript/blob/master/test/TestsReadme.md#manual-testing>
+// @file:MavenRepository("my-art", "http://localhost:8081/artifactory/authenticated_repo", user="auth_user", password="password")
+
+
 // Include helper scripts without deployment or prior compilation
 @file:Include("util.kt")
 
@@ -338,8 +342,8 @@ com.github.holgerbrandl:kscript-annotations:1.2
 
 Note, that if a script is located in a package other than the root package, you need to import the annotations with (e.g. `import DependsOn`).
 
-Text Processing Mode
---------------------
+
+## Text Processing Mode
 
 `kscript` can be used as a speedier and more flexible substitute for built-in terminal text tools such as `awk` or `sed`. Its text processing mode can be enabled with `-t` or `--text`. If so, `kscript` will
 
