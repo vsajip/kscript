@@ -188,17 +188,23 @@ data class MavenRepo(val id: String, val url: String, val user: String = "", val
  * Collect custom artifact repos declared with @file:MavenRepository
  */
 fun Script.collectRepos(): List<MavenRepo> {
-    val dependsOnMavenPrefix = "^@file:MavenRepository[(]".toRegex()
+    val mvnRepoAnnotPrefix = "^@file:MavenRepository[(]".toRegex()
     // only supported annotation format for now
 
     // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/")
     // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/", user="user", password="pass")
     return lines
-        .filter { it.contains(dependsOnMavenPrefix) }
-        .map { it.replaceFirst(dependsOnMavenPrefix, "").substringBeforeLast(")") }
-        .map {
-            it.split(",").map { it.trim(' ', '"', '(') }.let { annotationParams ->
-                val namedArgs = annotationParams.filter { it.contains("=") }.map { item: String -> item.let { item.substringBefore("=") to item.substringAfter("=\"") } }.toMap()
+        .filter { it.contains(mvnRepoAnnotPrefix) }
+        .map { it.replaceFirst(mvnRepoAnnotPrefix, "").substringBeforeLast(")") }
+        .map { repoLine ->
+            repoLine.split(",").map { it.trim(' ', '"', '(') }.let { annotationParams ->
+                val keyValSep = "[ ]*=[ ]*\"".toRegex()
+
+                val namedArgs = annotationParams
+                        .filter { it.contains(keyValSep) }
+                        .map { keyVal -> keyVal.split(keyValSep).map { it.trim(' ', '\"') }.let{ it.first() to it.last()}}
+                        .toMap()
+
                 MavenRepo(annotationParams[0], annotationParams[1], namedArgs.getOrDefault("user", ""), namedArgs.getOrDefault("password", ""))
             }
         }

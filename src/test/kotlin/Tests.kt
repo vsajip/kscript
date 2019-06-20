@@ -93,7 +93,14 @@ class Tests {
     fun customRepoWithCreds() {
         val lines = listOf(
                 """@file:MavenRepository("imagej-releases", "http://maven.imagej.net/content/repositories/releases", user="user", password="pass") """,
+                // Same but name arg comes last
                 """@file:MavenRepository("imagej-snapshots", "http://maven.imagej.net/content/repositories/snapshots", password="pass", user="user") """,
+                // Whitespaces around credentials see #228
+                """@file:MavenRepository("spaceAroundCredentials", "http://maven.imagej.net/content/repositories/snapshots", password= "pass" , user= "user" ) """,
+                // Different whitespaces around credentials see #228
+                """@file:MavenRepository("spaceAroundCredentials2", "http://maven.imagej.net/content/repositories/snapshots", password= "pass", user="user" ) """,
+
+                // some other script bits unrelated to the repo definition
                 """@file:DependsOnMaven("net.clearvolume:cleargl:2.0.1")""",
                 """@file:DependsOn("log4j:log4j:1.2.14")""",
                 """println("foo")"""
@@ -103,7 +110,9 @@ class Tests {
 
             collectRepos() shouldBe listOf(
                     MavenRepo("imagej-releases", "http://maven.imagej.net/content/repositories/releases", "user", "pass"),
-                    MavenRepo("imagej-snapshots", "http://maven.imagej.net/content/repositories/snapshots", "user", "pass") //Provided with name in non-typical order
+                    MavenRepo("imagej-snapshots", "http://maven.imagej.net/content/repositories/snapshots", "user", "pass"),
+                    MavenRepo("spaceAroundCredentials", "http://maven.imagej.net/content/repositories/snapshots", "user", "pass"),
+                    MavenRepo("spaceAroundCredentials2", "http://maven.imagej.net/content/repositories/snapshots", "user", "pass")
             )
 
             collectDependencies() shouldBe listOf(
@@ -114,7 +123,6 @@ class Tests {
         }
 
     }
-
 
 
     // combine kotlin opts spread over multiple lines
