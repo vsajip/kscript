@@ -267,6 +267,9 @@ export -f kscript_nocall
 ## temp projects with include symlinks
 assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/include_variations.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
 
+## Ensure relative includes with in shebang mode
+assert_raises resources/includes/shebang_mode_includes 0
+
 ## support diamond-shaped include schemes (see #133)
 assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/diamond.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
 
