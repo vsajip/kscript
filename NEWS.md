@@ -1,3 +1,19 @@
+# Changes
+
+## 2.9
+
+
+Support environment variables in repository credentials ([#248](https://github.com/holgerbrandl/kscript/issues/159))
+* Make INCLUDE directive files relative to script dir
+* Create a default Run Configuration for Idea ([#244](https://github.com/holgerbrandl/kscript/issues/159))
+
+Minor enhancements & fixes:
+* Support whitespace around maven repo credentials (fixes [#228](https://github.com/holgerbrandl/kscript/issues/159))
+* Make INCLUDE directive files relative to script dir
+* Fixed support for gitbash
+* Fixed bootstrap header ([#234](https://github.com/holgerbrandl/kscript/issues/159))
+* Improved and documented basic testing support ([#247](https://github.com/holgerbrandl/kscript/issues/159))
+
 
 ## 2.8
 

@@ -19,7 +19,8 @@ To run the tests, just run the [`test_suite.sh`](test_suite.sh)
 
 #git clone https://github.com/holgerbrandl/kscript ; export KSCRIPT_HOME=$(pwd)/kscript
 
-export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"
+#export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"
+export KSCRIPT_HOME="/mnt/hgfs/sharedDB/db_projects/kscript"
 #export KSCRIPT_HOME="/cygdrive/z/kscript"
 ## change into this/test directory
 

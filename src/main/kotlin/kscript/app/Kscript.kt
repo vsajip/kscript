@@ -21,7 +21,7 @@ import kotlin.system.exitProcess
  * @author Holger Brandl
  */
 
-const val KSCRIPT_VERSION = "2.8.0"
+const val KSCRIPT_VERSION = "2.9.0"
 
 val selfName = System.getenv("CUSTOM_KSCRIPT_NAME") ?: "kscript"
 
@@ -45,7 +45,7 @@ Options:
  --add-bootstrap-header  Prepend bash header that installs kscript if necessary
 
 
-Copyright : 2017 Holger Brandl
+Copyright : 2019 Holger Brandl
 License   : MIT
 Version   : v$KSCRIPT_VERSION
 Website   : https://github.com/holgerbrandl/kscript
