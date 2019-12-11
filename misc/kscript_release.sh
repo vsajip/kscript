@@ -4,7 +4,8 @@
 # 2. Make sure that support api version is up to date and available from jcenter
 # 3. Push and wait for travis CI results
 
-export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript";
+#export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript";
+export KSCRIPT_HOME="/mnt/hgfs/sharedDB/db_projects/kscript";
 export PATH=${KSCRIPT_HOME}:${PATH}
 export PATH=~/go/bin/:$PATH
 
@@ -217,3 +218,62 @@ git push #origin releases
 
 
 ## to test use `brew install holgerbrandl/tap/kscript`
+
+
+
+########################################################################
+### Update the archlinux package (see https://aur.archlinux.org/packages/kscript/ and https://github.com/holgerbrandl/kscript/pull/216/)
+
+cd $KSCRIPT_HOME && rm -rf archlinux
+git clone https://aur.archlinux.org/kscript.git archlinux
+git clone https://aur.archlinux.org/kscript.git archlinux
+cd archlinux
+
+
+#update the PKGBUILD file/pkgver variable
+cat - <<EOF > PKGBUILD
+# Maintainer: Holger Brandl https://github.com/holgerbrandl/kscript/
+
+pkgname=kscript
+pkgver=${kscript_version}
+pkgrel=1
+pkgdesc='Enhanced scripting support for Kotlin on *nix-based systems'
+arch=('any')
+url='https://github.com/holgerbrandl/kscript'
+license=('MIT')
+depends=('kotlin')
+source=("${pkgname}-${pkgver}.bin.zip::https://github.com/holgerbrandl/${pkgname}/releases/download/v${pkgver}/${pkgname}-${pkgver}-bin.zip")
+sha256sums=('${archiveMd5}')
+
+package() {
+    cd "${srcdir}/${pkgname}-${pkgver}/bin"
+
+    install -Dm 755 kscript "${pkgdir}/usr/bin/kscript"
+    install -Dm 644 kscript.jar "${pkgdir}/usr/bin/kscript.jar"
+}
+
+EOF
+
+#update the PKGBUILD file/pkgver variable
+cat - <<EOF > .SRCINFO
+pkgbase = kscript
+	pkgdesc = Enhanced scripting support for Kotlin on *nix-based systems
+	pkgver = ${kscript_version}
+	pkgrel = 1
+	url = https://github.com/holgerbrandl/kscript
+	arch = any
+	license = MIT
+	depends = kotlin
+	source = kscript-${kscript_version}.bin.zip::https://github.com/holgerbrandl/kscript/releases/download/v${kscript_version}/kscript-${kscript_version}-bin.zip
+	sha256sums = ${archiveMd5}
+
+pkgname = kscript
+
+EOF
+
+#https://wiki.manjaro.org/index.php?title=Makepkg
+#updpkgsums
+#makepkg --printsrcinfo > .SRCINFO
+git add PKGBUILD .SRCINFO
+git commit -m "updated to ${kscript_version}"
+git push
