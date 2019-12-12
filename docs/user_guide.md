@@ -161,6 +161,8 @@ gradle test
 
 Note that the Gradlew wrapper is not automatically created by `kscript --idea` so `./gradlew` will not be available. This uses a gradle instance from the PATH instead.
 
+To streamline testing there is also [helper script](https://gist.github.com/elihart/019bd116d3fa0d6214b7396eedc4b206) by [@elihart](https://gist.github.com/elihart) that runs `gradle clean test` on other scripts to easily build and test them (using kscript). This script takes the name of another kts script as an argument, builds that script with gradle, and runs its tests via gradle clean test.
+
 ## Text Processing
 
 `kscript` allows to perform `sed`/`awk` text streaming/processing.
