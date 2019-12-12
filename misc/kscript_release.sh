@@ -225,8 +225,10 @@ git push #origin releases
 ### Update the archlinux package (see https://aur.archlinux.org/packages/kscript/ and https://github.com/holgerbrandl/kscript/pull/216/)
 
 cd $KSCRIPT_HOME && rm -rf archlinux
-git clone https://aur.archlinux.org/kscript.git archlinux
-git clone https://aur.archlinux.org/kscript.git archlinux
+
+# See https://wiki.archlinux.org/index.php/AUR_submission_guidelines#Authentication for credentials setup
+git clone ssh://aur@aur.archlinux.org/kscript.git archlinux
+
 cd archlinux
 
 
