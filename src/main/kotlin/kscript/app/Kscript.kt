@@ -45,7 +45,7 @@ Options:
  --add-bootstrap-header  Prepend bash header that installs kscript if necessary
 
 
-Copyright : 2019 Holger Brandl
+Copyright : 2020 Holger Brandl
 License   : MIT
 Version   : v$KSCRIPT_VERSION
 Website   : https://github.com/holgerbrandl/kscript
