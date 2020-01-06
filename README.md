@@ -495,6 +495,9 @@ Main motivations for using Kotlin over Python for scripting and development are
 * The JVM dependency ecosystem allows for strict versioning. No more messing around with virtualenv, e.g. to run a short 10liner against a specific version of numpy.
 
 
+### Does kscript work with java?
+
+The only language supported by `kscript` is kotlin. For a similar approach centering around Java scripting see [jbang](https://github.com/maxandersen/jbang). 
 
 
 
