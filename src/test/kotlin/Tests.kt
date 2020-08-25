@@ -121,6 +121,21 @@ class Tests {
                     "com.github.holgerbrandl:kscript-annotations:1.4"
             )
         }
+    }
+
+    @Test
+    fun `it should support named repo options`() {
+        val lines = listOf(
+                """@file:MavenRepository(id= "imagej-releases", url = "http://maven.imagej.net/content/repositories/releases", user="user", password="pass") """,
+                """@file:DependsOn("log4j:log4j:1.2.14")""",
+                """println("foo")"""
+        )
+
+        with(Script(lines)) {
+            collectRepos() shouldBe listOf(
+                    MavenRepo("imagej-releases", "http://maven.imagej.net/content/repositories/releases", "user", "pass")
+            )
+        }
 
     }
 
