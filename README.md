@@ -65,6 +65,28 @@ kscript --help
 
 This will check and inform about udpates. To update `kscript` simply install it again as described above.
 
+#### Run with docker
+
+We provide an executable docker container to run `kscript`
+
+```bash
+# using the latest version of kscript
+docker run -i holgerbrandl/kscript 'println("Hello, world!")'
+
+# or using versioned container
+docker run -i holgerbrandl/kscript:2.9.3 'println("Hello, world!")'
+```
+
+To use a script file outside of the container as input, you could do
+
+```bash
+docker run -i holgerbrandl/kscript - < script.kts
+```
+
+This will make `kscript` read the code from stdin while piping the file. Beware that the -i flag is needed to have stdout redirected outside the container.
+
+Please note, that currently `@Include` are not supported when using a dockerized kscript. Also, any resource outside the container context may not be resolved correctly. To overcome this limitation, you could use for instance [bind mounts](https://docs.docker.com/storage/bind-mounts/).
+
 #### Installation without `sdkman`
 
 If you have Kotlin and Maven already and you would like to install the latest `kscript` release without using `sdkman` you can do so by unzipping the [latest ](https://github.com/holgerbrandl/kscript/releases/latest) binary release. Don't forget to update your `$PATH` accordingly.
