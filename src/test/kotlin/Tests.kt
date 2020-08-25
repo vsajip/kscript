@@ -99,6 +99,7 @@ class Tests {
                 """@file:MavenRepository("spaceAroundCredentials", "http://maven.imagej.net/content/repositories/snapshots", password= "pass" , user= "user" ) """,
                 // Different whitespaces around credentials see #228
                 """@file:MavenRepository("spaceAroundCredentials2", "http://maven.imagej.net/content/repositories/snapshots", password= "pass", user="user" ) """,
+                """@file:MavenRepository("unnamedCredentials", "http://maven.imagej.net/content/repositories/snapshots", "user", "pass") """,
 
                 // some other script bits unrelated to the repo definition
                 """@file:DependsOnMaven("net.clearvolume:cleargl:2.0.1")""",
@@ -112,7 +113,8 @@ class Tests {
                     MavenRepo("imagej-releases", "http://maven.imagej.net/content/repositories/releases", "user", "pass"),
                     MavenRepo("imagej-snapshots", "http://maven.imagej.net/content/repositories/snapshots", "user", "pass"),
                     MavenRepo("spaceAroundCredentials", "http://maven.imagej.net/content/repositories/snapshots", "user", "pass"),
-                    MavenRepo("spaceAroundCredentials2", "http://maven.imagej.net/content/repositories/snapshots", "user", "pass")
+                    MavenRepo("spaceAroundCredentials2", "http://maven.imagej.net/content/repositories/snapshots", "user", "pass"),
+                    MavenRepo("unnamedCredentials", "http://maven.imagej.net/content/repositories/snapshots", "user", "pass")
             )
 
             collectDependencies() shouldBe listOf(

@@ -205,7 +205,12 @@ fun Script.collectRepos(): List<MavenRepo> {
                         .map { keyVal -> keyVal.split(keyValSep).map { it.trim(' ', '\"') }.let{ it.first() to it.last()}}
                         .toMap()
 
-                MavenRepo(annotationParams[0], annotationParams[1], namedArgs.getOrDefault("user", ""), namedArgs.getOrDefault("password", ""))
+                MavenRepo(
+                        namedArgs.getOrDefault("id", annotationParams[0]),
+                        namedArgs.getOrDefault("url", annotationParams[1]),
+                        namedArgs.getOrDefault("user", annotationParams.getOrNull(2) ?: ""),
+                        namedArgs.getOrDefault("password", annotationParams.getOrNull(3) ?: "")
+                )
             }
         }
 }
