@@ -19,6 +19,7 @@ In particular this wrapper around `kotlinc` adds
 
 Taken all these features together, `kscript` provides an easy-to-use, very flexible, and almost zero-overhead solution to write self-contained mini-applications with Kotlin.
 
+**Good News**: Kotlin [v1.4](https://kotlinlang.org/docs/reference/whatsnew14.html#scripting-and-repl) finally ships with a much improved - and needed - scripting integration. See [here](https://github.com/Kotlin/kotlin-script-examples/blob/master/jvm/main-kts/MainKts.md) for examples and documentation. Still, we think that `kscript` has various benefits compared this new platform-bundled improved toolstack, so we'll plan to support `kscript` until the kotlin platform will ship with an even more rich and versatile kotlin scripting interpreter.
 
 ---
 **[`kscript` presentation from KotlinConf2017!](https://holgerbrandl.github.io/kscript_kotlinconf_2017/kscript_kotlinconf.html)**
