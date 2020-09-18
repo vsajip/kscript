@@ -18,7 +18,8 @@ RUN apt-get update && \
 RUN curl -s "https://get.sdkman.io" | bash
 
 RUN source /root/.sdkman/bin/sdkman-init.sh && \
-    sdk install java 8.0.265-zulu
+    sdk install java 8.0.265-zulu && \
+    sdk install kotlin 1.4.10
 #    sdk install maven 3.6.0 && \
 
 ARG KSCRIPT_VERSION
