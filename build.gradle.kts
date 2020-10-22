@@ -1,15 +1,13 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "1.3.72"
-    id("com.github.johnrengelman.shadow") version "2.0.4"
+    kotlin("jvm") version "1.4.10"
+    id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 group = "com.github.holgerbrandl.kscript.launcher"
 
 dependencies {
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib")
-
     compile("com.offbytwo:docopt:0.6.0.20150202")
 
     compile("com.jcabi:jcabi-aether:0.10.1") {
