@@ -1,14 +1,17 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "1.3.72"
+    kotlin("jvm") version "1.4.10"
     id("com.github.johnrengelman.shadow") version "2.0.4"
 }
 
 group = "com.github.holgerbrandl.kscript.launcher"
 
+//val kotlinVersion: String by rootProject.extra
+val kotlinVersion: String ="1.4.10"
+
 dependencies {
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib")
+    compile("org.jetbrains.kotlin:kotlin-stdlib")
 
     compile("com.offbytwo:docopt:0.6.0.20150202")
 
@@ -23,6 +26,11 @@ dependencies {
     // compile("com.jcabi:jcabi-aether:0.10.1:sources") //can be used for debugging, but somehow adds logging to dependency resolvement?
     compile("org.apache.maven:maven-core:3.0.3")
     compile("org.slf4j:slf4j-nop:1.7.25")
+
+    implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven:$kotlinVersion")
 
     testCompile("junit:junit:4.12")
     testCompile( "io.kotlintest:kotlintest:2.0.7")
