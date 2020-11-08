@@ -37,9 +37,23 @@ cd ${KSCRIPT_HOME}
 export PATH=${KSCRIPT_HOME}/build/libs:${PATH}
 which kscript
 
+
 ## clean up the environment
-#sdk use kotlin 1.1-RC
+
 kscript --clear-cache
+
+# configure java and kotlin
+#export JAVA_HOME=`/usr/libexec/java_home -v 9.0.1`
+java -version
+#sudo update-alternatives --config java
+#update-alternatives -l
+#sudo update-alternatives --set java-1.8.0-openjdk-amd64
+# export JAVA_HOME=$(update-java-alternatives -l | head -n 1 | awk -F ' ' '{print $NF}')
+
+kotlin -version
+sdk list kotlin
+#sdk use kotlin 1.3.72
+#sdk use kotlin 1.4.10
 
 ${KSCRIPT_HOME}/test/test_suite.sh
 

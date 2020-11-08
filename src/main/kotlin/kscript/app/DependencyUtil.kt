@@ -1,15 +1,8 @@
 package kscript.app
 
-import com.jcabi.aether.Aether
 import kotlinx.coroutines.runBlocking
-import org.sonatype.aether.RepositoryException
-import org.sonatype.aether.artifact.Artifact
-import org.sonatype.aether.repository.Authentication
-import org.sonatype.aether.repository.RemoteRepository
-import org.sonatype.aether.util.artifact.DefaultArtifact
-import org.sonatype.aether.util.artifact.JavaScopes.RUNTIME
+import org.eclipse.aether.artifact.DefaultArtifact
 import java.io.File
-import kotlin.script.experimental.api.valueOr
 import kotlin.script.experimental.api.valueOrThrow
 import kotlin.script.experimental.dependencies.CompoundDependenciesResolver
 import kotlin.script.experimental.dependencies.FileSystemDependenciesResolver
@@ -35,9 +28,9 @@ fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emp
     // Use cached classpath from previous run if present
     if (DEP_LOOKUP_CACHE_FILE.isFile()) {
         val cache = DEP_LOOKUP_CACHE_FILE
-            .readLines()
-            .filter { it.isNotBlank() }
-            .associateBy({ it.split(" ")[0] }, { it.split(" ")[1] })
+                .readLines()
+                .filter { it.isNotBlank() }
+                .associateBy({ it.split(" ")[0] }, { it.split(" ")[1] })
 
         if (cache.containsKey(depsHash)) {
             val cachedCP = cache.get(depsHash)!!
@@ -56,7 +49,6 @@ fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emp
     if (loggingEnabled) infoMsg("Resolving dependencies...")
 
     try {
-//        val artifacts = resolveDependenciesViaAether(depIds, customRepos, loggingEnabled)
         val artifacts = resolveDependenciesViaKotlin(depIds, customRepos, loggingEnabled)
         val classPath = artifacts.map { it.absolutePath }.joinToString(CP_SEPARATOR_CHAR)
 
@@ -67,7 +59,7 @@ fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emp
 
         // Print the classpath
         return classPath
-    } catch (e: RepositoryException) {
+    } catch (e: Exception) {
         // Probably a wrapped Nullpointer from 'DefaultRepositorySystem.resolveDependencies()', this however is probably a connection problem.
         errorMsg("Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators. If you suspect this is a bug, you can create an issue on https://github.com/holgerbrandl/kscript")
         errorMsg("Exception: $e")
@@ -91,49 +83,32 @@ fun decodeEnv(value: String): String {
 
 fun resolveDependenciesViaKotlin(depIds: List<String>, customRepos: List<MavenRepo>, loggingEnabled: Boolean): List<File> {
 
+    // validate dependencies
+    depIds.map { depIdToArtifact(it) }
+
     val extRepos = customRepos + MavenRepo("jcenter", "https://jcenter.bintray.com")
 
-    val repoCoords = extRepos.map{RepositoryCoordinates(it.url)}
+    val repoCoords = extRepos.map { RepositoryCoordinates(it.url) }
 
 
     val mvnResolver = MavenDependenciesResolver().apply {
-        addRepository(RepositoryCoordinates("https://jcenter.bintray.com") )
+        addRepository(RepositoryCoordinates("https://jcenter.bintray.com"))
     }
 
     val resolver = CompoundDependenciesResolver(FileSystemDependenciesResolver(), MavenDependenciesResolver(), mvnResolver)
 
     val resolvedDependencies = runBlocking {
-        depIds.map { resolver.resolve(it) }.map{ it.valueOrThrow() }
+        depIds.map {
+            if (loggingEnabled) System.err.print("[kscript]     Resolving $it...")
+            resolver.resolve(it)
+        }.map { it.valueOrThrow() }
     }.flatten()
 
     return resolvedDependencies
 }
 
 
-fun resolveDependenciesViaAether(depIds: List<String>, customRepos: List<MavenRepo>, loggingEnabled: Boolean): List<File> {
-    val jcenter = RemoteRepository("jcenter", "default", "https://jcenter.bintray.com/")
-    val customRemoteRepos = customRepos.map { mavenRepo ->
-        RemoteRepository(mavenRepo.id, "default", mavenRepo.url).apply {
-            if (!mavenRepo.user.isNullOrEmpty() && !mavenRepo.password.isNullOrEmpty()) {
-                authentication = Authentication(decodeEnv(mavenRepo.user), decodeEnv(mavenRepo.password))
-            }
-        }
-    }
-    val remoteRepos = customRemoteRepos + jcenter
-
-    val aether = Aether(remoteRepos, File(System.getProperty("user.home") + "/.m2/repository"))
-    return depIds.flatMap {
-        if (loggingEnabled) System.err.print("[kscript]     Resolving $it...")
-
-        val artifacts = aether.resolve(depIdToArtifact(it), RUNTIME)
-
-        if (loggingEnabled) System.err.println("Done")
-
-        artifacts
-    }.map { it.file }
-}
-
-fun depIdToArtifact(depId: String): Artifact {
+fun depIdToArtifact(depId: String) {
     val regex = Regex("^([^:]*):([^:]*):([^:@]*)(:(.*))?(@(.*))?\$")
     val matchResult = regex.find(depId)
 
@@ -148,7 +123,7 @@ fun depIdToArtifact(depId: String): Artifact {
     val classifier = matchResult.groups[5]?.value
     val type = matchResult.groups[7]?.value ?: "jar"
 
-    return DefaultArtifact(groupId, artifactId, classifier, type, version)
+//    return DefaultArtifact(groupId, artifactId, classifier, type, version)
 }
 
 fun formatVersion(version: String): String {
