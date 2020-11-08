@@ -1,6 +1,7 @@
 package kscript.app
 
 import com.jcabi.aether.Aether
+import kotlinx.coroutines.runBlocking
 import org.sonatype.aether.RepositoryException
 import org.sonatype.aether.artifact.Artifact
 import org.sonatype.aether.repository.Authentication
@@ -8,6 +9,12 @@ import org.sonatype.aether.repository.RemoteRepository
 import org.sonatype.aether.util.artifact.DefaultArtifact
 import org.sonatype.aether.util.artifact.JavaScopes.RUNTIME
 import java.io.File
+import kotlin.script.experimental.api.valueOr
+import kotlin.script.experimental.api.valueOrThrow
+import kotlin.script.experimental.dependencies.CompoundDependenciesResolver
+import kotlin.script.experimental.dependencies.FileSystemDependenciesResolver
+import kotlin.script.experimental.dependencies.RepositoryCoordinates
+import kotlin.script.experimental.dependencies.maven.MavenDependenciesResolver
 
 
 val DEP_LOOKUP_CACHE_FILE = File(KSCRIPT_CACHE_DIR, "dependency_cache.txt")
@@ -49,8 +56,9 @@ fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emp
     if (loggingEnabled) infoMsg("Resolving dependencies...")
 
     try {
-        val artifacts = resolveDependenciesViaAether(depIds, customRepos, loggingEnabled)
-        val classPath = artifacts.map { it.file.absolutePath }.joinToString(CP_SEPARATOR_CHAR)
+//        val artifacts = resolveDependenciesViaAether(depIds, customRepos, loggingEnabled)
+        val artifacts = resolveDependenciesViaKotlin(depIds, customRepos, loggingEnabled)
+        val classPath = artifacts.map { it.absolutePath }.joinToString(CP_SEPARATOR_CHAR)
 
         if (loggingEnabled) infoMsg("Dependencies resolved")
 
@@ -81,7 +89,28 @@ fun decodeEnv(value: String): String {
     }
 }
 
-fun resolveDependenciesViaAether(depIds: List<String>, customRepos: List<MavenRepo>, loggingEnabled: Boolean): List<Artifact> {
+fun resolveDependenciesViaKotlin(depIds: List<String>, customRepos: List<MavenRepo>, loggingEnabled: Boolean): List<File> {
+
+    val extRepos = customRepos + MavenRepo("jcenter", "https://jcenter.bintray.com")
+
+    val repoCoords = extRepos.map{RepositoryCoordinates(it.url)}
+
+
+    val mvnResolver = MavenDependenciesResolver().apply {
+        addRepository(RepositoryCoordinates("https://jcenter.bintray.com") )
+    }
+
+    val resolver = CompoundDependenciesResolver(FileSystemDependenciesResolver(), MavenDependenciesResolver(), mvnResolver)
+
+    val resolvedDependencies = runBlocking {
+        depIds.map { resolver.resolve(it) }.map{ it.valueOrThrow() }
+    }.flatten()
+
+    return resolvedDependencies
+}
+
+
+fun resolveDependenciesViaAether(depIds: List<String>, customRepos: List<MavenRepo>, loggingEnabled: Boolean): List<File> {
     val jcenter = RemoteRepository("jcenter", "default", "https://jcenter.bintray.com/")
     val customRemoteRepos = customRepos.map { mavenRepo ->
         RemoteRepository(mavenRepo.id, "default", mavenRepo.url).apply {
@@ -101,7 +130,7 @@ fun resolveDependenciesViaAether(depIds: List<String>, customRepos: List<MavenRe
         if (loggingEnabled) System.err.println("Done")
 
         artifacts
-    }
+    }.map { it.file }
 }
 
 fun depIdToArtifact(depId: String): Artifact {
