@@ -1,9 +1,7 @@
 #!/usr/bin/env kscript
 
-
-@file:DependsOn("log4j:log4j:1.2+")
-//DEPS com.offbytwo:docopt:0.6.0.+
-// neither should having comments after declartions
+@file:DependsOn("log4j:log4j:[1.2,)")
+@file:DependsOn("com.offbytwo:docopt:[0.6,)")
 
 // some pointless comment
 
