@@ -30,7 +30,7 @@ fun evalBash(cmd: String, wd: File? = null,
 
 fun runProcess(cmd: String, wd: File? = null): ProcessResult {
     val parts = cmd.split("\\s".toRegex())
-    return runProcess(cmd = *parts.toTypedArray(), wd = wd)
+    return runProcess(cmd = parts.toTypedArray(), wd = wd)
 }
 
 fun runProcess(vararg cmd: String, wd: File? = null,
@@ -43,7 +43,7 @@ fun runProcess(vararg cmd: String, wd: File? = null,
             directory(wd).
             // see https://youtrack.jetbrains.com/issue/KT-20785
             apply { environment()["KOTLIN_RUNNER"] = "" }.
-            start();
+            start()
 
 
         // we need to gobble the streams to prevent that the internal pipes hit their respecitive buffer limits, which
@@ -78,7 +78,7 @@ internal open class StringBuilderConsumer : Consumer<String> {
     val sb = StringBuilder()
 
     override fun accept(t: String) {
-        sb.appendln(t)
+        sb.appendLine(t)
     }
 
     override fun toString(): String {
@@ -207,7 +207,7 @@ fun launchIdeaWithKscriptlet(scriptFile: File,
                              includeURLs: List<URL>,
                              compilerOpts: String): String {
     val intellijCommand = System.getenv("KSCRIPT_IDEA_COMMAND") ?: "idea"
-    requireInPath("$intellijCommand", "Could not find '$intellijCommand' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_IDEA_COMMAND' env property")
+    requireInPath(intellijCommand, "Could not find '$intellijCommand' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_IDEA_COMMAND' env property")
 
     infoMsg("Setting up idea project from ${scriptFile}")
 
@@ -445,7 +445,7 @@ exec java -jar ${'$'}0 "${'$'}@"
     val pckgResult = evalBash("cd '${tmpProjectDir}' && gradle simpleCapsule")
 
     with(pckgResult) {
-        kscript.app.errorIf(exitCode != 0) { "packaging of '$appName' failed:\n$pckgResult" }
+        errorIf(exitCode != 0) { "packaging of '$appName' failed:\n$pckgResult" }
     }
 
     pckgedJar.delete()

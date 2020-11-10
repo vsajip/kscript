@@ -18,7 +18,7 @@ data class Script(val lines: List<String>, val extension: String = "kts") : Iter
     override fun iterator(): Iterator<String> = lines.iterator()
 
 
-    fun stripShebang(): Script = lines.filterNot { it.startsWith("#!/") }.let { copy(it) }
+    fun stripShebang(): Script = copy(lines.filterNot { it.startsWith("#!/") })
 
 
     fun createTmpScript() = createTmpScript(toString(), extension)
@@ -46,23 +46,23 @@ data class Script(val lines: List<String>, val extension: String = "kts") : Iter
         val consolidated = StringBuilder().apply {
             // file annotations have to be on top of everything, just switch places between your annotation and package
             with(annotations) {
-                sorted().map(String::trim).distinct().map { appendln(it) }
+                sorted().map(String::trim).distinct().map { appendLine(it) }
                 // kotlin seems buggy here, so maybe we need to recode annot-directives into comment directives
-                if (isNotEmpty()) appendln()
+                if (isNotEmpty()) appendLine()
             }
 
             // restablish the package statement if present
             lines.firstOrNull { it.startsWith(PACKAGE_STATEMENT_PREFIX) }?.let {
-                appendln(it)
+                appendLine(it)
             }
 
             with(imports) {
-                sorted().map(String::trim).distinct().map { appendln(it) }
-                if (isNotEmpty()) appendln()
+                sorted().map(String::trim).distinct().map { appendLine(it) }
+                if (isNotEmpty()) appendLine()
             }
 
             // append actual script
-            codeBits.forEach { appendln(it) }
+            codeBits.forEach { appendLine(it) }
         }
 
         return copy(lines = consolidated.lines())
@@ -109,7 +109,7 @@ private fun extractEntryPoint(line: String) = when {
 //
 
 
-private val DEPS_COMMENT_PREFIX = "//DEPS "
+private const val DEPS_COMMENT_PREFIX = "//DEPS "
 private val DEPS_ANNOT_PREFIX = "^@file:DependsOn[(]".toRegex()
 private val DEPSMAVEN_ANNOT_PREFIX = "^@file:DependsOnMaven[(]".toRegex()
 
@@ -231,10 +231,10 @@ fun Script.collectRuntimeOptions(): String {
 
     //support for @file:KotlinOpts see #47
     val annotatonPrefix = "^@file:KotlinOpts[(]".toRegex()
-    kotlinOpts += lines
-        .filter { it.contains(annotatonPrefix) }
-        .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
-        .map { it.trim(' ', '"') }
+    kotlinOpts = kotlinOpts + lines
+            .filter { it.contains(annotatonPrefix) }
+            .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
+            .map { it.trim(' ', '"') }
 
 
     // Append $KSCRIPT_KOTLIN_OPTS if defined in the parent environment
@@ -252,12 +252,12 @@ fun Script.collectRuntimeOptions(): String {
 fun Script.collectCompilerOptions(): String {
     val koptsPrefix = "//COMPILER_OPTS "
 
-    var compilerOpts = lines.filter { it.startsWith(koptsPrefix) }.map { it.replaceFirst(koptsPrefix, "").trim() }
+    val compilerOpts = lines.filter { it.startsWith(koptsPrefix) }.map { it.replaceFirst(koptsPrefix, "").trim() }.toMutableList()
 
-    val annotatonPrefix = "^@file:CompilerOpts[(]".toRegex()
+    val annotationPrefix = "^@file:CompilerOpts[(]".toRegex()
     compilerOpts += lines
-        .filter { it.contains(annotatonPrefix) }
-        .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
+        .filter { it.contains(annotationPrefix) }
+        .map { it.replaceFirst(annotationPrefix, "").split(")")[0] }
         .map { it.trim(' ', '"') }
 
     return compilerOpts.joinToString(" ")

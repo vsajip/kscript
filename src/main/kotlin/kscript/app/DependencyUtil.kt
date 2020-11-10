@@ -8,6 +8,7 @@ import kotlin.script.experimental.dependencies.CompoundDependenciesResolver
 import kotlin.script.experimental.dependencies.FileSystemDependenciesResolver
 import kotlin.script.experimental.dependencies.RepositoryCoordinates
 import kotlin.script.experimental.dependencies.maven.MavenDependenciesResolver
+import kotlin.script.experimental.dependencies.maven.MavenRepositoryCoordinates
 
 
 val DEP_LOOKUP_CACHE_FILE = File(KSCRIPT_CACHE_DIR, "dependency_cache.txt")
@@ -88,8 +89,7 @@ fun resolveDependenciesViaKotlin(depIds: List<String>, customRepos: List<MavenRe
 
     val extRepos = customRepos + MavenRepo("jcenter", "https://jcenter.bintray.com")
 
-    val repoCoords = extRepos.map { RepositoryCoordinates(it.url) }
-
+    val repoCoords = extRepos.map { MavenRepositoryCoordinates(it.url, it.user, it.password, null, null) }
 
     val mvnResolver = MavenDependenciesResolver().apply {
         repoCoords.map { addRepository(it)}
@@ -99,7 +99,7 @@ fun resolveDependenciesViaKotlin(depIds: List<String>, customRepos: List<MavenRe
 
     val resolvedDependencies = runBlocking {
         depIds.map {
-            if (loggingEnabled) System.err.print("[kscript]     Resolving $it...")
+            if (loggingEnabled) System.err.println("[kscript] Resolving $it...")
             resolver.resolve(it)
         }.map { it.valueOrThrow() }
     }.flatten()
@@ -117,11 +117,11 @@ fun depIdToArtifact(depId: String) {
         quit(1)
     }
 
-    val groupId = matchResult.groupValues[1]
-    val artifactId = matchResult.groupValues[2]
-    val version = formatVersion(matchResult.groupValues[3])
-    val classifier = matchResult.groups[5]?.value
-    val type = matchResult.groups[7]?.value ?: "jar"
+//    val groupId = matchResult.groupValues[1]
+//    val artifactId = matchResult.groupValues[2]
+//    val version = formatVersion(matchResult.groupValues[3])
+//    val classifier = matchResult.groups[5]?.value
+//    val type = matchResult.groups[7]?.value ?: "jar"
 
 //    return DefaultArtifact(groupId, artifactId, classifier, type, version)
 }
