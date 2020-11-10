@@ -78,8 +78,8 @@ fun main(args: Array<String>) {
         info(USAGE)
         versionCheck()
         val systemInfo = evalBash("kotlin -version").stdout
-        info("Kotlin    : " + systemInfo.split('(')[0].removePrefix("Kotlin version"))
-        info("Java      : " + systemInfo.split('(')[1].split('-')[0])
+        info("Kotlin    : " + systemInfo.split('(')[0].removePrefix("Kotlin version").trim())
+        info("Java      : " + systemInfo.split('(')[1].split('-')[0].trim())
         quit(0)
     }
 
