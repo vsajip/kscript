@@ -1,4 +1,4 @@
-@file:DependsOn("org.javamoney:moneta:1.3@pom")
+@file:DependsOn("org.javamoney:moneta:pom:1.3")
 
 import org.javamoney.moneta.spi.MoneyUtils
 
