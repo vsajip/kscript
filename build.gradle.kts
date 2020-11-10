@@ -32,6 +32,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven:$kotlinVersion")
 
+    compile("org.slf4j:slf4j-simple:1.7.30")
+
     testCompile("junit:junit:4.12")
     testCompile( "io.kotlintest:kotlintest:2.0.7")
     testCompile(kotlin("script-runtime"))
