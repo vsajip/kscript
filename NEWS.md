@@ -4,7 +4,7 @@
 
 Major Enhancements
 * New dependency resolver based on [kotlin-scripting](https://kotlinlang.org/docs/reference/whatsnew14.html#scripting-and-repl)
-* Java11 support (fixes #239239)
+* Java11 support (fixes #239)
 
 Minor improvements
 * Forward jvm target to --idea generated build.gradle.kts (#258)
