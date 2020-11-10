@@ -77,6 +77,9 @@ fun main(args: Array<String>) {
     if (args.size == 1 && listOf("--help", "-h", "--version", "-v").contains(args[0])) {
         info(USAGE)
         versionCheck()
+        val systemInfo = evalBash("kotlin -version").stdout
+        info("Kotlin    : " + systemInfo.split('(')[0].removePrefix("Kotlin version"))
+        info("Java      : " + systemInfo.split('(')[1].split('-')[0])
         quit(0)
     }
 
@@ -279,7 +282,7 @@ fun main(args: Array<String>) {
 
     var extClassPath = "${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar"
     if (classpath.isNotEmpty())
-        extClassPath += kscript.app.CP_SEPARATOR_CHAR + classpath
+        extClassPath += CP_SEPARATOR_CHAR + classpath
 
     println("kotlin ${kotlinOpts} -classpath \"${extClassPath}\" ${execClassName} ${joinedUserArgs} ")
 }
