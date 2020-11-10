@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     kotlin("jvm") version "1.4.10"
-    id("com.github.johnrengelman.shadow") version "2.0.4"
+    id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 group = "com.github.holgerbrandl.kscript.launcher"
@@ -11,32 +11,18 @@ group = "com.github.holgerbrandl.kscript.launcher"
 val kotlinVersion: String ="1.4.10"
 
 dependencies {
-    compile("org.jetbrains.kotlin:kotlin-stdlib")
-
     compile("com.offbytwo:docopt:0.6.0.20150202")
-
-//    compile("com.jcabi:jcabi-aether:0.10.1") {
-//        exclude("org.hibernate", "hibernate-validator")
-//        exclude("org.slf4j", "slf4j-api")
-//        exclude("org.slf4j", "jcl-over-slf4j")
-//        exclude("org.apache.commons", "commons-lang3")
-//        exclude("cglib", "cglib")
-//        exclude("org.kuali.maven.wagons", "maven-s3-wagon")
-//    }
-    // compile("com.jcabi:jcabi-aether:0.10.1:sources") //can be used for debugging, but somehow adds logging to dependency resolvement?
-//    compile("org.apache.maven:maven-core:3.0.3")
-//    compile("org.slf4j:slf4j-nop:1.7.25")
 
     implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven:$kotlinVersion")
 
-    compile("org.slf4j:slf4j-simple:1.7.30")
+    compile("org.slf4j:slf4j-nop:1.7.30")
 
-    testCompile("junit:junit:4.12")
-    testCompile( "io.kotlintest:kotlintest:2.0.7")
-    testCompile(kotlin("script-runtime"))
+    testImplementation("junit:junit:4.12")
+    testImplementation( "io.kotlintest:kotlintest:2.0.7")
+    testImplementation(kotlin("script-runtime"))
 }
 
 repositories {
@@ -45,11 +31,11 @@ repositories {
 
 val shadowJar by tasks.getting(ShadowJar::class) {
     // set empty string to classifier and version to get predictable jar file name: build/libs/kscript.jar
-    archiveName = "kscript.jar"
+    archiveFileName.set("kscript.jar")
     doLast {
         copy {
             from(File(projectDir, "src/kscript"))
-            into(archivePath.parentFile)
+            into(archiveFile.get().asFile.parentFile)
         }
     }
 }
