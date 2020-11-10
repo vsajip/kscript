@@ -92,7 +92,7 @@ fun resolveDependenciesViaKotlin(depIds: List<String>, customRepos: List<MavenRe
 
 
     val mvnResolver = MavenDependenciesResolver().apply {
-        addRepository(RepositoryCoordinates("https://jcenter.bintray.com"))
+        repoCoords.map { addRepository(it)}
     }
 
     val resolver = CompoundDependenciesResolver(FileSystemDependenciesResolver(), MavenDependenciesResolver(), mvnResolver)
