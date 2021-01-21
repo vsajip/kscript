@@ -210,8 +210,8 @@ fun Script.collectRepos(): List<MavenRepo> {
                 }
                 MavenRepo(
                         namedArgs.getOrDefault("id", annotationParams[0]),
-                        namedArgs.getOrDefault("url", annotationParams[1]),
-                        namedArgs.getOrDefault("user", annotationParams.getOrNull(2) ?: ""),
+                        decodeEnv(namedArgs.getOrDefault("url", annotationParams[1])),
+                        decodeEnv(namedArgs.getOrDefault("user", annotationParams.getOrNull(2) ?: "")),
                         namedArgs.getOrDefault("password", annotationParams.getOrNull(3) ?: "")
                 )
             }
