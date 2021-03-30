@@ -70,8 +70,9 @@ data class Script(val lines: List<String>, val extension: String = "kts") : Iter
 }
 
 
-private val KSCRIPT_DIRECTIVE_ANNO: List<Regex> = listOf("DependsOn", "KotlinOpts", "Include", "EntryPoint", "MavenRepository", "DependsOnMaven", "CompilerOpts")
-    .map { "^@file:$it[(]".toRegex() }
+private val KSCRIPT_DIRECTIVE_ANNO: List<Regex> =
+    listOf("DependsOn", "KotlinOpts", "Include", "EntryPoint", "MavenRepository", "DependsOnMaven", "CompilerOpts")
+        .map { "^@file:$it[(]".toRegex() }
 
 private fun isKscriptAnnotation(line: String) =
     KSCRIPT_DIRECTIVE_ANNO.any { line.contains(it) }
@@ -140,8 +141,8 @@ private fun String.extractAnnotParams(): List<String> {
     // https://stackoverflow.com/questions/171480/regex-grabbing-values-between-quotation-marks
     val annotationArgs = """(["'])(\\?.*?)\1""".toRegex()
         .findAll(this).toList().map {
-        it.groupValues[2]
-    }
+            it.groupValues[2]
+        }
 
     // fail if any argument is a comma separated list of artifacts (see #101)
     annotationArgs.filter { it.contains(",[^)]".toRegex()) }.let {
@@ -201,18 +202,20 @@ fun Script.collectRepos(): List<MavenRepo> {
                 val keyValSep = "[ ]*=[ ]*\"".toRegex()
 
                 val namedArgs = annotationParams
-                        .filter { it.contains(keyValSep) }
-                        .map { keyVal -> keyVal.split(keyValSep).map { it.trim(' ', '\"') }.let{ it.first() to it.last()}}
-                        .toMap()
+                    .filter { it.contains(keyValSep) }
+                    .map { keyVal ->
+                        keyVal.split(keyValSep).map { it.trim(' ', '\"') }.let { it.first() to it.last() }
+                    }
+                    .toMap()
 
                 if (annotationParams.size < 2) {
                     throw IllegalArgumentException("Missing ${2 - annotationParams.size} of the required arguments for @file:MavenRepository(id, url)")
                 }
                 MavenRepo(
-                        namedArgs.getOrDefault("id", annotationParams[0]),
-                        decodeEnv(namedArgs.getOrDefault("url", annotationParams[1])),
-                        decodeEnv(namedArgs.getOrDefault("user", annotationParams.getOrNull(2) ?: "")),
-                        namedArgs.getOrDefault("password", annotationParams.getOrNull(3) ?: "")
+                    namedArgs.getOrDefault("id", annotationParams[0]),
+                    decodeEnv(namedArgs.getOrDefault("url", annotationParams[1])),
+                    decodeEnv(namedArgs.getOrDefault("user", annotationParams.getOrNull(2) ?: "")),
+                    decodeEnv(namedArgs.getOrDefault("password", annotationParams.getOrNull(3) ?: ""))
                 )
             }
         }
@@ -235,9 +238,9 @@ fun Script.collectRuntimeOptions(): String {
     //support for @file:KotlinOpts see #47
     val annotatonPrefix = "^@file:KotlinOpts[(]".toRegex()
     kotlinOpts = kotlinOpts + lines
-            .filter { it.contains(annotatonPrefix) }
-            .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
-            .map { it.trim(' ', '"') }
+        .filter { it.contains(annotatonPrefix) }
+        .map { it.replaceFirst(annotatonPrefix, "").split(")")[0] }
+        .map { it.trim(' ', '"') }
 
 
     // Append $KSCRIPT_KOTLIN_OPTS if defined in the parent environment
@@ -255,7 +258,8 @@ fun Script.collectRuntimeOptions(): String {
 fun Script.collectCompilerOptions(): String {
     val koptsPrefix = "//COMPILER_OPTS "
 
-    val compilerOpts = lines.filter { it.startsWith(koptsPrefix) }.map { it.replaceFirst(koptsPrefix, "").trim() }.toMutableList()
+    val compilerOpts =
+        lines.filter { it.startsWith(koptsPrefix) }.map { it.replaceFirst(koptsPrefix, "").trim() }.toMutableList()
 
     val annotationPrefix = "^@file:CompilerOpts[(]".toRegex()
     compilerOpts += lines
