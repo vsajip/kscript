@@ -1,5 +1,10 @@
 # Changes
 
+## 3.1
+
+Major changes & enhancments
+* Removed jcenter 2nd default repo (apart from maven-central)
+
 ## 3.0
 
 Major Enhancements

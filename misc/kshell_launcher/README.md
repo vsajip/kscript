@@ -5,7 +5,7 @@ Based on https://github.com/khud/sparklin which is a proof-of-concept software t
 
 ## Installation
 
-Since not all dependencies of `sparklin` are hosted on jcenter/maven-central yet, we need to install some of its dependencies manually into our local maven repo
+Since not all dependencies of `sparklin` are hosted on maven-central yet, we need to install some of its dependencies manually into our local maven repo
 
 ```bash
 git clone https://github.com/khud/sparklin

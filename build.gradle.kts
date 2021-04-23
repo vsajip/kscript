@@ -25,10 +25,6 @@ dependencies {
     testImplementation(kotlin("script-runtime"))
 }
 
-repositories {
-    jcenter()
-}
-
 val shadowJar by tasks.getting(ShadowJar::class) {
     // set empty string to classifier and version to get predictable jar file name: build/libs/kscript.jar
     archiveFileName.set("kscript.jar")

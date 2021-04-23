@@ -296,7 +296,6 @@ plugins {
 
 repositories {
     mavenLocal()
-    jcenter()
 $stringifiedRepos
 }
 
@@ -432,7 +431,6 @@ plugins {
 
 repositories {
     mavenLocal()
-    jcenter()
 $stringifiedRepos
 }
 

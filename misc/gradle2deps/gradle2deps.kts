@@ -33,7 +33,6 @@ val reposAnnotatoins = gradle
     .mapIndexed { index, repoUrl -> """@file:MavenRepository("repo${index + 1}","$repoUrl")""" }
 
 // Examples
-//   jcenter()
 //    mavenLocal()
 //    mavenCentral()
 //    maven { url 'https://jitpack.io' }

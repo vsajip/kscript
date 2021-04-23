@@ -87,7 +87,7 @@ fun resolveDependenciesViaKotlin(depIds: List<String>, customRepos: List<MavenRe
     // validate dependencies
     depIds.map { depIdToArtifact(it) }
 
-    val extRepos = customRepos + MavenRepo("jcenter", "https://jcenter.bintray.com")
+    val extRepos = customRepos //+ MavenRepo("jcenter", "https://jcenter.bintray.com")
 
     val repoCoords = extRepos.map { MavenRepositoryCoordinates(it.url, it.user, it.password, null, null) }
 

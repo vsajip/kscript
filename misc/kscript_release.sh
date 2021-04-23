@@ -1,7 +1,7 @@
 ## Release Checklist
 
 # 1. Increment version in `Kscript.kt`
-# 2. Make sure that support api version is up to date and available from jcenter
+# 2. Make sure that support api version is up to date and has been released to maven-central
 # 3. Push and wait for travis CI results
 
 #export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript";

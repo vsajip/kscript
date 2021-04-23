@@ -367,7 +367,7 @@ Using annotations instead of comment directives to configure scripts is cleaner 
 print("1+1")
 ```
 
-To enable the use of these annotations in Intellij, the user must add the following artifact (hosted on jcenter) to the project dependencies:
+To enable the use of these annotations in Intellij, the user must add the following artifact to the project dependencies:
 ```
 com.github.holgerbrandl:kscript-annotations:1.2
 ```
