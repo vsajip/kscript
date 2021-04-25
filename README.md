@@ -334,7 +334,7 @@ Using annotations instead of comment directives to configure scripts is cleaner 
 
 // Declare dependencies
 @file:DependsOn("com.github.holgerbrandl:kutils:0.12")
-@file:DependsOn("com.beust:klaxon:0.24", "com.github.kittinunf.fuel:fuel:1.3.1")
+@file:DependsOn("com.beust:klaxon:0.24", "com.github.kittinunf.fuel:fuel:2.3.1")
 
 
 // To use a custom maven repository you can declare it with

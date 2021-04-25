@@ -1,6 +1,6 @@
 #!/usr/bin/env mydsl
 
-@file:DependsOn("com.beust:klaxon:0.24")
+@file:DependsOn("com.beust:klaxon:5.5")
 
 
 // instantiate something from extra dep

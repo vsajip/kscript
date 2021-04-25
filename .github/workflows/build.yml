@@ -12,35 +12,77 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+#    defaults:
+#      run:
+#        shell: bash
+#        working-directory: $GITHUB_WORKSPACE
 
     steps:
       - uses: actions/checkout@v2
-#      https://stackoverflow.com/questions/56726429/how-to-run-multiple-commands-in-one-github-actions-docker
+      #      https://stackoverflow.com/questions/56726429/how-to-run-multiple-commands-in-one-github-actions-docker
+
       - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
           java-version: 11
-      - run: |
-          apt-get update
-          apt-get install -y python-software-properties
-          apt-get install -y curl unzip zip wget
+
+#      - name: Update system dependencies
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install -y curl unzip zip wget
+
+      - name: Install sdkman
+        run: |
           bash -c "curl -s "https://get.sdkman.io" | bash"
-          source "/home/travis/.sdkman/bin/sdkman-init.sh"
-      - run: sdk install kotlin
-      - run: sdk install gradle
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+          source "/home/runner/.sdkman/bin/sdkman-init.sh"
+
+      - name: Install kotlin
+        run: |
+          source "/home/runner/.sdkman/bin/sdkman-init.sh"
+          sdk install kotlin 1.4.31
+
+      - name: Install gradle
+        run: |
+          source "/home/runner/.sdkman/bin/sdkman-init.sh"
+          sdk install gradle 6.7
+
+
+      # https://stackoverflow.com/questions/50104666/gradle-difference-between-test-and-check
       - name: Build and test with Gradle
-        # https://stackoverflow.com/questions/50104666/gradle-difference-between-test-and-check
-        # https://stackoverflow.com/questions/50104666/gradle-difference-between-test-and-check
-        run: ./gradlew clean check --stacktrace --info
-      - env:
-#        https://docs.github.com/en/actions/reference/environment-variables
-          KSCRIPT_HOME: $GITHUB_WORKSPACE
-      - run:  cd $KSCRIPT_HOME && ./gradlew assemble
-      # install assert.h
-      - run: get https://raw.github.com/lehmannro/assert.sh/v1.1/assert.sh && chmod +x assert.sh
+#        working-directory: $GITHUB_WORKSPACE
+        run: |
+          echo  $GITHUB_WORKSPACE
+          chmod +x gradlew
+          ./gradlew clean check --stacktrace --info
+
+
+      - name: Build kscript
+        run: ./gradlew assemble
+
+      - name: Install assert.sh
+        run: |
+          wget https://raw.github.com/lehmannro/assert.sh/v1.1/assert.sh
+          chmod +x assert.sh
+
+      # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#adding-a-system-path
+      - name: Update PATH to include kscrript
+        run: echo "${GITHUB_WORKSPACE}/build/libs" >> $GITHUB_PATH
+
       - run: which kscript
-      - run: kscript --version
-      - run: touch idea && chmod +x idea
-      - run: cd $KSCRIPT_HOME && ./test/test_suite.sh
+
+      - name: Print --version
+        run: |
+          source "/home/runner/.sdkman/bin/sdkman-init.sh"
+          kscript --version
+
+      - name: Create mock idea executable
+        run: |
+          touch idea
+          chmod +x idea
+          echo "${PWD}" >> $GITHUB_PATH
+
+      - name: Run tests
+        run: |
+          source "/home/runner/.sdkman/bin/sdkman-init.sh"
+          export KSCRIPT_HOME="$GITHUB_WORKSPACE"
+          ./test/test_suite.sh

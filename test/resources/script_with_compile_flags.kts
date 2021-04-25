@@ -1,7 +1,7 @@
 #!/usr/bin/env kscript
 
 @file:DependsOn("org.jetbrains.kotlin:kotlin-reflect:1.1.60")
-@file:DependsOn("com.github.kittinunf.fuel:fuel-jackson:1.12.0")
+@file:DependsOn("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
 
 @file:CompilerOpts("-jvm-target 1.8")
 

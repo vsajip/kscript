@@ -7,9 +7,11 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import java.lang.IllegalArgumentException
 import java.net.URI
 import java.net.URL
 import java.net.UnknownHostException
+import java.util.*
 import kotlin.system.exitProcess
 
 
@@ -304,7 +306,15 @@ private fun versionCheck() {
         return // skip version check here, since the use has no connection to the internet at the moment
     }
 
-    fun padVersion(version: String) = java.lang.String.format("%03d%03d%03d", *version.split(".").map { Integer.valueOf(it) }.toTypedArray())
+    fun padVersion(version: String) = try{
+        var versionNumbers = version.split(".").map { Integer.valueOf(it) }
+        // adjust versions without a patch-release
+        while(versionNumbers.size!=3){ versionNumbers = versionNumbers + 0 }
+
+        java.lang.String.format("%03d%03d%03d", *versionNumbers.toTypedArray())
+    }catch(e: MissingFormatArgumentException){
+        throw IllegalArgumentException("Could not pad version $version", e)
+    }
 
     if (padVersion(latestVersion) > padVersion(KSCRIPT_VERSION)) {
         info("""A new version (v${latestVersion}) of kscript is available.""")
@@ -392,7 +402,7 @@ private fun resolvePreambles(rawScript: File, enableSupportApi: Boolean): File {
     // prefix with text-processing preamble if kscript-support api is enabled
     if (enableSupportApi) {
         val textProcPreamble = """
-            //DEPS com.github.holgerbrandl:kscript-support:1.2.5
+            //DEPS com.github.holgerbrandl:kscript-support-api:1.2.5
 
             import kscript.text.*
             val lines = resolveArgFile(args)
