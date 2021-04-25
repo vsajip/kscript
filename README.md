@@ -322,10 +322,10 @@ Using annotations instead of comment directives to configure scripts is cleaner 
 
 ```kotlin
 // annotation-driven script configuration
-@file:DependsOn("de.mpicbg.scicomp:kutils:0.4")
+@file:DependsOn("com.github.holgerbrandl:kutils:0.12")
 
 // comment directive
-//DEPS de.mpicbg.scicomp:kutils:0.4
+//DEPS com.github.holgerbrandl:kutils:0.12
 ```
 
  To do so `kscript` supports [annotations](https://github.com/holgerbrandl/kscript-annotations) to be used instead of comment directives:
@@ -333,7 +333,7 @@ Using annotations instead of comment directives to configure scripts is cleaner 
 #!/usr/bin/env kscript
 
 // Declare dependencies
-@file:DependsOn("de.mpicbg.scicomp:kutils:0.4")
+@file:DependsOn("com.github.holgerbrandl:kutils:0.12")
 @file:DependsOn("com.beust:klaxon:0.24", "com.github.kittinunf.fuel:fuel:1.3.1")
 
 
@@ -408,7 +408,7 @@ To create an interactive kotlin shell (aka [REPL](https://kotlinlang.org/docs/tu
 For example, let's assume the following short script, named `CountRecords.kts`
 ```kotlin
 #!/usr/bin/env kscript
-@file:DependsOn("de.mpicbg.scicomp:kutils:0.4")
+@file:DependsOn("com.github.holgerbrandl:kutils:0.12")
 
 import de.mpicbg.scicomp.bioinfo.openFasta
 

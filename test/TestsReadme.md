@@ -56,6 +56,7 @@ sdk list kotlin
 #sdk use kotlin 1.4.10
 
 ${KSCRIPT_HOME}/test/test_suite.sh
+${KSCRIPT_HOME}/test/test_suite.sh
 
 # # run again with kotlin 1.0.X
 # sdk use kotlin 1.0.6

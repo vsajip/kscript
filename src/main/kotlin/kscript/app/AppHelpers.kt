@@ -296,6 +296,7 @@ plugins {
 
 repositories {
     mavenLocal()
+    mavenCentral()
 $stringifiedRepos
 }
 
@@ -432,6 +433,7 @@ plugins {
 
 repositories {
     mavenLocal()
+    mavenCentral()
 $stringifiedRepos
 }
 
