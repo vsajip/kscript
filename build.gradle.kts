@@ -1,14 +1,18 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "1.4.10"
+    kotlin("jvm") version "1.4.32"
     id("com.github.johnrengelman.shadow") version "5.2.0"
+}
+
+repositories {
+    mavenCentral()
 }
 
 group = "com.github.holgerbrandl.kscript.launcher"
 
 //val kotlinVersion: String by rootProject.extra
-val kotlinVersion: String ="1.4.10"
+val kotlinVersion: String ="1.4.32"
 
 dependencies {
     compile("com.offbytwo:docopt:0.6.0.20150202")

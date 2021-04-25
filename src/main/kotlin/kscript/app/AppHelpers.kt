@@ -30,7 +30,7 @@ fun evalBash(cmd: String, wd: File? = null,
 
 fun runProcess(cmd: String, wd: File? = null): ProcessResult {
     val parts = cmd.split("\\s".toRegex())
-    return runProcess(cmd = parts.toTypedArray(), wd = wd)
+    return runProcess(*parts.toTypedArray(), wd = wd)
 }
 
 fun runProcess(vararg cmd: String, wd: File? = null,
@@ -344,7 +344,8 @@ $kotlinOptions
     val projectPath = tmpProjectDir.absolutePath
 
     // Create gradle wrapper
-    requireInPath("$gradleCommand", "Could not find '$gradleCommand' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_GRADLE_COMMAND' env property")
+    requireInPath(gradleCommand, "Could not find '$gradleCommand' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_GRADLE_COMMAND' env property")
+
     runProcess("$gradleCommand wrapper", wd = tmpProjectDir)
 
     infoMsg("Project set up at $projectPath")
