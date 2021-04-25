@@ -1,0 +1,46 @@
+name: build
+
+# https://docs.github.com/en/free-pro-team@latest/actions/managing-workflow-runs/adding-a-workflow-status-badge
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+#      https://stackoverflow.com/questions/56726429/how-to-run-multiple-commands-in-one-github-actions-docker
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - run: |
+          apt-get update
+          apt-get install -y python-software-properties
+          apt-get install -y curl unzip zip wget
+          bash -c "curl -s "https://get.sdkman.io" | bash"
+          source "/home/travis/.sdkman/bin/sdkman-init.sh"
+      - run: sdk install kotlin
+      - run: sdk install gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build and test with Gradle
+        # https://stackoverflow.com/questions/50104666/gradle-difference-between-test-and-check
+        # https://stackoverflow.com/questions/50104666/gradle-difference-between-test-and-check
+        run: ./gradlew clean check --stacktrace --info
+      - env:
+#        https://docs.github.com/en/actions/reference/environment-variables
+          KSCRIPT_HOME: $GITHUB_WORKSPACE
+      - run:  cd $KSCRIPT_HOME && ./gradlew assemble
+      # install assert.h
+      - run: get https://raw.github.com/lehmannro/assert.sh/v1.1/assert.sh && chmod +x assert.sh
+      - run: which kscript
+      - run: kscript --version
+      - run: touch idea && chmod +x idea
+      - run: cd $KSCRIPT_HOME && ./test/test_suite.sh
