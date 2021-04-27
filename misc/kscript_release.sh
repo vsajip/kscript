@@ -5,7 +5,7 @@
 # 3. Push and wait for travis CI results
 
 #export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript";
-export KSCRIPT_HOME="/mnt/hgfs/sharedDB/db_projects/kscript";
+export KSCRIPT_HOME="/mnt/hgfs/d_data/projects/misc/kscript";
 export PATH=${KSCRIPT_HOME}:${PATH}
 export PATH=~/go/bin/:$PATH
 
@@ -42,8 +42,8 @@ zip -r ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip kscript-${kscript_versi
 #apk add zip && cd /data &&  zip -r kscript-${kscript_version}.zip kscript-${kscript_version}
 
 
-open ${KSCRIPT_ARCHIVE}
-
+#open ${KSCRIPT_ARCHIVE}
+xdg-open $KSCRIPT_ARCHIVE
 
 ## Ensure correct targetCompatibility
 
@@ -73,6 +73,9 @@ export GITHUB_TOKEN=${GH_TOKEN}
 cd ${KSCRIPT_HOME}
 
 git config  user.email "holgerbrandl@users.noreply.github.com"
+
+git status
+git commit -am "${kscript_version} release"
 
 
 #git tag v${kscript_version} && git push --tags

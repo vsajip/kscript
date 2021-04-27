@@ -3,7 +3,8 @@
 ## 3.1
 
 Major changes & enhancements
-* Removed jcenter as default dependency (apart from maven-central)
+* Removed jcenter as default dependency repository 
+* Updated tests and build integration to function without jcenter
 
 
 ## 3.0
