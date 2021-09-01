@@ -381,9 +381,10 @@ Note, that if a script is located in a package other than the root package, you 
 
 `kscript` can be used as a speedier and more flexible substitute for built-in terminal text tools such as `awk` or `sed`. Its text processing mode can be enabled with `-t` or `--text`. If so, `kscript` will
 
-* Declare `com.github.holgerbrandl:kscript-support:1.2.4` as dependency for the script. This [support library](https://github.com/holgerbrandl/kscript-support-api) eases the writing of Kotlin scriptlets for text-processing. It includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the writing of scriptlets for text processing.
+* Declare `com.github.holgerbrandl:kscript-support-api:1.2.5` as dependency for the script. This [support library](https://github.com/holgerbrandl/kscript-support-api) eases the writing of Kotlin scriptlets for text-processing. It includes solutions to common use-cases like argument parsing, data streaming, IO utilities, and various iterators to streamline the writing of scriptlets for text processing.
 * Import the `kscript.*` namespace
 * Define variable `val lines = kscript.text.resolveArgFile(args)` which returns an iterator over the lines in the first input argument of the script, or the standard input if no file arguments are provided to the script
+
 
 
 This allows to to replace `awk`ward constructs (or `sed` or`perl`) with _kotlinesque_ solutions such as
