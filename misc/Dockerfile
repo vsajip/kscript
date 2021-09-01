@@ -1,33 +1,33 @@
-# Adopted from https://github.com/serandel/kscript-docker/blob/master/Dockerfile
-
-# Alpine had problems with Java and SDKMAN!
-# lchmod (file attributes) error: Not supported
-# https://bugs.alpinelinux.org/issues/8089
-
-FROM ubuntu:focal
+FROM bellsoft/liberica-openjdk-alpine:11
 
 MAINTAINER holgerbrandl@gmail.com
 
-SHELL ["/bin/bash", "-c"]
+ARG KSCRIPT_VERSION=3.1.0
+ARG KOTLIN_VERSION=1.5.21
 
-RUN apt-get update && \
-	apt-get -y install curl zip unzip && \
-    rm -rf /var/lib/apt/lists/*
+RUN cd $(mktemp -d) && \
+# Install kscript
+    wget https://github.com/holgerbrandl/kscript/releases/download/v${KSCRIPT_VERSION}/kscript-${KSCRIPT_VERSION}-bin.zip -q -O - | \
+    unzip - && \
+    mv kscript-${KSCRIPT_VERSION}/bin/* /usr/local/bin && \
+    chmod a+x /usr/local/bin/kscript && \
+\
+# Install Kotlin
+    wget https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/kotlin-compiler-${KOTLIN_VERSION}.zip -q -O - | \
+    unzip - && \
+    chmod a+x kotlinc/bin/kotlin kotlinc/bin/kotlinc && \
+    mv kotlinc /opt && \
+\
+# Install bash
+    apk add bash && \
+\
+# Done
+    rm -rf $PWD
 
-# Install SDKMAN!
-RUN curl -s "https://get.sdkman.io" | bash
+WORKDIR /w
 
-RUN source /root/.sdkman/bin/sdkman-init.sh && \
-    sdk install java 11.0.9-zulu && \
-    sdk install kotlin 1.4.10
-#    sdk install maven 3.6.0 && \
+ENTRYPOINT KOTLIN_HOME=/opt/kotlinc \
+    PATH=/opt/kotlinc/bin:$PATH \
+    kscript "$0" "$@"
 
-ARG KSCRIPT_VERSION
-ENV KSCRIPT_VERSION=$KSCRIPT_VERSION
-
-## run separately to better use docker build cache
-RUN source /root/.sdkman/bin/sdkman-init.sh && \
-    sdk install kscript $KSCRIPT_VERSION
-
-ENTRYPOINT source /root/.sdkman/bin/sdkman-init.sh && /usr/bin/env kscript "$0" "$@"
 CMD [ "--help" ]
