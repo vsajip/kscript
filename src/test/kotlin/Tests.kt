@@ -205,7 +205,7 @@ class Tests {
     @Test
     fun test_include_annotations() {
         val file = File("test/resources/includes/include_variations.kts")
-        val expected = File("test/resources/includes/expexcted_variations.kts")
+        val expected = File("test/resources/includes/expected_variations.kts")
 
         val result = resolveIncludes(file)
 
@@ -216,7 +216,7 @@ class Tests {
     fun test_include_detection() {
         val result = resolveIncludes(File("test/resources/includes/include_variations.kts"))
 
-        result.includes.filter { it.protocol == "file" }.map { File(it.toURI()).name } shouldBe List(4) { "include_${it + 1}.kt" }
+        result.includes.filter { it.protocol == "file" }.map { File(it.toURI()).name } shouldBe List(7) { "include_${it + 1}.kt" }
         result.includes.filter { it.protocol != "file" }.size shouldBe 1
     }
 

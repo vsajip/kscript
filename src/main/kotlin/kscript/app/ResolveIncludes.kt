@@ -8,6 +8,7 @@ import java.net.URL
 /**
  * @author Holger Brandl
  * @author Ilan Pillemer
+ * @author Marcin Kuszczak
  */
 
 const val PACKAGE_STATEMENT_PREFIX = "package "
@@ -16,51 +17,57 @@ const val IMPORT_STATEMENT_PREFIX = "import " // todo make more solid by using o
 data class IncludeResult(val scriptFile: File, val includes: List<URL> = emptyList())
 
 /** Resolve include declarations in a script file. Resolved script will be put into another temporary script */
-fun resolveIncludes(template: File, includeContext: URI = template.parentFile.toURI()): IncludeResult {
-    var script = Script(template)
+fun resolveIncludes(file: File): IncludeResult {
+    val includes = mutableListOf<URI>()
+    val lines = resolve(file.toURI(), includes)
+    val script = Script(lines)
 
-    // just rewrite user scripts if includes a
-    if (!script.any { isIncludeDirective(it) }) {
-        return IncludeResult(template)
-    }
+    return IncludeResult(script.consolidateStructure().createTmpScript(), includes.map { it.toURL() })
+}
 
-    val includes = emptyList<URL>().toMutableList()
+private fun resolve(scriptUri: URI, includes: MutableList<URI>): List<String> {
+    val lines = readLinesOrThrow(scriptUri)
+    val scriptDir = scriptUri.resolve(".")
+    val result = mutableListOf<String>()
 
-    // resolve as long as it takes. YAGNI but we do because we can!
-    while (script.any { isIncludeDirective(it) }) {
-        script = script.flatMap { line ->
-            if (isIncludeDirective(line)) {
-                val include = extractIncludeTarget(line)
+    for (line in lines) {
+        if (isIncludeDirective(line)) {
+            val include = extractIncludeTarget(line)
 
-                val includeURL = when {
-                    isUrl(include) -> URL(include)
-                    include.startsWith("/") -> File(include).toURI().toURL()
-                    include.startsWith("~/") -> File(System.getenv("HOME")!! + include.substring(1)).toURI().toURL()
-                    else -> includeContext.resolve(URI(include.removePrefix("./"))).toURL()
-                }
-
-                // test if include was processed already (aka include duplication, see #151)
-                if (includes.map { it.path }.contains(includeURL.path)) {
-                    // include was already resolved, so we return an emtpy result here to avoid duplication errors
-                    emptyList()
-                } else {
-                    includes.add(includeURL)
-
-                    try {
-                        includeURL.readText().lines()
-                    } catch (e: FileNotFoundException) {
-                        errorMsg("Failed to resolve //INCLUDE '${include}'")
-                        System.err.println(e.message?.lines()!!.map { it.prependIndent("[kscript] [ERROR] ") })
-                        quit(1)
-                    }
-                }
-            } else {
-                listOf(line)
+            val includeURI = when {
+                isUrl(include) -> URL(include).toURI()
+                include.startsWith("/") -> File(include).toURI()
+                include.startsWith("~/") -> File(System.getenv("HOME")!! + include.substring(1)).toURI()
+                else -> scriptDir.resolve(URI(include.removePrefix("./")))
             }
-        }.let { script.copy(it) }
+
+            // test if include was processed already (aka include duplication, see #151)
+            if (includes.map { it.path }.contains(includeURI.path)) {
+                // include was already resolved, so we return just continue
+                continue
+            }
+
+            includes.add(includeURI)
+
+            val resolvedLines = resolve(includeURI, includes)
+            result.addAll(resolvedLines)
+            continue
+        }
+
+        result.add(line)
     }
 
-    return IncludeResult(script.consolidateStructure().createTmpScript(), includes)
+    return result
+}
+
+private fun readLinesOrThrow(uri: URI): List<String> {
+    try {
+        return uri.toURL().readText().lines()
+    } catch (e: FileNotFoundException) {
+        errorMsg("Failed to resolve include with URI: '${uri}'")
+        System.err.println(e.message?.lines()!!.map { it.prependIndent("[kscript] [ERROR] ") })
+        quit(1)
+    }
 }
 
 internal fun isUrl(s: String) = s.startsWith("http://") || s.startsWith("https://")
@@ -69,14 +76,11 @@ private const val INCLUDE_ANNOT_PREFIX = "@file:Include("
 
 internal fun isIncludeDirective(line: String) = line.startsWith("//INCLUDE") || line.startsWith(INCLUDE_ANNOT_PREFIX)
 
-
 internal fun extractIncludeTarget(incDirective: String) = when {
-    incDirective.startsWith(INCLUDE_ANNOT_PREFIX) -> incDirective
-        .replaceFirst(INCLUDE_ANNOT_PREFIX, "")
+    incDirective.startsWith(INCLUDE_ANNOT_PREFIX) -> incDirective.replaceFirst(INCLUDE_ANNOT_PREFIX, "")
         .split(")")[0].trim(' ', '"')
     else -> incDirective.split("[ ]+".toRegex()).last()
 }
-
 
 /**
  * Basic launcher used for testing

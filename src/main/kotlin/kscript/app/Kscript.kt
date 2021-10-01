@@ -110,7 +110,7 @@ fun main(args: Array<String>) {
     val scriptResource = docopt.getString("script")
 
     val enableSupportApi = docopt.getBoolean("text")
-    val (rawScript, includeContext) = prepareScript(scriptResource)
+    val rawScript = prepareScript(scriptResource)
 
     if (docopt.getBoolean("add-bootstrap-header")) {
         errorIf(!rawScript.canWrite()) {
@@ -142,11 +142,9 @@ fun main(args: Array<String>) {
 
     // post process script (text-processing mode, custom dsl preamble, resolve includes)
     // and finally resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
-    val (scriptFile, includeURLs) = resolveIncludes(resolvePreambles(rawScript, enableSupportApi), includeContext)
-
+    val (scriptFile, includeURLs) = resolveIncludes(resolvePreambles(rawScript, enableSupportApi))
 
     val script = Script(scriptFile)
-
 
     // Find all //DEPS directives and concatenate their values
     val dependencies = (script.collectDependencies() + Script(rawScript).collectDependencies()).distinct()
@@ -322,11 +320,8 @@ private fun versionCheck() {
 }
 
 
-fun prepareScript(scriptResource: String): Pair<File, URI> {
+fun prepareScript(scriptResource: String):File {
     var scriptFile: File?
-
-    // we need to keep track of the scripts dir or the working dir in case of stdin script to correctly resolve includes
-    var includeContext: URI = File(".").toURI()
 
     // map script argument to script file
     scriptFile = with(File(scriptResource)) {
@@ -334,16 +329,11 @@ fun prepareScript(scriptResource: String): Pair<File, URI> {
             // not a file so let's keep the script-file undefined here
             null
         } else if (listOf("kts", "kt").contains(extension)) {
-            // update include context
-            includeContext = this.absoluteFile.parentFile.toURI()
-
-            // script input is a regular script or clas file
             this
         } else {
             // if we can "just" read from script resource create tmp file
             // i.e. script input is process substitution file handle
             // not FileInputStream(this).bufferedReader().use{ readText()} does not work nor does this.readText
-            includeContext = this.absoluteFile.parentFile.toURI()
             createTmpScript(FileInputStream(this).bufferedReader().readText())
         }
     }
@@ -358,8 +348,6 @@ fun prepareScript(scriptResource: String): Pair<File, URI> {
     // Support URLs as script files
     if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")) {
         scriptFile = fetchFromURL(scriptResource)
-
-        includeContext = URI(scriptResource.run { substring(lastIndexOf('/') + 1) })
     }
 
 
@@ -382,7 +370,7 @@ fun prepareScript(scriptResource: String): Pair<File, URI> {
 
     // note script file must be not null at this point
 
-    return Pair(scriptFile!!, includeContext)
+    return scriptFile!!
 }
 
 
@@ -418,7 +406,3 @@ private fun resolvePreambles(rawScript: File, enableSupportApi: Boolean): File {
     }
     return scriptFile
 }
-
-
-private fun postProcessScript(inputFile: File?, includeContext: URI): IncludeResult =
-    resolveIncludes(inputFile!!, includeContext)
