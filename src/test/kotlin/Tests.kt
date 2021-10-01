@@ -217,7 +217,7 @@ class Tests {
         val result = resolveIncludes(File("test/resources/includes/include_variations.kts"))
 
         result.includes.filter { it.protocol == "file" }.map { File(it.toURI()).name } shouldBe List(7) { "include_${it + 1}.kt" }
-        result.includes.filter { it.protocol != "file" }.size shouldBe 1
+        result.includes.filter { it.protocol != "file" }.size shouldBe 2
     }
 
     @Test
