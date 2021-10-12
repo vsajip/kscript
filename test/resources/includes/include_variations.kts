@@ -10,7 +10,7 @@
 
 
 // also test a URL inclusion
-@file:Include("https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/includes/include_by_url.kt")
+@file:Include("https://raw.githubusercontent.com/aartiPl/kscript/Including_scripts_by_relative_reference_-_fixes_%23303/test/resources/includes/include_by_url.kt")
 
 
 
