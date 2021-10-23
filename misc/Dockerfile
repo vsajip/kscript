@@ -3,7 +3,7 @@ FROM bellsoft/liberica-openjdk-alpine:11
 MAINTAINER holgerbrandl@gmail.com
 
 ARG KSCRIPT_VERSION=3.1.0
-ARG KOTLIN_VERSION=1.5.21
+ARG KOTLIN_VERSION=1.5.31
 
 RUN cd $(mktemp -d) && \
 # Install kscript

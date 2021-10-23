@@ -12,8 +12,8 @@ export PATH=~/go/bin/:$PATH
 KSCRIPT_ARCHIVE=~/archive/kscript_versions/
 
 
-kscript_version=$(grep 'val KSCRIPT_VERSION' ${KSCRIPT_HOME}/src/main/kotlin/kscript/app/Kscript.kt | cut -f2 -d'=' | tr -d ' "')
-echo "new version is $kscript_version" 
+kscript_version=$(grep 'val KSCRIPT_VERSION' ${KSCRIPT_HOME}/src/main/kotlin/kscript/app/Kscript.kt | cut -f2 -d'=' | cut -f2 -d'"')
+echo "new version is ${kscript_version}!"
 ## see https://github.com/aktau/github-release
 
 
