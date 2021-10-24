@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 #/bin/bash -x
 
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+PROJECT_DIR=$(realpath $SCRIPT_DIR/../)
+
+echo "Starting KScript test suite..."
+echo "Script dir : $SCRIPT_DIR"
+echo "Project dir: $PROJECT_DIR"
+echo
+
 export DEBUG="--verbose"
 
 . assert.sh
@@ -22,15 +30,15 @@ assert_stderr(){
 #assert_stderr "echo foo" "bar"
 
 #http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
-#http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
 export NL=$'\n'
 
 
 ########################################################################################################################
-## script_input_modes
+echo
+echo "Starting script input modes tests:"
 
 ## make sure that scripts can be piped into kscript
-assert "source ${KSCRIPT_HOME}/test/resources/direct_script_arg.sh" "kotlin rocks"
+assert "source ${PROJECT_DIR}/test/resources/direct_script_arg.sh" "kotlin rocks"
 
 ## also allow for empty programs
 assert "kscript ''" ""
@@ -51,25 +59,24 @@ assert "echo 'println(1+1)' | kscript -" "2"
 assert "echo 'println(1+3)' | kscript - --foo"  "4"
 
 ## make sure that heredoc is accepted as argument
-assert "source ${KSCRIPT_HOME}/test/resources/here_doc_test.sh" "hello kotlin"
+assert "source ${PROJECT_DIR}/test/resources/here_doc_test.sh" "hello kotlin"
 
 ## make sure that command substitution works as expected
-assert "source ${KSCRIPT_HOME}/test/resources/cmd_subst_test.sh" "command substitution works as well"
+assert "source ${PROJECT_DIR}/test/resources/cmd_subst_test.sh" "command substitution works as well"
 
 ## make sure that it runs with local script files
-assert "source ${KSCRIPT_HOME}/test/resources/local_script_file.sh" "kscript rocks!"
+assert "source ${PROJECT_DIR}/test/resources/local_script_file.sh" "kscript rocks!"
 #assert "echo foo" "bar" # known to fail
 
 ## make sure that it runs with local script files
-assert "kscript ${KSCRIPT_HOME}/test/resources/multi_line_deps.kts" "kscript is  cool!"
+assert "kscript ${PROJECT_DIR}/test/resources/multi_line_deps.kts" "kscript is  cool!"
 
 ## scripts with dashes in the file name should work as well
-assert "kscript ${KSCRIPT_HOME}/test/resources/dash-test.kts" "dash alarm!"
+assert "kscript ${PROJECT_DIR}/test/resources/dash-test.kts" "dash alarm!"
 
 ## scripts with additional dots in the file name should work as well.
 ## We also test innner uppercase letters in file name here by using .*T*est
-assert "kscript ${KSCRIPT_HOME}/test/resources/dot.Test.kts" "dot alarm!"
-
+assert "kscript ${PROJECT_DIR}/test/resources/dot.Test.kts" "dot alarm!"
 
 ## missing script
 assert_raises "kscript i_do_not_exist.kts" 1
@@ -81,17 +88,16 @@ assert "kscript https://git.io/fxHBv" "main was called"
 
 ## there are some dependencies which are not jar, but maybe pom, aar, ..
 ## make sure they work, too
-assert "kscript ${KSCRIPT_HOME}/test/resources/depends_on_with_type.kts" "getBigDecimal(1L): 1"
+assert "kscript ${PROJECT_DIR}/test/resources/depends_on_with_type.kts" "getBigDecimal(1L): 1"
 
 # repeated compilation of buggy same script should end up in error again
 assert_raises "kscript '1-'; kscript '1-'" 1
 
 assert_end script_input_modes
 
-
-
 ########################################################################################################################
-## cli_helper_tests
+echo
+echo "Starting cli helper tests:"
 
 ## interactive mode without dependencies
 #assert "kscript -i 'exitProcess(0)'" "To create a shell with script dependencies run:\nkotlinc  -classpath ''"
@@ -105,7 +111,8 @@ assert_end script_input_modes
 #assert_end cli_helper_tests
 
 ########################################################################################################################
-## environment_tests
+echo
+echo "Starting environment tests:"
 
 ## do not run interactive mode prep without script argument
 assert_raises "kscript -i" 1
@@ -116,19 +123,18 @@ assert "unset KOTLIN_HOME; echo 'println(99)' | kscript -" "99"
 ## todo test what happens if kotlin/kotlinc/java/maven is not in PATH
 
 ## run script that tries to find out its own filename via environment variable
-f="${KSCRIPT_HOME}/test/resources/uses_self_file_name.kts"
+f="${PROJECT_DIR}/test/resources/uses_self_file_name.kts"
 assert "$f" "Usage: $f [-ae] [--foo] file+"
 
 
 assert_end environment_tests
 
 ########################################################################################################################
-## dependency_lookup
+echo
+echo "Starting dependency lookup tests:"
 
-# export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"; export PATH=${KSCRIPT_HOME}:${PATH}
-resolve_deps() { kotlin -classpath ${KSCRIPT_HOME}/build/libs/kscript.jar kscript.app.DependencyUtil "$@";}
+resolve_deps() { kotlin -classpath ${PROJECT_DIR}/build/libs/kscript.jar kscript.app.DependencyUtil "$@";}
 export -f resolve_deps
-
 
 assert_stderr "resolve_deps log4j:log4j:1.2.14" "${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar"
 
@@ -149,33 +155,35 @@ assert_raises "resolve_deps org.org.docopt:org.docopt:0.9.0-SNAPSHOT log4j:log4j
 assert_end dependency_lookup
 
 ########################################################################################################################
-## annotation-driven configuration
+echo
+echo "Starting annotation-driven configuration tests:"
 
 # make sure that @file:DependsOn is parsed correctly
-assert "kscript ${KSCRIPT_HOME}/test/resources/depends_on_annot.kts" "kscript with annotations rocks!"
+assert "kscript ${PROJECT_DIR}/test/resources/depends_on_annot.kts" "kscript with annotations rocks!"
 
 # make sure that @file:DependsOnMaven is parsed correctly
-assert "kscript ${KSCRIPT_HOME}/test/resources/depends_on_maven_annot.kts" "kscript with annotations rocks!"
+assert "kscript ${PROJECT_DIR}/test/resources/depends_on_maven_annot.kts" "kscript with annotations rocks!"
 
 # make sure that dynamic versions are matched properly
-assert "kscript ${KSCRIPT_HOME}/test/resources/depends_on_dynamic.kts" "dynamic kscript rocks!"
+assert "kscript ${PROJECT_DIR}/test/resources/depends_on_dynamic.kts" "dynamic kscript rocks!"
 
 # make sure that @file:MavenRepository is parsed correctly
-assert "kscript ${KSCRIPT_HOME}/test/resources/custom_mvn_repo_annot.kts" "kscript with annotations rocks!"
+assert "kscript ${PROJECT_DIR}/test/resources/custom_mvn_repo_annot.kts" "kscript with annotations rocks!"
 
 
-assert_stderr "kscript ${KSCRIPT_HOME}/test/resources/illegal_depends_on_arg.kts" '[kscript] [ERROR] Artifact locators must be provided as separate annotation arguments and not as comma-separated list: [com.squareup.moshi:moshi:1.5.0,com.squareup.moshi:moshi-adapters:1.5.0]'
+assert_stderr "kscript ${PROJECT_DIR}/test/resources/illegal_depends_on_arg.kts" '[kscript] [ERROR] Artifact locators must be provided as separate annotation arguments and not as comma-separated list: [com.squareup.moshi:moshi:1.5.0,com.squareup.moshi:moshi-adapters:1.5.0]'
 
 
 # make sure that @file:MavenRepository is parsed correctly
-assert "kscript ${KSCRIPT_HOME}/test/resources/script_with_compile_flags.kts" "hoo_ray"
+assert "kscript ${PROJECT_DIR}/test/resources/script_with_compile_flags.kts" "hoo_ray"
 
 
 assert_end annotation_config
 
 
 ########################################################################################################################
-## support_api
+echo
+echo "Starting support api tests:"
 
 ## make sure that one-liners include support-api
 assert 'echo "foo${NL}bar" | kscript -t "stdin.print()"' $'foo\nbar'
@@ -190,35 +198,34 @@ assert_end support_api
 
 
 ########################################################################################################################
-##  kt support
+echo
+echo "Starting kt support tests:"
 
 ## run kt via interpreter mode
-assert "${KSCRIPT_HOME}/test/resources/kt_tests/simple_app.kt" "main was called"
+assert "${PROJECT_DIR}/test/resources/kt_tests/simple_app.kt" "main was called"
 
 ## run kt via interpreter mode with dependencies
-assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/main_with_deps.kt" "made it!"
+assert "kscript ${PROJECT_DIR}/test/resources/kt_tests/main_with_deps.kt" "made it!"
 
 ## test misc entry point with or without package configurations
 
-assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/custom_entry_nopckg.kt" "foo companion was called"
+assert "kscript ${PROJECT_DIR}/test/resources/kt_tests/custom_entry_nopckg.kt" "foo companion was called"
 
-assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/custom_entry_withpckg.kt" "foo companion was called"
+assert "kscript ${PROJECT_DIR}/test/resources/kt_tests/custom_entry_withpckg.kt" "foo companion was called"
 
-assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/default_entry_nopckg.kt" "main was called"
+assert "kscript ${PROJECT_DIR}/test/resources/kt_tests/default_entry_nopckg.kt" "main was called"
 
-assert "kscript ${KSCRIPT_HOME}/test/resources/kt_tests/default_entry_withpckg.kt" "main was called"
+assert "kscript ${PROJECT_DIR}/test/resources/kt_tests/default_entry_withpckg.kt" "main was called"
 
 
 ## also make sure that kts in package can be run via kscript
-assert "${KSCRIPT_HOME}/test/resources/script_in_pckg.kts" "I live in a package!"
-
-
+assert "${PROJECT_DIR}/test/resources/script_in_pckg.kts" "I live in a package!"
 
 ## can we resolve relative imports when using tmp-scripts  (see #95)
-assert "rm -f ./package_example && kscript --package test/resources/package_example.kts &>/dev/null && ./package_example 1" "package_me_args_1_mem_5368709120"
+assert "rm -f ${PROJECT_DIR}/test/package_example && kscript --package ${PROJECT_DIR}/test/resources/package_example.kts &>/dev/null && ${PROJECT_DIR}/test/package_example 1" "package_me_args_1_mem_5368709120"
 
 ## https://unix.stackexchange.com/questions/17064/how-to-print-only-last-column
-assert 'rm -f kscriptlet* && cmd=$(kscript --package "println(args.size)" 2>&1 | tail -n1 | cut -f 5 -d " ")  && $cmd three arg uments' "3"
+assert 'rm -f kscriptlet* && cmd=$(kscript --package "println(args.size)" 2>&1 | tail -n1 | cut -f 5 -d " ") && $cmd three arg uments' "3"
 
 #assert "kscript --package test/resources/package_example.kts" "foo"
 #assert "./package_example 1" "package_me_args_1_mem_4772593664"da
@@ -226,22 +233,24 @@ assert 'rm -f kscriptlet* && cmd=$(kscript --package "println(args.size)" 2>&1 |
 #assert_statement 'rm -f kscriptlet* && kscript --package "println(args.size)"' "foo" "bar" 0
 
 
-
 ########################################################################################################################
-##  custom interpreters
+echo
+echo "Starting custom interpreters tests:"
 
-export PATH=${PATH}:${KSCRIPT_HOME}/test/resources/custom_dsl
+export PATH=${PATH}:${PROJECT_DIR}/test/resources/custom_dsl
 
 assert 'mydsl "println(foo)"' "bar"
 
-assert '${KSCRIPT_HOME}/test/resources/custom_dsl/mydsl_test_with_deps.kts' "foobar"
+assert '${PROJECT_DIR}/test/resources/custom_dsl/mydsl_test_with_deps.kts' "foobar"
 
 assert_end custom_interpreters
 
 
 
 ########################################################################################################################
-##  misc
+echo
+echo "Starting misc tests:"
+
 
 ## prevent regressions of #98 (it fails to process empty or space-containing arguments)
 assert 'kscript "println(args.size)" foo bar' 2         ## regaular args
@@ -255,23 +264,23 @@ assert 'echo "println(123)" > 123foo.kts; kscript 123foo.kts' "123"
 
 
 ## prevent regression of #185
-assert "source ${KSCRIPT_HOME}/test/resources/home_dir_include.sh" "42"
+assert "source ${PROJECT_DIR}/test/resources/home_dir_include.sh" "42"
 
 ## prevent regression of #173
-assert "source ${KSCRIPT_HOME}/test/resources/compiler_opts_with_includes.sh" "hello42"
+assert "source ${PROJECT_DIR}/test/resources/compiler_opts_with_includes.sh" "hello42"
 
 
-kscript_nocall() { kotlin -classpath ${KSCRIPT_HOME}/build/libs/kscript.jar kscript.app.KscriptKt "$@";}
+kscript_nocall() { kotlin -classpath ${PROJECT_DIR}/build/libs/kscript.jar kscript.app.KscriptKt "$@";}
 export -f kscript_nocall
 
 ## temp projects with include symlinks
-assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/include_variations.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
+assert_raises 'tmpDir=$(kscript_nocall --idea ${PROJECT_DIR}/test/resources/includes/include_variations.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
 
 ## Ensure relative includes with in shebang mode
-assert_raises "${KSCRIPT_HOME}/test/resources/includes/shebang_mode_includes" 0
+assert_raises "${PROJECT_DIR}/test/resources/includes/shebang_mode_includes" 0
 
 ## support diamond-shaped include schemes (see #133)
-assert_raises 'tmpDir=$(kscript_nocall --idea test/resources/includes/diamond.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
+assert_raises 'tmpDir=$(kscript_nocall --idea ${PROJECT_DIR}/test/resources/includes/diamond.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
 
 ## todo reenable interactive mode tests using kscript_nocall
 
@@ -279,19 +288,23 @@ assert_end misc
 
 
 ########################################################################################################################
-##  run junit-test suite
+echo
+echo "Starting junit suite tests:"
 
 # exit code of `true` is expected to be 0 (see https://github.com/lehmannro/assert.sh)
+cd $PROJECT_DIR
 assert_raises "./gradlew test"
+cd $PROJECT_DIR/test
 
 assert_end junit_tests
 
 
 ########################################################################################################################
-##  bootstrap header
+echo
+echo "Starting bootstrap headers tests:"
 
 f=/tmp/echo_stdin_args.kts
-cp ${KSCRIPT_HOME}/test/resources/echo_stdin_args.kts $f
+cp ${PROJECT_DIR}/test/resources/echo_stdin_args.kts $f
 
 # ensure script works as is
 assert 'echo stdin | '$f' --foo bar' "stdin | script --foo bar"
@@ -307,7 +320,6 @@ assert 'echo stdin | '$f' --foo bar' "stdin | script --foo bar"
 
 # ensure scripts works with header invoked with explicit `kscript`
 assert 'echo stdin | kscript '$f' --foo bar' "stdin | script --foo bar"
-
 
 rm $f
 

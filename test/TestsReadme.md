@@ -11,9 +11,8 @@ chmod u+x assert.sh
 ```
 
 
-
-
 To run the tests, just run the [`test_suite.sh`](test_suite.sh)
+
 ```bash
 # scp /Users/brandl/projects/kotlin/kscript/kscript bioinfo:/home/brandl/bin/test/kscript/kscript
 
@@ -55,7 +54,6 @@ sdk list kotlin
 #sdk use kotlin 1.3.72
 #sdk use kotlin 1.4.10
 
-${KSCRIPT_HOME}/test/test_suite.sh
 ${KSCRIPT_HOME}/test/test_suite.sh
 
 # # run again with kotlin 1.0.X
