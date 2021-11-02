@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-#/bin/bash -x
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PROJECT_DIR=$(realpath $SCRIPT_DIR/../)
+PROJECT_DIR=$(realpath "$SCRIPT_DIR/../")
 
 echo "Starting KScript test suite..."
 echo "Script dir : $SCRIPT_DIR"
@@ -32,10 +31,33 @@ assert_stderr(){
 #http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
 export NL=$'\n'
 
+########################################################################################################################
+echo
+kscript --clear-cache
+
+########################################################################################################################
+SUITE="JUnit"
+echo
+echo "Starting $SUITE test suite... Compiling... Please wait..."
+
+# exit code of `true` is expected to be 0 (see https://github.com/lehmannro/assert.sh)
+cd "$PROJECT_DIR" || exit
+assert_raises "./gradlew build"
+cd - || exit
+
+assert_end "$SUITE"
 
 ########################################################################################################################
 echo
-echo "Starting script input modes tests:"
+echo "Configuring KScript for further testing..."
+
+export PATH=${PROJECT_DIR}/build/libs:$PATH
+echo  "KScript path for testing: $(which kscript)"
+
+########################################################################################################################
+SUITE="script input modes"
+echo
+echo "Starting $SUITE tests:"
 
 ## make sure that scripts can be piped into kscript
 assert "source ${PROJECT_DIR}/test/resources/direct_script_arg.sh" "kotlin rocks"
@@ -46,11 +68,9 @@ assert "kscript ''" ""
 ## provide script as direct argument
 assert 'kscript "println(1+1)"' '2'
 
-
 ##  use dashed arguments (to prevent regression from https://github.com/holgerbrandl/kscript/issues/59)
 assert 'kscript "println(args.joinToString(\"\"))" --arg u ments' '--arguments'
 assert 'kscript -s "println(args.joinToString(\"\"))" --arg u ments' '--arguments'
-
 
 ## provide script via stidin
 assert "echo 'println(1+1)' | kscript -" "2"
@@ -93,11 +113,12 @@ assert "kscript ${PROJECT_DIR}/test/resources/depends_on_with_type.kts" "getBigD
 # repeated compilation of buggy same script should end up in error again
 assert_raises "kscript '1-'; kscript '1-'" 1
 
-assert_end script_input_modes
+assert_end "$SUITE"
 
 ########################################################################################################################
-echo
-echo "Starting cli helper tests:"
+#SUITE="CLI helper"
+#echo
+#echo "Starting $SUITE tests:"
 
 ## interactive mode without dependencies
 #assert "kscript -i 'exitProcess(0)'" "To create a shell with script dependencies run:\nkotlinc  -classpath ''"
@@ -108,11 +129,12 @@ echo "Starting cli helper tests:"
 #assert "kscript -i '//DEPS log4j:log4j:1.2.14'" "To create a shell with script dependencies run:\nkotlinc  -classpath '${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar'"
 #assert "kscript -i <(echo '//DEPS log4j:log4j:1.2.14')" "To create a shell with script dependencies run:\nkotlinc  -classpath '${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar'"
 
-#assert_end cli_helper_tests
+#assert_end "$SUITE"
 
 ########################################################################################################################
+SUITE="Environment"
 echo
-echo "Starting environment tests:"
+echo "Starting $SUITE tests:"
 
 ## do not run interactive mode prep without script argument
 assert_raises "kscript -i" 1
@@ -127,11 +149,12 @@ f="${PROJECT_DIR}/test/resources/uses_self_file_name.kts"
 assert "$f" "Usage: $f [-ae] [--foo] file+"
 
 
-assert_end environment_tests
+assert_end "$SUITE"
 
 ########################################################################################################################
+SUITE="dependency lookup"
 echo
-echo "Starting dependency lookup tests:"
+echo "Starting $SUITE tests:"
 
 resolve_deps() { kotlin -classpath ${PROJECT_DIR}/build/libs/kscript.jar kscript.app.DependencyUtil "$@";}
 export -f resolve_deps
@@ -152,11 +175,12 @@ assert_raises "resolve_deps log4j:::1.0" 1
 ## one good dependency,  one wrong
 assert_raises "resolve_deps org.org.docopt:org.docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
 
-assert_end dependency_lookup
+assert_end "$SUITE"
 
 ########################################################################################################################
+SUITE="annotation-driven configuration"
 echo
-echo "Starting annotation-driven configuration tests:"
+echo "Starting $SUITE tests:"
 
 # make sure that @file:DependsOn is parsed correctly
 assert "kscript ${PROJECT_DIR}/test/resources/depends_on_annot.kts" "kscript with annotations rocks!"
@@ -178,28 +202,27 @@ assert_stderr "kscript ${PROJECT_DIR}/test/resources/illegal_depends_on_arg.kts"
 assert "kscript ${PROJECT_DIR}/test/resources/script_with_compile_flags.kts" "hoo_ray"
 
 
-assert_end annotation_config
+assert_end "$SUITE"
 
 
 ########################################################################################################################
+SUITE="support API"
 echo
-echo "Starting support api tests:"
+echo "Starting $SUITE tests:"
 
 ## make sure that one-liners include support-api
 assert 'echo "foo${NL}bar" | kscript -t "stdin.print()"' $'foo\nbar'
 assert 'echo "foo${NL}bar" | kscript -t "lines.print()"' $'foo\nbar'
 #echo "$'foo\nbar' | kscript 'lines.print()'
 
-
-
 assert_statement 'echo "foo${NL}bar" | kscript --text "lines.split().select(1, 2, -3)"' "" "[ERROR] Can not mix positive and negative selections" 1
 
-assert_end support_api
-
+assert_end "$SUITE"
 
 ########################################################################################################################
+SUITE=".kt support"
 echo
-echo "Starting kt support tests:"
+echo "Starting $SUITE tests:"
 
 ## run kt via interpreter mode
 assert "${PROJECT_DIR}/test/resources/kt_tests/simple_app.kt" "main was called"
@@ -232,24 +255,25 @@ assert 'rm -f kscriptlet* && cmd=$(kscript --package "println(args.size)" 2>&1 |
 #assert "echo 1" "package_me_args_1_mem_4772593664"
 #assert_statement 'rm -f kscriptlet* && kscript --package "println(args.size)"' "foo" "bar" 0
 
+assert_end "$SUITE"
 
 ########################################################################################################################
+SUITE="custom interpreters"
 echo
-echo "Starting custom interpreters tests:"
+echo "Starting $SUITE tests:"
 
 export PATH=${PATH}:${PROJECT_DIR}/test/resources/custom_dsl
 
-assert 'mydsl "println(foo)"' "bar"
+assert "mydsl \"println(foo)\"" "bar"
 
-assert '${PROJECT_DIR}/test/resources/custom_dsl/mydsl_test_with_deps.kts' "foobar"
+assert "${PROJECT_DIR}/test/resources/custom_dsl/mydsl_test_with_deps.kts" "foobar"
 
-assert_end custom_interpreters
-
-
+assert_end "$SUITE"
 
 ########################################################################################################################
+SUITE="misc"
 echo
-echo "Starting misc tests:"
+echo "Starting $SUITE tests:"
 
 
 ## prevent regressions of #98 (it fails to process empty or space-containing arguments)
@@ -274,37 +298,25 @@ kscript_nocall() { kotlin -classpath ${PROJECT_DIR}/build/libs/kscript.jar kscri
 export -f kscript_nocall
 
 ## temp projects with include symlinks
-assert_raises 'tmpDir=$(kscript_nocall --idea ${PROJECT_DIR}/test/resources/includes/include_variations.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
+assert_raises "tmpDir=$(kscript_nocall --idea ${PROJECT_DIR}/test/resources/includes/include_variations.kts | cut -f2 -d ' ' | xargs echo); cd $tmpDir && gradle build" 0
 
 ## Ensure relative includes with in shebang mode
 assert_raises "${PROJECT_DIR}/test/resources/includes/shebang_mode_includes" 0
 
 ## support diamond-shaped include schemes (see #133)
-assert_raises 'tmpDir=$(kscript_nocall --idea ${PROJECT_DIR}/test/resources/includes/diamond.kts | cut -f2 -d" " | xargs echo); cd $tmpDir && gradle build' 0
+assert_raises "tmpDir=$(kscript_nocall --idea ${PROJECT_DIR}/test/resources/includes/diamond.kts | cut -f2 -d ' ' | xargs echo); cd $tmpDir && gradle build" 0
 
-## todo reenable interactive mode tests using kscript_nocall
+## todo re-enable interactive mode tests using kscript_nocall
 
-assert_end misc
-
-
-########################################################################################################################
-echo
-echo "Starting junit suite tests:"
-
-# exit code of `true` is expected to be 0 (see https://github.com/lehmannro/assert.sh)
-cd $PROJECT_DIR
-assert_raises "./gradlew test"
-cd $PROJECT_DIR/test
-
-assert_end junit_tests
-
+assert_end "$SUITE"
 
 ########################################################################################################################
+SUITE="bootstrap headers"
 echo
-echo "Starting bootstrap headers tests:"
+echo "Starting $SUITE tests:"
 
 f=/tmp/echo_stdin_args.kts
-cp ${PROJECT_DIR}/test/resources/echo_stdin_args.kts $f
+cp "${PROJECT_DIR}/test/resources/echo_stdin_args.kts" $f
 
 # ensure script works as is
 assert 'echo stdin | '$f' --foo bar' "stdin | script --foo bar"
@@ -323,4 +335,4 @@ assert 'echo stdin | kscript '$f' --foo bar' "stdin | script --foo bar"
 
 rm $f
 
-assert_end bootstrap_header
+assert_end "$SUITE"
