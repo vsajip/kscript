@@ -8,7 +8,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.lang.IllegalArgumentException
-import java.net.URI
 import java.net.URL
 import java.net.UnknownHostException
 import java.util.*
@@ -85,7 +84,7 @@ fun main(args: Array<String>) {
         quit(0)
     }
 
-    // note: with current impt we still don't support `kscript -1` where "-1" is a valid kotlin expression
+    // note: with current implementation we still don't support `kscript -1` where "-1" is a valid kotlin expression
     val userArgs = args.dropWhile { it.startsWith("-") && it != "-" }.drop(1)
     val kscriptArgs = args.take(args.size - userArgs.size)
 
@@ -102,7 +101,6 @@ fun main(args: Array<String>) {
     if (docopt.getBoolean("clear-cache")) {
         info("Cleaning up cache...")
         KSCRIPT_CACHE_DIR.listFiles().forEach { it.delete() }
-        //        evalBash("rm -f ${KSCRIPT_CACHE_DIR}/*")
         quit(0)
     }
 
@@ -281,6 +279,7 @@ fun main(args: Array<String>) {
     }
 
     var extClassPath = "${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar"
+
     if (classpath.isNotEmpty())
         extClassPath += CP_SEPARATOR_CHAR + classpath
 
@@ -404,5 +403,6 @@ private fun resolvePreambles(rawScript: File, enableSupportApi: Boolean): File {
 
         scriptFile = Script(scriptFile).prependWith("//INCLUDE ${preambleFile.absolutePath}").createTmpScript()
     }
+
     return scriptFile
 }

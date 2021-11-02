@@ -54,6 +54,10 @@ echo "Configuring KScript for further testing..."
 export PATH=${PROJECT_DIR}/build/libs:$PATH
 echo  "KScript path for testing: $(which kscript)"
 
+# Fake idea binary... Maybe good idea to use it instead of real idea binary?
+#echo "#!/usr/bin/env bash" > "${PROJECT_DIR}/build/libs/idea"
+#echo "echo $*" >> "${PROJECT_DIR}/build/libs/idea"
+
 ########################################################################################################################
 SUITE="script input modes"
 echo
@@ -132,7 +136,7 @@ assert_end "$SUITE"
 #assert_end "$SUITE"
 
 ########################################################################################################################
-SUITE="Environment"
+SUITE="environment"
 echo
 echo "Starting $SUITE tests:"
 
@@ -220,7 +224,7 @@ assert_statement 'echo "foo${NL}bar" | kscript --text "lines.split().select(1, 2
 assert_end "$SUITE"
 
 ########################################################################################################################
-SUITE=".kt support"
+SUITE="kt support"
 echo
 echo "Starting $SUITE tests:"
 

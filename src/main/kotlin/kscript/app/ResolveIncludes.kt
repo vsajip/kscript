@@ -18,8 +18,10 @@ data class IncludeResult(val scriptFile: File, val includes: List<URL> = emptyLi
 /** Resolve include declarations in a script file. Resolved script will be put into another temporary script */
 fun resolveIncludes(file: File): IncludeResult {
     val includes = mutableListOf<URI>()
+    //TODO: in case initial file is a remote file, we shouldn't allow local references, so initial 'true' here is a wrong assumption
+    //TODO: first resolve redirects: https://stackoverflow.com/questions/2659000/java-how-to-find-the-redirected-url-of-a-url
     val lines = resolve(true, file.toURI(), includes)
-    val script = Script(lines)
+    val script = Script(lines, file.extension)
 
     return IncludeResult(script.consolidateStructure().createTmpScript(), includes.map { it.toURL() })
 }
