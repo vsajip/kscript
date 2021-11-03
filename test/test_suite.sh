@@ -41,9 +41,9 @@ echo
 echo "Starting $SUITE test suite... Compiling... Please wait..."
 
 # exit code of `true` is expected to be 0 (see https://github.com/lehmannro/assert.sh)
-cd "$PROJECT_DIR" || exit
+cd "$PROJECT_DIR"
 assert_raises "./gradlew build"
-cd - || exit
+cd -
 
 assert_end "$SUITE"
 

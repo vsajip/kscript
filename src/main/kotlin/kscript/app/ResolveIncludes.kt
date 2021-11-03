@@ -16,17 +16,27 @@ const val IMPORT_STATEMENT_PREFIX = "import " // todo make more solid by using o
 data class IncludeResult(val scriptFile: File, val includes: List<URL> = emptyList())
 
 /** Resolve include declarations in a script file. Resolved script will be put into another temporary script */
-fun resolveIncludes(file: File): IncludeResult {
+fun resolveIncludes(uri: URI): IncludeResult {
+    val scriptText = uri.toURL().readText()
+
+    val urlExtension = when {
+        uri.toString().endsWith(".kt") -> "kt"
+        uri.toString().endsWith(".kts") -> "kts"
+        else -> if (scriptText.contains("fun main")) {
+            "kt"
+        } else {
+            "kts"
+        }
+    }
+
     val includes = mutableListOf<URI>()
-    //TODO: in case initial file is a remote file, we shouldn't allow local references, so initial 'true' here is a wrong assumption
-    //TODO: first resolve redirects: https://stackoverflow.com/questions/2659000/java-how-to-find-the-redirected-url-of-a-url
-    val lines = resolve(true, file.toURI(), includes)
-    val script = Script(lines, file.extension)
+    val lines = resolve(isFile(uri), uri, includes)
+    val script = Script(lines, urlExtension)
 
     return IncludeResult(script.consolidateStructure().createTmpScript(), includes.map { it.toURL() })
 }
 
-private fun resolve(allowLocalReferences: Boolean, scriptUri: URI, includes: MutableList<URI>): List<String> {
+private fun resolve(allowFileReferences: Boolean, scriptUri: URI, includes: MutableList<URI>): List<String> {
     val lines = readLines(scriptUri)
     val scriptPath = scriptUri.resolve(".")
     val result = mutableListOf<String>()
@@ -36,7 +46,7 @@ private fun resolve(allowLocalReferences: Boolean, scriptUri: URI, includes: Mut
             val include = extractTarget(line)
             val includeUri = resolveUri(scriptPath, include)
 
-            if (!allowLocalReferences && isLocal(includeUri)) {
+            if (!allowFileReferences && isFile(includeUri)) {
                 errorMsg("References to local filesystem from remote scripts are not allowed.\nIn script: $scriptUri; Reference: $includeUri")
                 quit(1)
             }
@@ -49,7 +59,7 @@ private fun resolve(allowLocalReferences: Boolean, scriptUri: URI, includes: Mut
 
             includes.add(includeUri)
 
-            val resolvedLines = resolve(allowLocalReferences && isLocal(includeUri), includeUri, includes)
+            val resolvedLines = resolve(allowFileReferences && isFile(includeUri), includeUri, includes)
             result.addAll(resolvedLines)
             continue
         }
@@ -62,7 +72,7 @@ private fun resolve(allowLocalReferences: Boolean, scriptUri: URI, includes: Mut
 
 private fun readLines(uri: URI): List<String> {
     try {
-        return uri.toURL().readText().lines()
+        return fetchFromURI(uri)
     } catch (e: Exception) {
         errorMsg("Failed to resolve include with URI: '${uri}'")
         System.err.println(e.message?.lines()!!.map { it.prependIndent("[kscript] [ERROR] ") })
@@ -79,8 +89,6 @@ private fun resolveUri(scriptPath: URI, include: String): URI {
 
     return result.normalize()
 }
-
-internal fun isLocal(uri: URI) = uri.scheme.startsWith("file")
 
 internal fun isIncludeDirective(line: String) = line.startsWith("//INCLUDE") || line.startsWith(INCLUDE_ANNOT_PREFIX)
 
@@ -108,6 +116,6 @@ private const val INCLUDE_ANNOT_PREFIX = "@file:Include("
 object ResolveIncludes {
     @JvmStatic
     fun main(args: Array<String>) {
-        System.err.println(resolveIncludes(File(args[0])).scriptFile.readText())
+        System.err.println(resolveIncludes(File(args[0]).toURI()).scriptFile.readText())
     }
 }

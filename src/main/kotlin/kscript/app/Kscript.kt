@@ -8,6 +8,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.lang.IllegalArgumentException
+import java.net.URI
 import java.net.URL
 import java.net.UnknownHostException
 import java.util.*
@@ -92,31 +93,38 @@ fun main(args: Array<String>) {
     val loggingEnabled = !docopt.getBoolean("silent")
 
 
+    // optionally clear up the jar cache
+    if (docopt.getBoolean("clear-cache")) {
+        info("Cleaning up cache...")
+        KSCRIPT_CACHE_DIR.listFiles()?.forEach { it.delete() }
+        quit(0)
+    }
+
     // create cache dir if it does not yet exist
     if (!KSCRIPT_CACHE_DIR.isDirectory) {
         KSCRIPT_CACHE_DIR.mkdir()
     }
 
-    // optionally clear up the jar cache
-    if (docopt.getBoolean("clear-cache")) {
-        info("Cleaning up cache...")
-        KSCRIPT_CACHE_DIR.listFiles().forEach { it.delete() }
-        quit(0)
-    }
-
     // Resolve the script resource argument into an actual file
     val scriptResource = docopt.getString("script")
 
-    val enableSupportApi = docopt.getBoolean("text")
-    val rawScript = prepareScript(scriptResource)
+    val rawUri = prepareScript(scriptResource)
 
     if (docopt.getBoolean("add-bootstrap-header")) {
+        errorIf(!isFile(rawUri)) {
+            "Can not add bootstrap header to URL resources: $rawUri"
+        }
+
+        val rawScript = File(rawUri)
+
         errorIf(!rawScript.canWrite()) {
             "Script file not writable: $rawScript"
         }
+
         errorIf(rawScript.parentFile == SCRIPT_TEMP_DIR) {
             "Temporary script file detected: $rawScript, created from $scriptResource"
         }
+
         val scriptLines = rawScript.readLines().dropWhile {
             it.startsWith("#!/") && it != "#!/bin/bash"
         }
@@ -138,15 +146,17 @@ fun main(args: Array<String>) {
         quit(0)
     }
 
+    val enableSupportApi = docopt.getBoolean("text")
+
     // post process script (text-processing mode, custom dsl preamble, resolve includes)
     // and finally resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
-    val (scriptFile, includeURLs) = resolveIncludes(resolvePreambles(rawScript, enableSupportApi))
+    val (scriptFile, includeURLs) = resolveIncludes(resolvePreambles(rawUri, enableSupportApi))
 
     val script = Script(scriptFile)
 
     // Find all //DEPS directives and concatenate their values
-    val dependencies = (script.collectDependencies() + Script(rawScript).collectDependencies()).distinct()
-    val customRepos = (script.collectRepos() + Script(rawScript).collectRepos()).distinct()
+    val dependencies = script.collectDependencies().distinct()
+    val customRepos = script.collectRepos().distinct()
 
     // Extract kotlin arguments
     val kotlinOpts = script.collectRuntimeOptions()
@@ -154,7 +164,7 @@ fun main(args: Array<String>) {
 
     //  Create temporary dev environment
     if (docopt.getBoolean("idea")) {
-        println(launchIdeaWithKscriptlet(rawScript, userArgs, dependencies, customRepos, includeURLs, compilerOpts))
+        println(launchIdeaWithKscriptlet(scriptFile, userArgs, dependencies, customRepos, includeURLs, compilerOpts))
         exitProcess(0)
     }
 
@@ -319,39 +329,36 @@ private fun versionCheck() {
 }
 
 
-fun prepareScript(scriptResource: String):File {
-    var scriptFile: File?
+fun prepareScript(scriptResource: String): URI {
+    if (isUrl(scriptResource)) {
+        return URI(scriptResource)
+    }
+
+    var scriptUri: URI?
 
     // map script argument to script file
-    scriptFile = with(File(scriptResource)) {
+    scriptUri = with(File(scriptResource)) {
         if (!canRead()) {
             // not a file so let's keep the script-file undefined here
             null
         } else if (listOf("kts", "kt").contains(extension)) {
-            this
+            this.toURI()
         } else {
             // if we can "just" read from script resource create tmp file
             // i.e. script input is process substitution file handle
             // not FileInputStream(this).bufferedReader().use{ readText()} does not work nor does this.readText
-            createTmpScript(FileInputStream(this).bufferedReader().readText())
+            createTmpScript(FileInputStream(this).bufferedReader().readText()).toURI()
         }
     }
 
     // support stdin
     if (scriptResource == "-" || scriptResource == "/dev/stdin") {
         val scriptText = generateSequence() { readLine() }.joinToString("\n").trim()
-        scriptFile = createTmpScript(scriptText)
+        scriptUri = createTmpScript(scriptText).toURI()
     }
-
-
-    // Support URLs as script files
-    if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")) {
-        scriptFile = fetchFromURL(scriptResource)
-    }
-
 
     // Support for support process substitution and direct script arguments
-    if (scriptFile == null && !scriptResource.endsWith(".kts") && !scriptResource.endsWith(".kt")) {
+    if (scriptUri == null && !scriptResource.endsWith(".kts") && !scriptResource.endsWith(".kt")) {
         val scriptText = if (File(scriptResource).canRead()) {
             File(scriptResource).readText().trim()
         } else {
@@ -359,23 +366,27 @@ fun prepareScript(scriptResource: String):File {
             scriptResource.trim()
         }
 
-        scriptFile = createTmpScript(scriptText)
+        scriptUri = createTmpScript(scriptText).toURI()
     }
 
     // just proceed if the script file is a regular file at this point
-    errorIf(scriptFile == null || !scriptFile.canRead()) {
+    errorIf(scriptUri == null) {
         "Could not read script argument '$scriptResource'"
     }
 
     // note script file must be not null at this point
 
-    return scriptFile!!
+    return scriptUri!!
 }
 
 
-private fun resolvePreambles(rawScript: File, enableSupportApi: Boolean): File {
+private fun resolvePreambles(rawUri: URI, enableSupportApi: Boolean): URI {
+    if (!isFile(rawUri)) {
+        return rawUri
+    }
+
     // include preamble for custom interpreters (see https://github.com/holgerbrandl/kscript/issues/67)
-    var scriptFile = rawScript
+    var scriptFile = File(rawUri)
 
     System.getenv("CUSTOM_KSCRIPT_PREAMBLE")?.let { interpPreamble ->
         //        rawScript = Script(rawScript!!).prependWith(interpPreamble).createTmpScript()
@@ -404,5 +415,5 @@ private fun resolvePreambles(rawScript: File, enableSupportApi: Boolean): File {
         scriptFile = Script(scriptFile).prependWith("//INCLUDE ${preambleFile.absolutePath}").createTmpScript()
     }
 
-    return scriptFile
+    return scriptFile.toURI()
 }
