@@ -16,7 +16,7 @@ const val IMPORT_STATEMENT_PREFIX = "import " // todo make more solid by using o
 data class IncludeResult(val scriptFile: File, val includes: List<URL> = emptyList())
 
 /** Resolve include declarations in a script file. Resolved script will be put into another temporary script */
-fun resolveIncludes(uri: URI): IncludeResult {
+fun resolveIncludes(uri: URI, includeContext: URI = uri.resolve(".")): IncludeResult {
     val scriptText = uri.toURL().readText()
 
     val urlExtension = when {
@@ -30,21 +30,20 @@ fun resolveIncludes(uri: URI): IncludeResult {
     }
 
     val includes = mutableListOf<URI>()
-    val lines = resolve(isFile(uri), uri, includes)
+    val lines = resolve(isFile(uri), uri, includeContext, includes)
     val script = Script(lines, urlExtension)
 
     return IncludeResult(script.consolidateStructure().createTmpScript(), includes.map { it.toURL() })
 }
 
-private fun resolve(allowFileReferences: Boolean, scriptUri: URI, includes: MutableList<URI>): List<String> {
+private fun resolve(allowFileReferences: Boolean, scriptUri: URI, includeContext: URI, includes: MutableList<URI>): List<String> {
     val lines = readLines(scriptUri)
-    val scriptPath = scriptUri.resolve(".")
     val result = mutableListOf<String>()
 
     for (line in lines) {
         if (isIncludeDirective(line)) {
             val include = extractTarget(line)
-            val includeUri = resolveUri(scriptPath, include)
+            val includeUri = resolveUri(includeContext, include)
 
             if (!allowFileReferences && isFile(includeUri)) {
                 errorMsg("References to local filesystem from remote scripts are not allowed.\nIn script: $scriptUri; Reference: $includeUri")
@@ -59,7 +58,7 @@ private fun resolve(allowFileReferences: Boolean, scriptUri: URI, includes: Muta
 
             includes.add(includeUri)
 
-            val resolvedLines = resolve(allowFileReferences && isFile(includeUri), includeUri, includes)
+            val resolvedLines = resolve(allowFileReferences && isFile(includeUri), includeUri, includeUri.resolve("."), includes)
             result.addAll(resolvedLines)
             continue
         }

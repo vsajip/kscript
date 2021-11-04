@@ -108,7 +108,7 @@ fun main(args: Array<String>) {
     // Resolve the script resource argument into an actual file
     val scriptResource = docopt.getString("script")
 
-    val rawUri = prepareScript(scriptResource)
+    val (rawUri, includeContext) = prepareScript(scriptResource)
 
     if (docopt.getBoolean("add-bootstrap-header")) {
         errorIf(!isFile(rawUri)) {
@@ -150,7 +150,7 @@ fun main(args: Array<String>) {
 
     // post process script (text-processing mode, custom dsl preamble, resolve includes)
     // and finally resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
-    val (scriptFile, includeURLs) = resolveIncludes(resolvePreambles(rawUri, enableSupportApi))
+    val (scriptFile, includeURLs) = resolveIncludes(resolvePreambles(rawUri, enableSupportApi), includeContext)
 
     val script = Script(scriptFile)
 
@@ -328,37 +328,49 @@ private fun versionCheck() {
     }
 }
 
+fun prepareScript(scriptResource: String): Pair<URI, URI> {
+    var scriptFile: File?
 
-fun prepareScript(scriptResource: String): URI {
-    if (isUrl(scriptResource)) {
-        return URI(scriptResource)
-    }
-
-    var scriptUri: URI?
+    // we need to keep track of the scripts dir or the working dir in case of stdin script to correctly resolve includes
+    var includeContext: URI = File(".").toURI()
 
     // map script argument to script file
-    scriptUri = with(File(scriptResource)) {
+    scriptFile = with(File(scriptResource)) {
         if (!canRead()) {
             // not a file so let's keep the script-file undefined here
             null
         } else if (listOf("kts", "kt").contains(extension)) {
-            this.toURI()
+            // update include context
+            includeContext = this.absoluteFile.parentFile.toURI()
+
+            // script input is a regular script or clas file
+            this
         } else {
             // if we can "just" read from script resource create tmp file
             // i.e. script input is process substitution file handle
             // not FileInputStream(this).bufferedReader().use{ readText()} does not work nor does this.readText
-            createTmpScript(FileInputStream(this).bufferedReader().readText()).toURI()
+            includeContext = this.absoluteFile.parentFile.toURI()
+            createTmpScript(FileInputStream(this).bufferedReader().readText())
         }
     }
 
     // support stdin
     if (scriptResource == "-" || scriptResource == "/dev/stdin") {
         val scriptText = generateSequence() { readLine() }.joinToString("\n").trim()
-        scriptUri = createTmpScript(scriptText).toURI()
+        scriptFile = createTmpScript(scriptText)
     }
 
+
+    // Support URLs as script files
+    if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")) {
+        scriptFile = fetchFromURL(scriptResource)
+
+        includeContext = URI(scriptResource.run { substring(lastIndexOf('/') + 1) })
+    }
+
+
     // Support for support process substitution and direct script arguments
-    if (scriptUri == null && !scriptResource.endsWith(".kts") && !scriptResource.endsWith(".kt")) {
+    if (scriptFile == null && !scriptResource.endsWith(".kts") && !scriptResource.endsWith(".kt")) {
         val scriptText = if (File(scriptResource).canRead()) {
             File(scriptResource).readText().trim()
         } else {
@@ -366,19 +378,18 @@ fun prepareScript(scriptResource: String): URI {
             scriptResource.trim()
         }
 
-        scriptUri = createTmpScript(scriptText).toURI()
+        scriptFile = createTmpScript(scriptText)
     }
 
     // just proceed if the script file is a regular file at this point
-    errorIf(scriptUri == null) {
+    errorIf(scriptFile == null || !scriptFile.canRead()) {
         "Could not read script argument '$scriptResource'"
     }
 
     // note script file must be not null at this point
 
-    return scriptUri!!
+    return Pair(scriptFile!!.toURI(), includeContext)
 }
-
 
 private fun resolvePreambles(rawUri: URI, enableSupportApi: Boolean): URI {
     if (!isFile(rawUri)) {
