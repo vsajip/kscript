@@ -1,17 +1,15 @@
 package kscript.app
 
 import kotlinx.coroutines.runBlocking
-import org.eclipse.aether.artifact.DefaultArtifact
 import java.io.File
 import kotlin.script.experimental.api.valueOrThrow
 import kotlin.script.experimental.dependencies.CompoundDependenciesResolver
 import kotlin.script.experimental.dependencies.FileSystemDependenciesResolver
-import kotlin.script.experimental.dependencies.RepositoryCoordinates
 import kotlin.script.experimental.dependencies.maven.MavenDependenciesResolver
 import kotlin.script.experimental.dependencies.maven.MavenRepositoryCoordinates
 
 
-val DEP_LOOKUP_CACHE_FILE = File(KSCRIPT_CACHE_DIR, "dependency_cache.txt")
+val DEP_LOOKUP_CACHE_FILE = File(KSCRIPT_DIR, "dependency_cache.txt")
 
 val CP_SEPARATOR_CHAR = if (System.getProperty("os.name").toLowerCase().contains("windows")) ";" else ":"
 

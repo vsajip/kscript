@@ -11,6 +11,7 @@ import java.lang.IllegalArgumentException
 import java.net.URI
 import java.net.URL
 import java.net.UnknownHostException
+import java.nio.file.Paths
 import java.util.*
 import kotlin.system.exitProcess
 
@@ -55,11 +56,11 @@ Website   : https://github.com/holgerbrandl/kscript
 
 // see https://stackoverflow.com/questions/585534/what-is-the-best-way-to-find-the-users-home-directory-in-java
 // See #146 "allow kscript cache dir to be configurable" for details
-val KSCRIPT_CACHE_DIR = System.getenv("KSCRIPT_CACHE_DIR")?.let { File(it) }
-    ?: File(System.getProperty("user.home")!!, ".kscript")
+val KSCRIPT_DIR = System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript")
 
 // use lazy here prevent empty dirs for regular scripts https://github.com/holgerbrandl/kscript/issues/130
 val SCRIPT_TEMP_DIR by lazy { createTempDir() }
+val customPreamble: String? = System.getenv("CUSTOM_KSCRIPT_PREAMBLE")
 
 @Language("sh")
 private val BOOTSTRAP_HEADER = """
@@ -92,40 +93,28 @@ fun main(args: Array<String>) {
     val docopt = DocOptWrapper(kscriptArgs, USAGE)
     val loggingEnabled = !docopt.getBoolean("silent")
 
+    // create kscript dir if it does not yet exist
+    val appDir = AppDir(Paths.get(KSCRIPT_DIR))
 
     // optionally clear up the jar cache
     if (docopt.getBoolean("clear-cache")) {
         info("Cleaning up cache...")
-        KSCRIPT_CACHE_DIR.listFiles()?.forEach { it.delete() }
+        appDir.cache.clear()
         quit(0)
-    }
-
-    // create cache dir if it does not yet exist
-    if (!KSCRIPT_CACHE_DIR.isDirectory) {
-        KSCRIPT_CACHE_DIR.mkdir()
     }
 
     // Resolve the script resource argument into an actual file
     val scriptResource = docopt.getString("script")
+    val scriptSourceResolver = ScriptSourceResolver(appDir)
 
-    val (rawUri, includeContext) = prepareScript(scriptResource)
+    val scriptSource = scriptSourceResolver.resolveFromInput(scriptResource)
 
     if (docopt.getBoolean("add-bootstrap-header")) {
-        errorIf(!isFile(rawUri)) {
-            "Can not add bootstrap header to URL resources: $rawUri"
+        errorIf(scriptSource.sourceType != SourceType.FILE) {
+            "Can not add bootstrap header to resources, which are not regular Kotlin files."
         }
 
-        val rawScript = File(rawUri)
-
-        errorIf(!rawScript.canWrite()) {
-            "Script file not writable: $rawScript"
-        }
-
-        errorIf(rawScript.parentFile == SCRIPT_TEMP_DIR) {
-            "Temporary script file detected: $rawScript, created from $scriptResource"
-        }
-
-        val scriptLines = rawScript.readLines().dropWhile {
+        val scriptLines = scriptSource.codeText.lines().dropWhile {
             it.startsWith("#!/") && it != "#!/bin/bash"
         }
 
@@ -138,10 +127,10 @@ fun main(args: Array<String>) {
                     "You can remove it to force the re-generation"
         }
 
-        rawScript.writeText((BOOTSTRAP_HEADER + scriptLines).joinToString("\n"))
+        File(scriptSource.sourceUri!!).writeText((BOOTSTRAP_HEADER + scriptLines).joinToString("\n"))
 
         if (loggingEnabled) {
-            info("$rawScript updated")
+            info("${scriptSource.sourceUri} updated")
         }
         quit(0)
     }
@@ -150,7 +139,8 @@ fun main(args: Array<String>) {
 
     // post process script (text-processing mode, custom dsl preamble, resolve includes)
     // and finally resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
-    val (scriptFile, includeURLs) = resolveIncludes(resolvePreambles(rawUri, enableSupportApi), includeContext)
+    val resolvedPreamblesSource = scriptSourceResolver.resolvePreambles(scriptSource, customPreamble, enableSupportApi)
+    val (scriptFile, includeURLs) = resolveIncludes(resolvedPreamblesSource)
 
     val script = Script(scriptFile)
 
@@ -195,9 +185,9 @@ fun main(args: Array<String>) {
 
 
     val jarFile = if (scriptFile.nameWithoutExtension.endsWith(scriptCheckSum)) {
-        File(KSCRIPT_CACHE_DIR, scriptFile.nameWithoutExtension + ".jar")
+        File(KSCRIPT_DIR, scriptFile.nameWithoutExtension + ".jar")
     } else {
-        File(KSCRIPT_CACHE_DIR, scriptFile.nameWithoutExtension + "." + scriptCheckSum + ".jar")
+        File(KSCRIPT_DIR, scriptFile.nameWithoutExtension + "." + scriptCheckSum + ".jar")
     }
 
     // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
@@ -326,105 +316,4 @@ private fun versionCheck() {
     if (padVersion(latestVersion) > padVersion(KSCRIPT_VERSION)) {
         info("""A new version (v${latestVersion}) of kscript is available.""")
     }
-}
-
-fun prepareScript(scriptResource: String): Pair<URI, URI> {
-    var scriptFile: File?
-
-    // we need to keep track of the scripts dir or the working dir in case of stdin script to correctly resolve includes
-    var includeContext: URI = File(".").toURI()
-
-    // map script argument to script file
-    scriptFile = with(File(scriptResource)) {
-        if (!canRead()) {
-            // not a file so let's keep the script-file undefined here
-            null
-        } else if (listOf("kts", "kt").contains(extension)) {
-            // update include context
-            includeContext = this.absoluteFile.parentFile.toURI()
-
-            // script input is a regular script or clas file
-            this
-        } else {
-            // if we can "just" read from script resource create tmp file
-            // i.e. script input is process substitution file handle
-            // not FileInputStream(this).bufferedReader().use{ readText()} does not work nor does this.readText
-            includeContext = this.absoluteFile.parentFile.toURI()
-            createTmpScript(FileInputStream(this).bufferedReader().readText())
-        }
-    }
-
-    // support stdin
-    if (scriptResource == "-" || scriptResource == "/dev/stdin") {
-        val scriptText = generateSequence() { readLine() }.joinToString("\n").trim()
-        scriptFile = createTmpScript(scriptText)
-    }
-
-
-    // Support URLs as script files
-    if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")) {
-        scriptFile = fetchFromURL(scriptResource)
-
-        includeContext = URI(scriptResource.run { substring(lastIndexOf('/') + 1) })
-    }
-
-
-    // Support for support process substitution and direct script arguments
-    if (scriptFile == null && !scriptResource.endsWith(".kts") && !scriptResource.endsWith(".kt")) {
-        val scriptText = if (File(scriptResource).canRead()) {
-            File(scriptResource).readText().trim()
-        } else {
-            // the last resort is to assume the input to be a kotlin program
-            scriptResource.trim()
-        }
-
-        scriptFile = createTmpScript(scriptText)
-    }
-
-    // just proceed if the script file is a regular file at this point
-    errorIf(scriptFile == null || !scriptFile.canRead()) {
-        "Could not read script argument '$scriptResource'"
-    }
-
-    // note script file must be not null at this point
-
-    return Pair(scriptFile!!.toURI(), includeContext)
-}
-
-private fun resolvePreambles(rawUri: URI, enableSupportApi: Boolean): URI {
-    if (!isFile(rawUri)) {
-        return rawUri
-    }
-
-    // include preamble for custom interpreters (see https://github.com/holgerbrandl/kscript/issues/67)
-    var scriptFile = File(rawUri)
-
-    System.getenv("CUSTOM_KSCRIPT_PREAMBLE")?.let { interpPreamble ->
-        //        rawScript = Script(rawScript!!).prependWith(interpPreamble).createTmpScript()
-        val preambleFile = File(SCRIPT_TEMP_DIR, "include_cache.${md5(interpPreamble)}.kt").apply {
-            writeText(interpPreamble)
-        }
-
-        scriptFile = Script(scriptFile).prependWith("//INCLUDE ${preambleFile.absolutePath}").createTmpScript()
-    }
-
-    // prefix with text-processing preamble if kscript-support api is enabled
-    if (enableSupportApi) {
-        val textProcPreamble = """
-            //DEPS com.github.holgerbrandl:kscript-support-api:1.2.5
-
-            import kscript.text.*
-            val lines = resolveArgFile(args)
-
-            """.trimIndent()
-
-        //        scriptFile = Script(scriptFile!!).prependWith(textProcPreamble).createTmpScript()
-        val preambleFile = File(SCRIPT_TEMP_DIR, "include_cache.${md5(textProcPreamble)}.kt").apply {
-            writeText(textProcPreamble)
-        }
-
-        scriptFile = Script(scriptFile).prependWith("//INCLUDE ${preambleFile.absolutePath}").createTmpScript()
-    }
-
-    return scriptFile.toURI()
 }

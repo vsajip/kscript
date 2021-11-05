@@ -16,28 +16,16 @@ const val IMPORT_STATEMENT_PREFIX = "import " // todo make more solid by using o
 data class IncludeResult(val scriptFile: File, val includes: List<URL> = emptyList())
 
 /** Resolve include declarations in a script file. Resolved script will be put into another temporary script */
-fun resolveIncludes(uri: URI, includeContext: URI = uri.resolve(".")): IncludeResult {
-    val scriptText = uri.toURL().readText()
-
-    val urlExtension = when {
-        uri.toString().endsWith(".kt") -> "kt"
-        uri.toString().endsWith(".kts") -> "kts"
-        else -> if (scriptText.contains("fun main")) {
-            "kt"
-        } else {
-            "kts"
-        }
-    }
-
+fun resolveIncludes(scriptSource: ScriptSource): IncludeResult {
     val includes = mutableListOf<URI>()
-    val lines = resolve(isFile(uri), uri, includeContext, includes)
-    val script = Script(lines, urlExtension)
+    val lines = resolve(scriptSource.sourceType != SourceType.HTTP, scriptSource.codeText, scriptSource.includeContext, includes)
+    val script = Script(lines, if (scriptSource.scriptType == ScriptType.KTS) "kts" else "kt")
 
     return IncludeResult(script.consolidateStructure().createTmpScript(), includes.map { it.toURL() })
 }
 
-private fun resolve(allowFileReferences: Boolean, scriptUri: URI, includeContext: URI, includes: MutableList<URI>): List<String> {
-    val lines = readLines(scriptUri)
+private fun resolve(allowFileReferences: Boolean, codeText: String, includeContext: URI, includes: MutableList<URI>): List<String> {
+    val lines = codeText.lines()
     val result = mutableListOf<String>()
 
     for (line in lines) {
@@ -45,8 +33,8 @@ private fun resolve(allowFileReferences: Boolean, scriptUri: URI, includeContext
             val include = extractTarget(line)
             val includeUri = resolveUri(includeContext, include)
 
-            if (!allowFileReferences && isFile(includeUri)) {
-                errorMsg("References to local filesystem from remote scripts are not allowed.\nIn script: $scriptUri; Reference: $includeUri")
+            if (!allowFileReferences && isRegularFile(includeUri)) {
+                errorMsg("References to local filesystem from remote scripts are not allowed.\nIn script: ; Reference: $includeUri")
                 quit(1)
             }
 
@@ -58,7 +46,8 @@ private fun resolve(allowFileReferences: Boolean, scriptUri: URI, includeContext
 
             includes.add(includeUri)
 
-            val resolvedLines = resolve(allowFileReferences && isFile(includeUri), includeUri, includeUri.resolve("."), includes)
+
+            val resolvedLines = resolve(allowFileReferences && isRegularFile(includeUri), readLines(includeUri), includeUri.resolve("."), includes)
             result.addAll(resolvedLines)
             continue
         }
@@ -69,9 +58,23 @@ private fun resolve(allowFileReferences: Boolean, scriptUri: URI, includeContext
     return result
 }
 
-private fun readLines(uri: URI): List<String> {
+private fun readLines(uri: URI): String {
     try {
-        return fetchFromURI(uri)
+        if (isRegularFile(uri)) {
+            return uri.toURL().readText()
+        }
+
+        val urlHash = md5(uri.toString())
+        val urlCache = File(KSCRIPT_DIR, "/url_cache_${urlHash}")
+
+        if (urlCache.exists()) {
+            return urlCache.readText()
+        }
+
+        val urlContent = uri.toURL().readText()
+        urlCache.writeText(urlContent)
+
+        return urlContent
     } catch (e: Exception) {
         errorMsg("Failed to resolve include with URI: '${uri}'")
         System.err.println(e.message?.lines()!!.map { it.prependIndent("[kscript] [ERROR] ") })
@@ -115,6 +118,6 @@ private const val INCLUDE_ANNOT_PREFIX = "@file:Include("
 object ResolveIncludes {
     @JvmStatic
     fun main(args: Array<String>) {
-        System.err.println(resolveIncludes(File(args[0]).toURI()).scriptFile.readText())
+        //System.err.println(resolveIncludes(File(args[0]).toURI()).scriptFile.readText())
     }
 }

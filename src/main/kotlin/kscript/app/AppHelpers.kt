@@ -2,6 +2,7 @@ package kscript.app
 
 import kscript.app.ShellUtils.requireInPath
 import java.io.*
+import java.math.BigInteger
 import java.net.URI
 import java.net.URL
 import java.nio.file.Files
@@ -136,7 +137,7 @@ fun createTmpScript(scriptText: String, extension: String = "kts"): File {
     }
 }
 
-fun isFile(uri: URI) = uri.scheme.startsWith("file")
+fun isRegularFile(uri: URI) = uri.scheme.startsWith("file")
 fun isUrl(uri: URI) = uri.scheme.startsWith("http") || uri.scheme.startsWith("https")
 
 fun isUrl(scriptResource: String) = scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
@@ -153,7 +154,7 @@ fun fetchFromURL(scriptURL: String): File {
             "kts"
         }
     }
-    val urlCache = File(KSCRIPT_CACHE_DIR, "/url_cache_${urlHash}.$urlExtension")
+    val urlCache = File(KSCRIPT_DIR, "/url_cache_${urlHash}.$urlExtension")
 
     if (!urlCache.isFile) {
         urlCache.writeText(scriptText)
@@ -162,24 +163,13 @@ fun fetchFromURL(scriptURL: String): File {
     return urlCache
 }
 
-fun fetchFromURI(scriptURI: URI): List<String> {
-    if (isFile(scriptURI)) {
-        return scriptURI.toURL().readText().lines()
-    }
 
-    val urlHash = md5(scriptURI.toString())
-    val urlCache = File(KSCRIPT_CACHE_DIR, "/url_cache_${urlHash}")
-
-    if (urlCache.exists()) {
-        return urlCache.readText().lines()
-    }
-
-    val urlContent = scriptURI.toURL().readText()
-    urlCache.writeText(urlContent)
-
-    return urlContent.lines()
+//Albo lepiej to: http://commons.apache.org/proper/commons-codec/apidocs/org/apache/commons/codec/digest/DigestUtils.html
+//static String md5Hex(String data)
+fun md5NewMethod(input:String): String {
+    val md = MessageDigest.getInstance("MD5")
+    return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
 }
-
 
 fun md5(byteProvider: () -> ByteArray): String {
     // from https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
@@ -242,7 +232,7 @@ fun launchIdeaWithKscriptlet(scriptFile: File,
 
 
     //  fixme use tmp instead of cachdir. Fails for now because idea gradle import does not seem to like tmp
-    val tmpProjectDir = KSCRIPT_CACHE_DIR
+    val tmpProjectDir = KSCRIPT_DIR
         .run { File(this, "kscript_tmp_project__${scriptFile.name}_${System.currentTimeMillis()}") }
         .apply { mkdir() }
     //    val tmpProjectDir = File("/Users/brandl/Desktop/")
@@ -433,7 +423,7 @@ fun packageKscript(scriptJar: File, wrapperClassName: String, dependencies: List
     infoMsg("Packaging script '$appName' into standalone executable...")
 
 
-    val tmpProjectDir = KSCRIPT_CACHE_DIR
+    val tmpProjectDir = KSCRIPT_DIR
         .run { File(this, "kscript_tmp_project__${scriptJar.name}_${System.currentTimeMillis()}") }
         .apply { mkdir() }
 
