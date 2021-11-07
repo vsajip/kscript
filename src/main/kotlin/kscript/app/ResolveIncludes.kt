@@ -13,7 +13,7 @@ import java.net.URL
 const val PACKAGE_STATEMENT_PREFIX = "package "
 const val IMPORT_STATEMENT_PREFIX = "import " // todo make more solid by using operator including regex
 
-data class IncludeResult(val scriptFile: File, val includes: List<URL> = emptyList())
+data class IncludeResult(val scriptFile: Script, val includes: List<URL> = emptyList())
 
 /** Resolve include declarations in a script file. Resolved script will be put into another temporary script */
 fun resolveIncludes(scriptSource: ScriptSource): IncludeResult {
@@ -21,7 +21,7 @@ fun resolveIncludes(scriptSource: ScriptSource): IncludeResult {
     val lines = resolve(scriptSource.sourceType != SourceType.HTTP, scriptSource.codeText, scriptSource.includeContext, includes)
     val script = Script(lines, if (scriptSource.scriptType == ScriptType.KTS) "kts" else "kt")
 
-    return IncludeResult(script.consolidateStructure().createTmpScript(), includes.map { it.toURL() })
+    return IncludeResult(script.consolidateStructure(), includes.map { it.toURL() })
 }
 
 private fun resolve(allowFileReferences: Boolean, codeText: String, includeContext: URI, includes: MutableList<URI>): List<String> {

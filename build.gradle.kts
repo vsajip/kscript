@@ -1,8 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "1.4.32"
-    id("com.github.johnrengelman.shadow") version "5.2.0"
+    kotlin("jvm") version "1.5.31"
+    id("com.github.johnrengelman.shadow") version "6.1.0"
 }
 
 repositories {
@@ -12,10 +12,10 @@ repositories {
 group = "com.github.holgerbrandl.kscript.launcher"
 
 //val kotlinVersion: String by rootProject.extra
-val kotlinVersion: String ="1.4.32"
+val kotlinVersion: String ="1.5.31"
 
 dependencies {
-    compile("com.offbytwo:docopt:0.6.0.20150202")
+    implementation("com.offbytwo:docopt:0.6.0.20150202")
 
     implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
@@ -23,9 +23,13 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven:$kotlinVersion")
 
-    compile("org.slf4j:slf4j-nop:1.7.30")
+    implementation("commons-io:commons-io:2.11.0")
+    implementation("commons-codec:commons-codec:1.15")
 
-    testImplementation("junit:junit:4.12")
+
+    implementation("org.slf4j:slf4j-nop:1.7.32")
+
+    testImplementation("junit:junit:4.13.2")
     testImplementation( "io.kotlintest:kotlintest:2.0.7")
     testImplementation(kotlin("script-runtime"))
 }

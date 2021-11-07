@@ -131,12 +131,6 @@ fun guessKotlinHome(): String? {
 }
 
 
-fun createTmpScript(scriptText: String, extension: String = "kts"): File {
-    return File(SCRIPT_TEMP_DIR, "scriptlet.${md5(scriptText)}.$extension").apply {
-        writeText(scriptText)
-    }
-}
-
 fun isRegularFile(uri: URI) = uri.scheme.startsWith("file")
 fun isUrl(uri: URI) = uri.scheme.startsWith("http") || uri.scheme.startsWith("https")
 

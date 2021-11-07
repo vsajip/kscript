@@ -1,5 +1,6 @@
 package kscript.app
 
+import kscript.app.appdir.AppDir
 import java.io.File
 import java.io.FileInputStream
 import java.net.HttpURLConnection
@@ -18,11 +19,7 @@ class ScriptSourceResolver(private val appDir: AppDir) {
         var codeText = scriptSource.codeText
 
         customPreamble?.let { interpPreamble ->
-            val preambleFile = File(SCRIPT_TEMP_DIR, "include_cache.${md5(interpPreamble)}.kt").apply {
-                writeText(interpPreamble)
-            }
-
-            codeText = "//INCLUDE ${preambleFile.absolutePath}\n" + codeText
+            codeText = interpPreamble + "\n" + codeText
         }
 
         // prefix with text-processing preamble if kscript-support api is enabled
@@ -35,11 +32,7 @@ class ScriptSourceResolver(private val appDir: AppDir) {
 
             """.trimIndent()
 
-            val preambleFile = File(SCRIPT_TEMP_DIR, "include_cache.${md5(textProcPreamble)}.kt").apply {
-                writeText(textProcPreamble)
-            }
-
-            codeText = "//INCLUDE ${preambleFile.absolutePath}\n" + codeText
+            codeText = textProcPreamble + "\n" + codeText
         }
 
         return scriptSource.copy(codeText = codeText)
@@ -62,7 +55,7 @@ class ScriptSourceResolver(private val appDir: AppDir) {
             val resolvedUri = resolveRedirects(url).toURI()
             val includeContext = resolvedUri.resolve(".")
             return ScriptSource(
-                SourceType.HTTP, resolveScriptType(resolvedUri), includeContext, resolvedUri, appDir.cache.fetch(url)
+                SourceType.HTTP, resolveScriptType(resolvedUri), includeContext, resolvedUri, appDir.cache.code(url)
             )
         }
 
@@ -137,7 +130,7 @@ class ScriptSourceResolver(private val appDir: AppDir) {
         }
 
         //Try to guess the type by reading the code...
-        val code = appDir.cache.fetch(uri.toURL())
+        val code = appDir.cache.code(uri.toURL())
         return resolveScriptType(code)
     }
 

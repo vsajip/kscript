@@ -21,8 +21,6 @@ data class Script(val lines: List<String>, val extension: String = "kts") : Iter
     fun stripShebang(): Script = copy(lines.filterNot { it.startsWith("#!/") })
 
 
-    fun createTmpScript() = createTmpScript(toString(), extension)
-
 
     fun prependWith(preamble: String): Script = copy(lines = preamble.lines() + lines).consolidateStructure()
 

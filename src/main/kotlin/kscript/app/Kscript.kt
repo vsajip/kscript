@@ -1,14 +1,12 @@
 package kscript.app
 
 import kscript.app.ShellUtils.requireInPath
+import kscript.app.appdir.AppDir
 import org.docopt.DocOptWrapper
 import org.intellij.lang.annotations.Language
 import java.io.BufferedReader
 import java.io.File
-import java.io.FileInputStream
 import java.io.InputStreamReader
-import java.lang.IllegalArgumentException
-import java.net.URI
 import java.net.URL
 import java.net.UnknownHostException
 import java.nio.file.Paths
@@ -59,7 +57,6 @@ Website   : https://github.com/holgerbrandl/kscript
 val KSCRIPT_DIR = System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript")
 
 // use lazy here prevent empty dirs for regular scripts https://github.com/holgerbrandl/kscript/issues/130
-val SCRIPT_TEMP_DIR by lazy { createTempDir() }
 val customPreamble: String? = System.getenv("CUSTOM_KSCRIPT_PREAMBLE")
 
 @Language("sh")
@@ -118,13 +115,10 @@ fun main(args: Array<String>) {
             it.startsWith("#!/") && it != "#!/bin/bash"
         }
 
-        errorIf(scriptLines.getOrNull(0) == BOOTSTRAP_HEADER[0]
-                && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it }) {
+        errorIf(scriptLines.getOrNull(0) == BOOTSTRAP_HEADER[0] && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it }) {
             val lastHeaderLine = BOOTSTRAP_HEADER.findLast { it.isNotBlank() }!!
-            val preexistingHeader =
-                    scriptLines.dropLastWhile { it != lastHeaderLine }.joinToString("\n")
-            "Bootstrap header already detected:\n\n$preexistingHeader\n\n" +
-                    "You can remove it to force the re-generation"
+            val preexistingHeader = scriptLines.dropLastWhile { it != lastHeaderLine }.joinToString("\n")
+            "Bootstrap header already detected:\n\n$preexistingHeader\n\n" + "You can remove it to force the re-generation"
         }
 
         File(scriptSource.sourceUri!!).writeText((BOOTSTRAP_HEADER + scriptLines).joinToString("\n"))
@@ -140,9 +134,10 @@ fun main(args: Array<String>) {
     // post process script (text-processing mode, custom dsl preamble, resolve includes)
     // and finally resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
     val resolvedPreamblesSource = scriptSourceResolver.resolvePreambles(scriptSource, customPreamble, enableSupportApi)
-    val (scriptFile, includeURLs) = resolveIncludes(resolvedPreamblesSource)
+    val (script, includeURLs) = resolveIncludes(resolvedPreamblesSource)
 
-    val script = Script(scriptFile)
+    val scriptText = script.lines.joinToString("\n")
+    val scriptFile = appDir.cache.scriplet(scriptText, script.extension).toFile()
 
     // Find all //DEPS directives and concatenate their values
     val dependencies = script.collectDependencies().distinct()
@@ -192,9 +187,7 @@ fun main(args: Array<String>) {
 
     // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
     // For valid characters see https://stackoverflow.com/questions/4814040/allowed-characters-in-filename
-    val className = scriptFile.nameWithoutExtension
-        .replace("[^A-Za-z0-9]".toRegex(), "_")
-        .capitalize()
+    val className = scriptFile.nameWithoutExtension.replace("[^A-Za-z0-9]".toRegex(), "_").capitalize()
         // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
         .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_" + it else it }
 
@@ -238,7 +231,8 @@ fun main(args: Array<String>) {
 
             val classReference = (script.pckg ?: "") + className
 
-            mainKotlin.writeText("""
+            mainKotlin.writeText(
+                """
             class Main_${className}{
                 companion object {
                     @JvmStatic
@@ -248,14 +242,16 @@ fun main(args: Array<String>) {
                     }
                 }
             }
-            """.trimIndent())
+            """.trimIndent()
+            )
 
             "'${mainKotlin.absolutePath}'"
         } else {
             ""
         }
 
-        val scriptCompileResult = evalBash("kotlinc ${compilerOpts} ${optionalCpArg} -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}' ${wrapperSrcArg}")
+        val scriptCompileResult =
+            evalBash("kotlinc ${compilerOpts} ${optionalCpArg} -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}' ${wrapperSrcArg}")
         with(scriptCompileResult) {
             errorIf(exitCode != 0) { "compilation of '$scriptResource' failed\n$stderr" }
         }
@@ -278,10 +274,10 @@ fun main(args: Array<String>) {
         quit(0)
     }
 
-    var extClassPath = "${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar"
+    var extClassPath =
+        "${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar"
 
-    if (classpath.isNotEmpty())
-        extClassPath += CP_SEPARATOR_CHAR + classpath
+    if (classpath.isNotEmpty()) extClassPath += CP_SEPARATOR_CHAR + classpath
 
     println("kotlin ${kotlinOpts} -classpath \"${extClassPath}\" ${execClassName} ${joinedUserArgs} ")
 }
@@ -303,13 +299,15 @@ private fun versionCheck() {
         return // skip version check here, since the use has no connection to the internet at the moment
     }
 
-    fun padVersion(version: String) = try{
+    fun padVersion(version: String) = try {
         var versionNumbers = version.split(".").map { Integer.valueOf(it) }
         // adjust versions without a patch-release
-        while(versionNumbers.size!=3){ versionNumbers = versionNumbers + 0 }
+        while (versionNumbers.size != 3) {
+            versionNumbers = versionNumbers + 0
+        }
 
         java.lang.String.format("%03d%03d%03d", *versionNumbers.toTypedArray())
-    }catch(e: MissingFormatArgumentException){
+    } catch (e: MissingFormatArgumentException) {
         throw IllegalArgumentException("Could not pad version $version", e)
     }
 
