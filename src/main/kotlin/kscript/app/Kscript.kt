@@ -85,7 +85,7 @@ fun main(args: Array<String>) {
         quit(0)
     }
 
-    // note: with current impt we still don't support `kscript -1` where "-1" is a valid kotlin expression
+    // note: with current implementation we still don't support `kscript -1` where "-1" is a valid kotlin expression
     val userArgs = args.dropWhile { it.startsWith("-") && it != "-" }.drop(1)
     val kscriptArgs = args.take(args.size - userArgs.size)
 
@@ -93,32 +93,38 @@ fun main(args: Array<String>) {
     val loggingEnabled = !docopt.getBoolean("silent")
 
 
+    // optionally clear up the jar cache
+    if (docopt.getBoolean("clear-cache")) {
+        info("Cleaning up cache...")
+        KSCRIPT_CACHE_DIR.listFiles()?.forEach { it.delete() }
+        quit(0)
+    }
+
     // create cache dir if it does not yet exist
     if (!KSCRIPT_CACHE_DIR.isDirectory) {
         KSCRIPT_CACHE_DIR.mkdir()
     }
 
-    // optionally clear up the jar cache
-    if (docopt.getBoolean("clear-cache")) {
-        info("Cleaning up cache...")
-        KSCRIPT_CACHE_DIR.listFiles().forEach { it.delete() }
-        //        evalBash("rm -f ${KSCRIPT_CACHE_DIR}/*")
-        quit(0)
-    }
-
     // Resolve the script resource argument into an actual file
     val scriptResource = docopt.getString("script")
 
-    val enableSupportApi = docopt.getBoolean("text")
-    val (rawScript, includeContext) = prepareScript(scriptResource)
+    val (rawUri, includeContext) = prepareScript(scriptResource)
 
     if (docopt.getBoolean("add-bootstrap-header")) {
+        errorIf(!isFile(rawUri)) {
+            "Can not add bootstrap header to URL resources: $rawUri"
+        }
+
+        val rawScript = File(rawUri)
+
         errorIf(!rawScript.canWrite()) {
             "Script file not writable: $rawScript"
         }
+
         errorIf(rawScript.parentFile == SCRIPT_TEMP_DIR) {
             "Temporary script file detected: $rawScript, created from $scriptResource"
         }
+
         val scriptLines = rawScript.readLines().dropWhile {
             it.startsWith("#!/") && it != "#!/bin/bash"
         }
@@ -140,17 +146,17 @@ fun main(args: Array<String>) {
         quit(0)
     }
 
+    val enableSupportApi = docopt.getBoolean("text")
+
     // post process script (text-processing mode, custom dsl preamble, resolve includes)
     // and finally resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
-    val (scriptFile, includeURLs) = resolveIncludes(resolvePreambles(rawScript, enableSupportApi), includeContext)
-
+    val (scriptFile, includeURLs) = resolveIncludes(resolvePreambles(rawUri, enableSupportApi), includeContext)
 
     val script = Script(scriptFile)
 
-
     // Find all //DEPS directives and concatenate their values
-    val dependencies = (script.collectDependencies() + Script(rawScript).collectDependencies()).distinct()
-    val customRepos = (script.collectRepos() + Script(rawScript).collectRepos()).distinct()
+    val dependencies = script.collectDependencies().distinct()
+    val customRepos = script.collectRepos().distinct()
 
     // Extract kotlin arguments
     val kotlinOpts = script.collectRuntimeOptions()
@@ -158,7 +164,7 @@ fun main(args: Array<String>) {
 
     //  Create temporary dev environment
     if (docopt.getBoolean("idea")) {
-        println(launchIdeaWithKscriptlet(rawScript, userArgs, dependencies, customRepos, includeURLs, compilerOpts))
+        println(launchIdeaWithKscriptlet(scriptFile, userArgs, dependencies, customRepos, includeURLs, compilerOpts))
         exitProcess(0)
     }
 
@@ -283,6 +289,7 @@ fun main(args: Array<String>) {
     }
 
     var extClassPath = "${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar"
+
     if (classpath.isNotEmpty())
         extClassPath += CP_SEPARATOR_CHAR + classpath
 
@@ -321,8 +328,7 @@ private fun versionCheck() {
     }
 }
 
-
-fun prepareScript(scriptResource: String): Pair<File, URI> {
+fun prepareScript(scriptResource: String): Pair<URI, URI> {
     var scriptFile: File?
 
     // we need to keep track of the scripts dir or the working dir in case of stdin script to correctly resolve includes
@@ -382,13 +388,16 @@ fun prepareScript(scriptResource: String): Pair<File, URI> {
 
     // note script file must be not null at this point
 
-    return Pair(scriptFile!!, includeContext)
+    return Pair(scriptFile!!.toURI(), includeContext)
 }
 
+private fun resolvePreambles(rawUri: URI, enableSupportApi: Boolean): URI {
+    if (!isFile(rawUri)) {
+        return rawUri
+    }
 
-private fun resolvePreambles(rawScript: File, enableSupportApi: Boolean): File {
     // include preamble for custom interpreters (see https://github.com/holgerbrandl/kscript/issues/67)
-    var scriptFile = rawScript
+    var scriptFile = File(rawUri)
 
     System.getenv("CUSTOM_KSCRIPT_PREAMBLE")?.let { interpPreamble ->
         //        rawScript = Script(rawScript!!).prependWith(interpPreamble).createTmpScript()
@@ -416,9 +425,6 @@ private fun resolvePreambles(rawScript: File, enableSupportApi: Boolean): File {
 
         scriptFile = Script(scriptFile).prependWith("//INCLUDE ${preambleFile.absolutePath}").createTmpScript()
     }
-    return scriptFile
+
+    return scriptFile.toURI()
 }
-
-
-private fun postProcessScript(inputFile: File?, includeContext: URI): IncludeResult =
-    resolveIncludes(inputFile!!, includeContext)

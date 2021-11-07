@@ -7,7 +7,7 @@ data class Script(val lines: List<String>, val extension: String = "kts") : Iter
 
     constructor(scriptFile: File) : this(scriptFile.readLines(), scriptFile.extension)
 
-    /** Returns a the namespace/package of the script (if declared). */
+    /** Returns a namespace/package of the script (if declared). */
     val pckg by lazy {
         lines.find { it.startsWith("package ") }?.split("[ ]+".toRegex())?.get(1)?.run { this + "." }
     }

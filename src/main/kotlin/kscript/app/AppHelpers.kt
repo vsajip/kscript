@@ -2,6 +2,7 @@ package kscript.app
 
 import kscript.app.ShellUtils.requireInPath
 import java.io.*
+import java.net.URI
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -135,6 +136,10 @@ fun createTmpScript(scriptText: String, extension: String = "kts"): File {
     }
 }
 
+fun isFile(uri: URI) = uri.scheme.startsWith("file")
+fun isUrl(uri: URI) = uri.scheme.startsWith("http") || uri.scheme.startsWith("https")
+
+fun isUrl(scriptResource: String) = scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
 
 fun fetchFromURL(scriptURL: String): File {
     val urlHash = md5(scriptURL)
@@ -155,6 +160,24 @@ fun fetchFromURL(scriptURL: String): File {
     }
 
     return urlCache
+}
+
+fun fetchFromURI(scriptURI: URI): List<String> {
+    if (isFile(scriptURI)) {
+        return scriptURI.toURL().readText().lines()
+    }
+
+    val urlHash = md5(scriptURI.toString())
+    val urlCache = File(KSCRIPT_CACHE_DIR, "/url_cache_${urlHash}")
+
+    if (urlCache.exists()) {
+        return urlCache.readText().lines()
+    }
+
+    val urlContent = scriptURI.toURL().readText()
+    urlCache.writeText(urlContent)
+
+    return urlContent.lines()
 }
 
 
