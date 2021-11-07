@@ -70,6 +70,9 @@ export PATH=`echo ${PATH} | awk -v RS=: -v ORS=: '/kscript/ {next} {print}'`
 
 For more examples see https://github.com/lehmannro/assert.sh/blob/master/tests.sh
 
+## Bootstrap Header Testing
+
+See [Test Protocol for Bootstrap Header](../misc/bootstrap_tester/README.md)
 
 ## Tests for dynamic dependencies
 
