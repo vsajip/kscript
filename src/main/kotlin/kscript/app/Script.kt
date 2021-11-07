@@ -145,7 +145,7 @@ private fun String.extractAnnotParams(): List<String> {
     // fail if any argument is a comma separated list of artifacts (see #101)
     annotationArgs.filter { it.contains(",[^)]".toRegex()) }.let {
         errorIf(it.isNotEmpty()) {
-            "Artifact locators must be provided as separate annotation arguments and not as comma-separated list: " + it
+            "Artifact locators must be provided as separate annotation arguments and not as comma-separated list: $it"
         }
     }
 

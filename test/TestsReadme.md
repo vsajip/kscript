@@ -1,15 +1,6 @@
 ## How to run the unit-tests?
 
-#### 1. Install assert.sh
-We use https://github.com/lehmannro/assert.sh for the tests.
-
-```bash
-cd ~/bin
-wget https://raw.githubusercontent.com/lehmannro/assert.sh/master/assert.sh
-chmod u+x assert.sh
-```
-
-#### 2. Install sdkman
+#### 1. Install sdkman
 SdkMan https://sdkman.io/ is a nice package manager which makes it easy to install software development tools.
 
 
@@ -17,7 +8,7 @@ SdkMan https://sdkman.io/ is a nice package manager which makes it easy to insta
 curl -s "https://get.sdkman.io" | bash
 ```
 
-#### 3. Install java, kotlin and gradle
+#### 2. Install java, kotlin and gradle
 
 ```bash
 sdk install java 11.0.2-open
@@ -25,11 +16,11 @@ sdk install kotlin 1.5.31
 sdk install gradle 7.2
 ```
 
-#### 4. Clone repository
+#### 3. Clone repository
 Put the cloned repository into $DIR directory.
 
 
-#### 5. Run test suite
+#### 4. Run test suite
 To run the tests, just run the [`test_suite.sh`](test_suite.sh)
 
 ```bash
@@ -37,7 +28,7 @@ cd $DIR/test
 ./test_suite.sh
 ```
 
-#### 6. Check if all tests passed...
+#### 5. Check if all tests passed...
 
 ---
 Useful commands:

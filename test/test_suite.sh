@@ -2,16 +2,48 @@
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_DIR=$(realpath "$SCRIPT_DIR/../")
+KSCRIPT_EXEC_DIR="$PROJECT_DIR/build/libs"
 
 echo "Starting KScript test suite..."
-echo "Script dir : $SCRIPT_DIR"
-echo "Project dir: $PROJECT_DIR"
+echo "Script dir :        $SCRIPT_DIR"
+echo "Project dir:        $PROJECT_DIR"
+echo "KScript exec dir:   $KSCRIPT_EXEC_DIR"
 echo
 
+########################################################################################################################
+SUITE="JUnit"
+echo
+echo "Starting $SUITE test suite... Compiling... Please wait..."
+
+#cd $PROJECT_DIR
+#./gradlew build
+#status=$?
+#cd -
+
+status=0
+if [[ "$status" -ne "0" ]]; then
+  echo
+  echo "KScript build terminated with invalid exit code $status..."
+  exit 1
+fi
+
+echo "$SUITE test suite successfully accomplished."
+
+########################################################################################################################
+echo
+echo "Configuring KScript for further testing..."
+
+export PATH=$KSCRIPT_EXEC_DIR:$PATH
+echo  "KScript path for testing: $(which kscript)"
+
+if [[ ! -f "$KSCRIPT_EXEC_DIR/assert.sh" ]]; then
+  echo "Installing assert.sh"
+  wget --quiet -O "$KSCRIPT_EXEC_DIR/assert.sh" https://raw.githubusercontent.com/lehmannro/assert.sh/master/assert.sh
+  chmod u+x "$KSCRIPT_EXEC_DIR/assert.sh"
+fi
+
 export DEBUG="--verbose"
-
 . assert.sh
-
 
 ## define test helper, see https://github.com/lehmannro/assert.sh/issues/24
 assert_statement(){
@@ -31,28 +63,7 @@ assert_stderr(){
 #http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
 export NL=$'\n'
 
-########################################################################################################################
-echo
 kscript --clear-cache
-
-########################################################################################################################
-SUITE="JUnit"
-echo
-echo "Starting $SUITE test suite... Compiling... Please wait..."
-
-# exit code of `true` is expected to be 0 (see https://github.com/lehmannro/assert.sh)
-cd "$PROJECT_DIR"
-assert_raises "./gradlew build"
-cd -
-
-assert_end "$SUITE"
-
-########################################################################################################################
-echo
-echo "Configuring KScript for further testing..."
-
-export PATH=${PROJECT_DIR}/build/libs:$PATH
-echo  "KScript path for testing: $(which kscript)"
 
 # Fake idea binary... Maybe good idea to use it instead of real idea binary?
 #echo "#!/usr/bin/env bash" > "${PROJECT_DIR}/build/libs/idea"
@@ -104,7 +115,7 @@ assert "kscript ${PROJECT_DIR}/test/resources/dot.Test.kts" "dot alarm!"
 
 ## missing script
 assert_raises "kscript i_do_not_exist.kts" 1
-assert "kscript i_do_not_exist.kts 2>&1" "[kscript] [ERROR] Could not read script argument 'i_do_not_exist.kts'"
+assert "kscript i_do_not_exist.kts 2>&1" "[kscript] [ERROR] Could not read script from 'i_do_not_exist.kts'"
 
 ## make sure that it runs with remote URLs
 assert "kscript https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/url_test.kts" "I came from the internet"
@@ -197,10 +208,7 @@ assert "kscript ${PROJECT_DIR}/test/resources/depends_on_dynamic.kts" "dynamic k
 
 # make sure that @file:MavenRepository is parsed correctly
 assert "kscript ${PROJECT_DIR}/test/resources/custom_mvn_repo_annot.kts" "kscript with annotations rocks!"
-
-
 assert_stderr "kscript ${PROJECT_DIR}/test/resources/illegal_depends_on_arg.kts" '[kscript] [ERROR] Artifact locators must be provided as separate annotation arguments and not as comma-separated list: [com.squareup.moshi:moshi:1.5.0,com.squareup.moshi:moshi-adapters:1.5.0]'
-
 
 # make sure that @file:MavenRepository is parsed correctly
 assert "kscript ${PROJECT_DIR}/test/resources/script_with_compile_flags.kts" "hoo_ray"

@@ -1,5 +1,6 @@
 package kscript.app
 
+import kscript.app.Logger.errorMsg
 import java.io.File
 import java.net.URI
 import java.net.URL

@@ -6,9 +6,11 @@ import java.io.FileInputStream
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
+import java.util.*
 
 
 class ScriptSourceResolver(private val appDir: AppDir) {
+    private val kotlinExtensions = listOf("kts", "kt")
 
 //    fun resolveFromInclude(include: String): ScriptSource {
 //
@@ -45,7 +47,11 @@ class ScriptSourceResolver(private val appDir: AppDir) {
             val includeContext = File(".").toURI()
             val scriptText = generateSequence { readLine() }.joinToString("\n")
             return ScriptSource(
-                SourceType.STD_INPUT, resolveScriptType(scriptText), includeContext, null, scriptText
+                SourceType.STD_INPUT,
+                resolveScriptType(scriptText),
+                includeContext,
+                null,
+                scriptText
             )
         }
 
@@ -55,57 +61,56 @@ class ScriptSourceResolver(private val appDir: AppDir) {
             val resolvedUri = resolveRedirects(url).toURI()
             val includeContext = resolvedUri.resolve(".")
             return ScriptSource(
-                SourceType.HTTP, resolveScriptType(resolvedUri), includeContext, resolvedUri, appDir.cache.code(url)
+                SourceType.HTTP,
+                resolveScriptType(resolvedUri),
+                includeContext,
+                resolvedUri,
+                appDir.cache.code(url)
             )
         }
 
-        //Is it a file?
-        if (isRegularFile(string)) {
-            val uri = File(string).toURI()
+        val file = File(string)
+        if (file.canRead()) {
+            val uri = file.toURI()
             val includeContext = uri.resolve(".")
-            return ScriptSource(SourceType.FILE, resolveScriptType(uri), includeContext, uri, uri.toURL().readText())
+
+            if (kotlinExtensions.contains(file.extension)) {
+                //Regular file
+                return ScriptSource(
+                    SourceType.FILE,
+                    resolveScriptType(uri),
+                    includeContext,
+                    uri,
+                    uri.toURL().readText()
+                )
+            } else {
+                //If script input is a process substitution file handle we can not use for content reading:
+                //FileInputStream(this).bufferedReader().use{ readText() } nor readText()
+                val scriptText = FileInputStream(file).bufferedReader().readText()
+                return ScriptSource(
+                    SourceType.OTHER_FILE,
+                    resolveScriptType(scriptText),
+                    includeContext,
+                    uri,
+                    scriptText
+                )
+            }
         }
 
-        //Is it some other file?
-        //If script input is a process substitution file handle we can not use for content reading:
-        //FileInputStream(this).bufferedReader().use{ readText() } nor readText()
-        if (isOtherFile(string)) {
-            val file = File(string)
-            val includeContext = file.toURI().resolve(".")
-            val scriptText = FileInputStream(file).bufferedReader().readText()
-            return ScriptSource(
-                SourceType.OTHER_FILE, resolveScriptType(scriptText), includeContext, file.toURI(), scriptText
-            )
+        errorIf(kotlinExtensions.contains(file.extension)) {
+            "Could not read script from '$string'"
         }
 
         //As a last resort we assume that input is a Kotlin program...
         val includeContext = File(".").toURI()
-        return ScriptSource(SourceType.PARAMETER, resolveScriptType(string), includeContext, null, string.trim())
+        return ScriptSource(
+            SourceType.PARAMETER, resolveScriptType(string), includeContext, null, string
+        )
     }
 
     private fun isUrl(string: String): Boolean {
-        val normalizedString = string.toLowerCase().trim()
+        val normalizedString = string.lowercase(Locale.getDefault()).trim()
         return normalizedString.startsWith("http://") || normalizedString.startsWith("https://")
-    }
-
-    private fun isRegularFile(string: String): Boolean {
-        val file = File(string)
-
-        if (file.canRead() && listOf("kts", "kt").contains(file.extension)) {
-            return true
-        }
-
-        return false
-    }
-
-    private fun isOtherFile(string: String): Boolean {
-        val file = File(string)
-
-        if (file.canRead() && !listOf("kts", "kt").contains(file.extension)) {
-            return true
-        }
-
-        return false
     }
 
     private fun resolveRedirects(url: URL): URL {
@@ -122,7 +127,7 @@ class ScriptSourceResolver(private val appDir: AppDir) {
     }
 
     private fun resolveScriptType(uri: URI): ScriptType {
-        val path = uri.path.toLowerCase()
+        val path = uri.path.lowercase(Locale.getDefault())
 
         when {
             path.endsWith(".kt") -> return ScriptType.KT
@@ -136,23 +141,5 @@ class ScriptSourceResolver(private val appDir: AppDir) {
 
     private fun resolveScriptType(code: String): ScriptType {
         return if (code.contains("fun main")) ScriptType.KT else ScriptType.KTS
-    }
-
-    private fun fetchContentFromURI(scriptURI: URI): List<String> {
-        if (isRegularFile(scriptURI)) {
-            return scriptURI.toURL().readText().lines()
-        }
-
-        val urlHash = md5(scriptURI.toString())
-        val urlCache = File(KSCRIPT_DIR, "/url_cache_${urlHash}")
-
-        if (urlCache.exists()) {
-            return urlCache.readText().lines()
-        }
-
-        val urlContent = scriptURI.toURL().readText()
-        urlCache.writeText(urlContent)
-
-        return urlContent.lines()
     }
 }

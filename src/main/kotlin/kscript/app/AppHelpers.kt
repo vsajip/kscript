@@ -1,5 +1,7 @@
 package kscript.app
 
+import kscript.app.Logger.errorMsg
+import kscript.app.Logger.infoMsg
 import kscript.app.ShellUtils.requireInPath
 import java.io.*
 import java.math.BigInteger
@@ -8,6 +10,7 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.MessageDigest
+import java.util.*
 import java.util.function.Consumer
 import kotlin.system.exitProcess
 
@@ -97,19 +100,6 @@ object ShellUtils {
 
 }
 
-
-fun info(msg: String) = System.err.println(msg)
-
-
-fun infoMsg(msg: String) = System.err.println("[kscript] " + msg)
-
-
-fun warnMsg(msg: String) = System.err.println("[kscript] [WARN] " + msg)
-
-
-fun errorMsg(msg: String) = System.err.println("[kscript] [ERROR] " + msg)
-
-
 fun errorIf(value: Boolean, lazyMessage: () -> Any) {
     if (value) {
         errorMsg(lazyMessage().toString())
@@ -132,9 +122,6 @@ fun guessKotlinHome(): String? {
 
 
 fun isRegularFile(uri: URI) = uri.scheme.startsWith("file")
-fun isUrl(uri: URI) = uri.scheme.startsWith("http") || uri.scheme.startsWith("https")
-
-fun isUrl(scriptResource: String) = scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
 
 fun fetchFromURL(scriptURL: String): File {
     val urlHash = md5(scriptURL)
@@ -174,7 +161,7 @@ fun md5(byteProvider: () -> ByteArray): String {
     //    md.update(byteProvider())
     //    val digestInHex = DatatypeConverter.printHexBinary(md.digest()).toLowerCase()
 
-    val digestInHex = bytesToHex(md.digest()).toLowerCase()
+    val digestInHex = bytesToHex(md.digest()).lowercase(Locale.getDefault())
 
     return digestInHex.substring(0, 16)
 }

@@ -1,5 +1,7 @@
 package kscript.app
 
+import kscript.app.Logger.info
+import kscript.app.Logger.infoMsg
 import kscript.app.ShellUtils.requireInPath
 import kscript.app.appdir.AppDir
 import org.docopt.DocOptWrapper
@@ -88,7 +90,10 @@ fun main(args: Array<String>) {
     val kscriptArgs = args.take(args.size - userArgs.size)
 
     val docopt = DocOptWrapper(kscriptArgs, USAGE)
-    val loggingEnabled = !docopt.getBoolean("silent")
+
+    if (docopt.getBoolean("silent")) {
+        Logger.silentMode = true
+    }
 
     // create kscript dir if it does not yet exist
     val appDir = AppDir(Paths.get(KSCRIPT_DIR))
@@ -118,14 +123,11 @@ fun main(args: Array<String>) {
         errorIf(scriptLines.getOrNull(0) == BOOTSTRAP_HEADER[0] && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it }) {
             val lastHeaderLine = BOOTSTRAP_HEADER.findLast { it.isNotBlank() }!!
             val preexistingHeader = scriptLines.dropLastWhile { it != lastHeaderLine }.joinToString("\n")
-            "Bootstrap header already detected:\n\n$preexistingHeader\n\n" + "You can remove it to force the re-generation"
+            "Bootstrap header already detected:\n\n$preexistingHeader\n\nYou can remove it to force the re-generation"
         }
 
         File(scriptSource.sourceUri!!).writeText((BOOTSTRAP_HEADER + scriptLines).joinToString("\n"))
-
-        if (loggingEnabled) {
-            info("${scriptSource.sourceUri} updated")
-        }
+        infoMsg("${scriptSource.sourceUri} updated")
         quit(0)
     }
 
@@ -153,7 +155,7 @@ fun main(args: Array<String>) {
         exitProcess(0)
     }
 
-    val classpath = resolveDependencies(dependencies, customRepos, loggingEnabled) ?: ""
+    val classpath = resolveDependencies(dependencies, customRepos) ?: ""
     val optionalCpArg = if (classpath.isNotEmpty()) "-classpath '${classpath}'" else ""
 
     //  Optionally enter interactive mode
@@ -177,7 +179,6 @@ fun main(args: Array<String>) {
     errorIf(entryDirective != null && scriptFileExt == "kts") {
         "@Entry directive is just supported for kt class files"
     }
-
 
     val jarFile = if (scriptFile.nameWithoutExtension.endsWith(scriptCheckSum)) {
         File(KSCRIPT_DIR, scriptFile.nameWithoutExtension + ".jar")

@@ -1,7 +1,10 @@
 package kscript.app
 
 import kotlinx.coroutines.runBlocking
+import kscript.app.Logger.errorMsg
+import kscript.app.Logger.infoMsg
 import java.io.File
+import java.util.*
 import kotlin.script.experimental.api.valueOrThrow
 import kotlin.script.experimental.dependencies.CompoundDependenciesResolver
 import kotlin.script.experimental.dependencies.FileSystemDependenciesResolver
@@ -11,10 +14,11 @@ import kotlin.script.experimental.dependencies.maven.MavenRepositoryCoordinates
 
 val DEP_LOOKUP_CACHE_FILE = File(KSCRIPT_DIR, "dependency_cache.txt")
 
-val CP_SEPARATOR_CHAR = if (System.getProperty("os.name").toLowerCase().contains("windows")) ";" else ":"
+val CP_SEPARATOR_CHAR =
+    if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("windows")) ";" else ":"
 
 
-fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emptyList(), loggingEnabled: Boolean): String? {
+fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emptyList()): String? {
 
     // if no dependencies were provided we stop here
     if (depIds.isEmpty()) {
@@ -44,17 +48,16 @@ fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emp
         }
     }
 
-
-    if (loggingEnabled) infoMsg("Resolving dependencies...")
+    infoMsg("Resolving dependencies...")
 
     try {
-        val artifacts = resolveDependenciesViaKotlin(depIds, customRepos, loggingEnabled)
+        val artifacts = resolveDependenciesViaKotlin(depIds, customRepos)
         val classPath = artifacts.map { it.absolutePath }.joinToString(CP_SEPARATOR_CHAR)
 
-        if (loggingEnabled) infoMsg("Dependencies resolved")
+        infoMsg("Dependencies resolved")
 
         // Add classpath to cache
-        DEP_LOOKUP_CACHE_FILE.appendText(depsHash + " " + classPath + "\n")
+        DEP_LOOKUP_CACHE_FILE.appendText("$depsHash $classPath\n")
 
         // Print the classpath
         return classPath
@@ -80,7 +83,7 @@ fun decodeEnv(value: String): String {
     }
 }
 
-fun resolveDependenciesViaKotlin(depIds: List<String>, customRepos: List<MavenRepo>, loggingEnabled: Boolean): List<File> {
+fun resolveDependenciesViaKotlin(depIds: List<String>, customRepos: List<MavenRepo>): List<File> {
 
     // validate dependencies
     depIds.map { depIdToArtifact(it) }
@@ -97,7 +100,7 @@ fun resolveDependenciesViaKotlin(depIds: List<String>, customRepos: List<MavenRe
 
     val resolvedDependencies = runBlocking {
         depIds.map {
-            if (loggingEnabled) System.err.println("[kscript] Resolving $it...")
+            infoMsg("Resolving $it...")
             resolver.resolve(it)
         }.map { it.valueOrThrow() }
     }.flatten()
@@ -139,6 +142,7 @@ fun formatVersion(version: String): String {
 object DependencyUtil {
     @JvmStatic
     fun main(args: Array<String>) {
-        System.err.println(resolveDependencies(args.toList(), loggingEnabled = false))
+        Logger.silentMode = true
+        System.err.println(resolveDependencies(args.toList()))
     }
 }
