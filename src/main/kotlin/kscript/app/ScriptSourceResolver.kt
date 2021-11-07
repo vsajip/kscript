@@ -109,7 +109,7 @@ class ScriptSourceResolver(private val appDir: AppDir) {
     }
 
     private fun isUrl(string: String): Boolean {
-        val normalizedString = string.lowercase(Locale.getDefault()).trim()
+        val normalizedString = string.toLowerCase().trim()
         return normalizedString.startsWith("http://") || normalizedString.startsWith("https://")
     }
 
@@ -127,7 +127,7 @@ class ScriptSourceResolver(private val appDir: AppDir) {
     }
 
     private fun resolveScriptType(uri: URI): ScriptType {
-        val path = uri.path.lowercase(Locale.getDefault())
+        val path = uri.path.toLowerCase()
 
         when {
             path.endsWith(".kt") -> return ScriptType.KT

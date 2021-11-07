@@ -15,7 +15,7 @@ import kotlin.script.experimental.dependencies.maven.MavenRepositoryCoordinates
 val DEP_LOOKUP_CACHE_FILE = File(KSCRIPT_DIR, "dependency_cache.txt")
 
 val CP_SEPARATOR_CHAR =
-    if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("windows")) ";" else ":"
+    if (System.getProperty("os.name").toLowerCase().contains("windows")) ";" else ":"
 
 
 fun resolveDependencies(depIds: List<String>, customRepos: List<MavenRepo> = emptyList()): String? {

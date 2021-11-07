@@ -15,12 +15,11 @@ SUITE="JUnit"
 echo
 echo "Starting $SUITE test suite... Compiling... Please wait..."
 
-#cd $PROJECT_DIR
-#./gradlew build
-#status=$?
-#cd -
+cd $PROJECT_DIR
+./gradlew build
+status=$?
+cd -
 
-status=0
 if [[ "$status" -ne "0" ]]; then
   echo
   echo "KScript build terminated with invalid exit code $status..."

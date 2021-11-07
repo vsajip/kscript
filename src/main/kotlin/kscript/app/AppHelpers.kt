@@ -161,7 +161,7 @@ fun md5(byteProvider: () -> ByteArray): String {
     //    md.update(byteProvider())
     //    val digestInHex = DatatypeConverter.printHexBinary(md.digest()).toLowerCase()
 
-    val digestInHex = bytesToHex(md.digest()).lowercase(Locale.getDefault())
+    val digestInHex = bytesToHex(md.digest()).toLowerCase()
 
     return digestInHex.substring(0, 16)
 }
