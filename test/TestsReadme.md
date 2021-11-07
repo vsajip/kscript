@@ -48,7 +48,8 @@ Useful commands:
 #git clone https://github.com/holgerbrandl/kscript ; export KSCRIPT_HOME=$(pwd)/kscript
 
 #export KSCRIPT_HOME="/Users/brandl/projects/kotlin/kscript"
-export KSCRIPT_HOME="/mnt/hgfs/sharedDB/db_projects/kscript"
+#export KSCRIPT_HOME="/mnt/hgfs/sharedDB/db_projects/kscript"
+export KSCRIPT_HOME="/mnt/hgfs/d_data/projects/misc/kscript"
 #export KSCRIPT_HOME="/cygdrive/z/kscript"
 ## change into this/test directory
 
