@@ -19,13 +19,13 @@ data class IncludeResult(val scriptFile: Script, val includes: List<URL> = empty
 /** Resolve include declarations in a script file. Resolved script will be put into another temporary script */
 fun resolveIncludes(scriptSource: ScriptSource): IncludeResult {
     val includes = mutableListOf<URI>()
-    val lines = resolve(scriptSource.sourceType != SourceType.HTTP, scriptSource.codeText, scriptSource.includeContext, includes)
+    val lines = resolveInternal(scriptSource.sourceType != SourceType.HTTP, scriptSource.codeText, scriptSource.includeContext, includes)
     val script = Script(lines, if (scriptSource.scriptType == ScriptType.KTS) "kts" else "kt")
 
     return IncludeResult(script.consolidateStructure(), includes.map { it.toURL() })
 }
 
-private fun resolve(allowFileReferences: Boolean, codeText: String, includeContext: URI, includes: MutableList<URI>): List<String> {
+private fun resolveInternal(allowFileReferences: Boolean, codeText: String, includeContext: URI, includes: MutableList<URI>): List<String> {
     val lines = codeText.lines()
     val result = mutableListOf<String>()
 
@@ -48,7 +48,7 @@ private fun resolve(allowFileReferences: Boolean, codeText: String, includeConte
             includes.add(includeUri)
 
 
-            val resolvedLines = resolve(allowFileReferences && isRegularFile(includeUri), readLines(includeUri), includeUri.resolve("."), includes)
+            val resolvedLines = resolveInternal(allowFileReferences && isRegularFile(includeUri), readLines(includeUri), includeUri.resolve("."), includes)
             result.addAll(resolvedLines)
             continue
         }

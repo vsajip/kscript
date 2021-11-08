@@ -6,10 +6,10 @@ object Logger {
     fun info(msg: String) = System.err.println(msg)
 
     fun infoMsg(msg: String) {
-        if (!silentMode) System.err.println("[kscript] " + msg)
+        if (!silentMode) System.err.println("[kscript] $msg")
     }
 
-    fun warnMsg(msg: String) = System.err.println("[kscript] [WARN] " + msg)
+    fun warnMsg(msg: String) = System.err.println("[kscript] [WARN] $msg")
 
-    fun errorMsg(msg: String) = System.err.println("[kscript] [ERROR] " + msg)
+    fun errorMsg(msg: String) = System.err.println("[kscript] [ERROR] $msg")
 }

@@ -1,6 +1,7 @@
 package kscript.app
 
 import kscript.app.appdir.AppDir
+import kscript.app.code.Scriptlets.textProcessingPreamble
 import java.io.File
 import java.io.FileInputStream
 import java.net.HttpURLConnection
@@ -26,15 +27,7 @@ class ScriptSourceResolver(private val appDir: AppDir) {
 
         // prefix with text-processing preamble if kscript-support api is enabled
         if (enableSupportApi) {
-            val textProcPreamble = """
-            //DEPS com.github.holgerbrandl:kscript-support-api:1.2.5
-
-            import kscript.text.*
-            val lines = resolveArgFile(args)
-
-            """.trimIndent()
-
-            codeText = textProcPreamble + "\n" + codeText
+            codeText = textProcessingPreamble + "\n" + codeText
         }
 
         return scriptSource.copy(codeText = codeText)

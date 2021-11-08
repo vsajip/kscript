@@ -1,11 +1,12 @@
 package kscript.app
 
+import kscript.app.Logger.errorMsg
 import kscript.app.Logger.info
 import kscript.app.Logger.infoMsg
 import kscript.app.ShellUtils.requireInPath
 import kscript.app.appdir.AppDir
+import kscript.app.code.Scriptlets
 import org.docopt.DocOptWrapper
-import org.intellij.lang.annotations.Language
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -57,22 +58,7 @@ Website   : https://github.com/holgerbrandl/kscript
 // see https://stackoverflow.com/questions/585534/what-is-the-best-way-to-find-the-users-home-directory-in-java
 // See #146 "allow kscript cache dir to be configurable" for details
 val KSCRIPT_DIR = System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript")
-
-// use lazy here prevent empty dirs for regular scripts https://github.com/holgerbrandl/kscript/issues/130
-val customPreamble: String? = System.getenv("CUSTOM_KSCRIPT_PREAMBLE")
-
-@Language("sh")
-private val BOOTSTRAP_HEADER = """
-    #!/bin/bash
-
-    //usr/bin/env echo '
-    /**** BOOTSTRAP kscript ****\'>/dev/null
-    command -v kscript >/dev/null 2>&1 || curl -L "https://git.io/fpF1K" | bash 1>&2
-    exec kscript $0 "$@"
-    \*** IMPORTANT: Any code including imports and annotations must come after this line ***/
-
-    """.trimIndent().lines()
-
+val customPreamble: String?  = System.getenv("CUSTOM_KSCRIPT_PREAMBLE")
 
 fun main(args: Array<String>) {
     // skip org.docopt for version and help to allow for lazy version-check
@@ -112,21 +98,24 @@ fun main(args: Array<String>) {
     val scriptSource = scriptSourceResolver.resolveFromInput(scriptResource)
 
     if (docopt.getBoolean("add-bootstrap-header")) {
-        errorIf(scriptSource.sourceType != SourceType.FILE) {
-            "Can not add bootstrap header to resources, which are not regular Kotlin files."
+        if (scriptSource.sourceType != SourceType.FILE) {
+            errorMsg("Can not add bootstrap header to resources, which are not regular Kotlin files.".toString())
+            quit(1)
         }
 
         val scriptLines = scriptSource.codeText.lines().dropWhile {
             it.startsWith("#!/") && it != "#!/bin/bash"
         }
 
-        errorIf(scriptLines.getOrNull(0) == BOOTSTRAP_HEADER[0] && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it }) {
-            val lastHeaderLine = BOOTSTRAP_HEADER.findLast { it.isNotBlank() }!!
+        val bootstrapHeader = Scriptlets.bootstrapHeader.lines()
+        if (scriptLines.getOrNull(0) == bootstrapHeader[0] && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it }) {
+            val lastHeaderLine = bootstrapHeader.findLast { it.isNotBlank() }!!
             val preexistingHeader = scriptLines.dropLastWhile { it != lastHeaderLine }.joinToString("\n")
-            "Bootstrap header already detected:\n\n$preexistingHeader\n\nYou can remove it to force the re-generation"
+            errorMsg("Bootstrap header already detected:\n\n$preexistingHeader\n\nYou can remove it to force the re-generation")
+            quit(1)
         }
 
-        File(scriptSource.sourceUri!!).writeText((BOOTSTRAP_HEADER + scriptLines).joinToString("\n"))
+        File(scriptSource.sourceUri!!).writeText((bootstrapHeader + scriptLines).joinToString("\n"))
         infoMsg("${scriptSource.sourceUri} updated")
         quit(0)
     }
@@ -135,6 +124,15 @@ fun main(args: Array<String>) {
 
     // post process script (text-processing mode, custom dsl preamble, resolve includes)
     // and finally resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
+
+    // include preamble for custom interpreters (see https://github.com/holgerbrandl/kscript/issues/67)
+    // prefix with text-processing preamble if kscript-support api is enabled
+    val preambles = (if (enableSupportApi) Scriptlets.textProcessingPreamble else "") + (customPreamble ?: "")
+    val scriptNew = ScriptNewResolver(scriptSource, preambles).resolve()
+
+
+
+    //--------------------
     val resolvedPreamblesSource = scriptSourceResolver.resolvePreambles(scriptSource, customPreamble, enableSupportApi)
     val (script, includeURLs) = resolveIncludes(resolvedPreamblesSource)
 
@@ -228,7 +226,7 @@ fun main(args: Array<String>) {
         // create main-wrapper for kts scripts
 
         val wrapperSrcArg = if (scriptFileExt == "kts") {
-            val mainKotlin = File(createTempDir("kscript"), execClassName + ".kt")
+            val mainKotlin = File(createTempDir("kscript"), "$execClassName.kt")
 
             val classReference = (script.pckg ?: "") + className
 
