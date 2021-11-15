@@ -1,12 +1,10 @@
 package kscript.app.appdir
 
-import kscript.app.md5
 import org.apache.commons.codec.digest.DigestUtils.md5Hex
-import java.io.File
 import java.net.URL
 import java.nio.file.Path
 
-class CacheSubDir(private val path: Path) {
+class UrlCache(private val path: Path) {
     fun code(url: URL): String {
         val hash = md5Hex(url.toString())
         val cachedFile = path.resolve("url_cache_$hash").toFile()

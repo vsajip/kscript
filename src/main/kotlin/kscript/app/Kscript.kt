@@ -1,19 +1,20 @@
 package kscript.app
 
-import kscript.app.Logger.errorMsg
-import kscript.app.Logger.info
-import kscript.app.Logger.infoMsg
-import kscript.app.ShellUtils.requireInPath
+import kscript.app.ShellUtils.isInPath
 import kscript.app.appdir.AppDir
-import kscript.app.code.Scriptlets
+import kscript.app.code.Templates
+import kscript.app.model.Config
+import kscript.app.model.SourceType
+import kscript.app.resolver.Parser
+import kscript.app.resolver.ScriptResolver
+import kscript.app.util.Logger
+import kscript.app.util.Logger.errorMsg
+import kscript.app.util.Logger.info
+import kscript.app.util.Logger.infoMsg
+import kscript.app.util.VersionChecker.versionCheck
 import org.docopt.DocOptWrapper
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
-import java.net.URL
-import java.net.UnknownHostException
 import java.nio.file.Paths
-import java.util.*
 import kotlin.system.exitProcess
 
 
@@ -23,48 +24,27 @@ import kotlin.system.exitProcess
  * For details and license see https://github.com/holgerbrandl/kscript
  *
  * @author Holger Brandl
+ * @author Marcin Kuszczak
  */
 
 const val KSCRIPT_VERSION = "3.1.0"
 
-val selfName = System.getenv("CUSTOM_KSCRIPT_NAME") ?: "kscript"
-
-val USAGE = """
-$selfName - Enhanced scripting support for Kotlin on *nix-based systems.
-
-Usage:
- $selfName [options] <script> [<script_args>]...
- $selfName --clear-cache
-
-The <script> can be a script file (*kts), a script URL, - for stdin, a *.kt source file with a main method, or some kotlin code.
-
-Use '--clear-cache' to wipe cached script jars and urls
-
-Options:
- -i --interactive        Create interactive shell with dependencies as declared in script
- -t --text               Enable stdin support API for more streamlined text processing
- --idea                  Open script in temporary Intellij session
- -s --silent             Suppress status logging to stderr
- --package               Package script and dependencies into self-dependent binary
- --add-bootstrap-header  Prepend bash header that installs kscript if necessary
-
-
-Copyright : 2020 Holger Brandl
-License   : MIT
-Version   : v$KSCRIPT_VERSION
-Website   : https://github.com/holgerbrandl/kscript
-""".trim()
-
-// see https://stackoverflow.com/questions/585534/what-is-the-best-way-to-find-the-users-home-directory-in-java
-// See #146 "allow kscript cache dir to be configurable" for details
-val KSCRIPT_DIR = System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript")
-val customPreamble: String?  = System.getenv("CUSTOM_KSCRIPT_PREAMBLE")
-
+@OptIn(ExperimentalStdlibApi::class)
 fun main(args: Array<String>) {
+    val config = Config(
+        System.getenv("CUSTOM_KSCRIPT_NAME") ?: "kscript",
+        Paths.get(System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript")),
+        System.getenv("CUSTOM_KSCRIPT_PREAMBLE") ?: "",
+        System.getenv("KSCRIPT_IDEA_COMMAND") ?: "idea",
+        System.getenv("KSCRIPT_GRADLE_COMMAND") ?: "gradle",
+        Paths.get(System.getenv("KOTLIN_HOME") ?: guessKotlinHome()),
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) ";" else ":"
+    )
+
     // skip org.docopt for version and help to allow for lazy version-check
     if (args.size == 1 && listOf("--help", "-h", "--version", "-v").contains(args[0])) {
-        info(USAGE)
-        versionCheck()
+        info(Templates.usage(config.selfName, KSCRIPT_VERSION))
+        versionCheck(KSCRIPT_VERSION)
         val systemInfo = evalBash("kotlin -version").stdout
         info("Kotlin    : " + systemInfo.split('(')[0].removePrefix("Kotlin version").trim())
         info("Java      : " + systemInfo.split('(')[1].split('-', ')')[0].trim())
@@ -75,120 +55,97 @@ fun main(args: Array<String>) {
     val userArgs = args.dropWhile { it.startsWith("-") && it != "-" }.drop(1)
     val kscriptArgs = args.take(args.size - userArgs.size)
 
-    val docopt = DocOptWrapper(kscriptArgs, USAGE)
+    val docopt = DocOptWrapper(kscriptArgs, Templates.usage(config.selfName, KSCRIPT_VERSION))
 
-    if (docopt.getBoolean("silent")) {
-        Logger.silentMode = true
-    }
+    Logger.silentMode = docopt.getBoolean("silent")
 
     // create kscript dir if it does not yet exist
-    val appDir = AppDir(Paths.get(KSCRIPT_DIR))
+    val appDir = AppDir(config.kscriptDir)
 
     // optionally clear up the jar cache
     if (docopt.getBoolean("clear-cache")) {
         info("Cleaning up cache...")
-        appDir.cache.clear()
+        appDir.urlCache.clear()
         quit(0)
     }
 
-    // Resolve the script resource argument into an actual file
-    val scriptResource = docopt.getString("script")
-    val scriptSourceResolver = ScriptSourceResolver(appDir)
+    val enableSupportApi = docopt.getBoolean("text")
 
-    val scriptSource = scriptSourceResolver.resolveFromInput(scriptResource)
+    val preambles = buildList {
+        if (enableSupportApi) {
+            add(Templates.textProcessingPreamble)
+        }
+
+        add(config.customPreamble)
+    }
+
+    val scriptResolver = ScriptResolver(Parser(), appDir)
+    val script = scriptResolver.createFromInput(docopt.getString("script"), preambles)
 
     if (docopt.getBoolean("add-bootstrap-header")) {
-        if (scriptSource.sourceType != SourceType.FILE) {
-            errorMsg("Can not add bootstrap header to resources, which are not regular Kotlin files.".toString())
+        if (script.sourceType != SourceType.FILE) {
+            errorMsg("Can not add bootstrap header to resources, which are not regular Kotlin files.")
             quit(1)
         }
 
-        val scriptLines = scriptSource.codeText.lines().dropWhile {
+        val scriptLines = script.code.lines().dropWhile {
             it.startsWith("#!/") && it != "#!/bin/bash"
         }
 
-        val bootstrapHeader = Scriptlets.bootstrapHeader.lines()
-        if (scriptLines.getOrNull(0) == bootstrapHeader[0] && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it }) {
+        val bootstrapHeader = Templates.bootstrapHeader.lines()
+
+        if (scriptLines.getOrNull(0) == bootstrapHeader[0] && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it.code }) {
             val lastHeaderLine = bootstrapHeader.findLast { it.isNotBlank() }!!
             val preexistingHeader = scriptLines.dropLastWhile { it != lastHeaderLine }.joinToString("\n")
             errorMsg("Bootstrap header already detected:\n\n$preexistingHeader\n\nYou can remove it to force the re-generation")
             quit(1)
         }
 
-        File(scriptSource.sourceUri!!).writeText((bootstrapHeader + scriptLines).joinToString("\n"))
-        infoMsg("${scriptSource.sourceUri} updated")
+        File(script.sourceUri!!).writeText((bootstrapHeader + scriptLines).joinToString("\n"))
+        infoMsg("${script.sourceUri} updated")
         quit(0)
     }
 
-    val enableSupportApi = docopt.getBoolean("text")
-
-    // post process script (text-processing mode, custom dsl preamble, resolve includes)
-    // and finally resolve all includes (see https://github.com/holgerbrandl/kscript/issues/34)
-
-    // include preamble for custom interpreters (see https://github.com/holgerbrandl/kscript/issues/67)
-    // prefix with text-processing preamble if kscript-support api is enabled
-    val preambles = (if (enableSupportApi) Scriptlets.textProcessingPreamble else "") + (customPreamble ?: "")
-    val scriptNew = ScriptNewResolver(scriptSource, preambles).resolve()
-
-
-
-    //--------------------
-    val resolvedPreamblesSource = scriptSourceResolver.resolvePreambles(scriptSource, customPreamble, enableSupportApi)
-    val (script, includeURLs) = resolveIncludes(resolvedPreamblesSource)
-
-    val scriptText = script.lines.joinToString("\n")
-    val scriptFile = appDir.cache.scriplet(scriptText, script.extension).toFile()
-
-    // Find all //DEPS directives and concatenate their values
-    val dependencies = script.collectDependencies().distinct()
-    val customRepos = script.collectRepos().distinct()
-
-    // Extract kotlin arguments
-    val kotlinOpts = script.collectRuntimeOptions()
-    val compilerOpts = script.collectCompilerOptions()
+    val unifiedScript = scriptResolver.unifyScripts(script)
+    val scriptFile = appDir.urlCache.scriplet(unifiedScript.code, script.scriptType.extension).toFile()
 
     //  Create temporary dev environment
     if (docopt.getBoolean("idea")) {
-        println(launchIdeaWithKscriptlet(scriptFile, userArgs, dependencies, customRepos, includeURLs, compilerOpts))
+        val ideaProjectCreator = IdeaProjectCreator(appDir)
+        println(ideaProjectCreator.createProject(scriptFile, unifiedScript, userArgs, config))
         exitProcess(0)
     }
 
-    val classpath = resolveDependencies(dependencies, customRepos) ?: ""
+    val classpath =
+        DependencyResolver(config, appDir).resolveDependencies(unifiedScript.dependencies, unifiedScript.repositories)
+            ?: ""
     val optionalCpArg = if (classpath.isNotEmpty()) "-classpath '${classpath}'" else ""
 
     //  Optionally enter interactive mode
     if (docopt.getBoolean("interactive")) {
-        infoMsg("Creating REPL from ${scriptFile}")
-        //        System.err.println("kotlinc ${kotlinOpts} -classpath '${classpath}'")
-
-        println("kotlinc ${compilerOpts} ${kotlinOpts} ${optionalCpArg}")
+        infoMsg("Creating REPL from $scriptFile")
+        println("kotlinc ${unifiedScript.compilerOpts} ${unifiedScript.kotlinOpts} $optionalCpArg")
 
         exitProcess(0)
     }
 
     val scriptFileExt = scriptFile.extension
-    val scriptCheckSum = md5(scriptFile)
 
 
     // Even if we just need and support the //ENTRY directive in case of kt-class
     // files, we extract it here to fail if it was used in kts files.
-    val entryDirective = script.findEntryPoint()
+    val entryDirective = unifiedScript.entryPoint
 
-    errorIf(entryDirective != null && scriptFileExt == "kts") {
-        "@Entry directive is just supported for kt class files"
-    }
-
-    val jarFile = if (scriptFile.nameWithoutExtension.endsWith(scriptCheckSum)) {
-        File(KSCRIPT_DIR, scriptFile.nameWithoutExtension + ".jar")
-    } else {
-        File(KSCRIPT_DIR, scriptFile.nameWithoutExtension + "." + scriptCheckSum + ".jar")
+    if (entryDirective != null && scriptFileExt == "kts") {
+        errorMsg("@Entry directive is just supported for kt class files".toString())
+        quit(1)
     }
 
     // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
     // For valid characters see https://stackoverflow.com/questions/4814040/allowed-characters-in-filename
     val className = scriptFile.nameWithoutExtension.replace("[^A-Za-z0-9]".toRegex(), "_").capitalize()
         // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
-        .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_" + it else it }
+        .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_$it" else it }
 
 
     // Define the entrypoint for the scriptlet jar
@@ -196,39 +153,23 @@ fun main(args: Array<String>) {
         "Main_${className}"
     } else {
         // extract package from kt-file
-        """${script.pckg ?: ""}${entryDirective ?: "${className}Kt"}"""
+        """${unifiedScript.packageName ?: ""}${entryDirective ?: "${className}Kt"}"""
     }
 
+    val jarFile = appDir.jarCache.calculateJarFile(unifiedScript.code)
 
-    // infer KOTLIN_HOME if not set
-    val KOTLIN_HOME = System.getenv("KOTLIN_HOME") ?: guessKotlinHome()
-
-    errorIf(KOTLIN_HOME == null) {
-        "KOTLIN_HOME is not set and could not be inferred from context"
-    }
-
-
-    // If scriplet jar ist not cached yet, build it
     if (!jarFile.isFile) {
-        // disabled logging because it seems too much
-        // if(loggingEnabled) System.err.print("[kscript] Building script jar...")
 
-        // disabled because a user might have same-named scripts for different projects
-        // // remove previous (now outdated) cache jars
-        // KSCRIPT_CACHE_DIR.listFiles({
-        //     file -> file.name.startsWith(scriptFile.nameWithoutExtension) && file.extension=="jar"
-        // }).forEach { it.delete() }
-
-
-        requireInPath("kotlinc")
-
+        if (!isInPath("kotlinc")) {
+            errorMsg("${"kotlinc"} is not in PATH".toString())
+            quit(1)
+        }
 
         // create main-wrapper for kts scripts
-
         val wrapperSrcArg = if (scriptFileExt == "kts") {
             val mainKotlin = File(createTempDir("kscript"), "$execClassName.kt")
 
-            val classReference = (script.pckg ?: "") + className
+            val classReference = (unifiedScript.packageName ?: "") + className
 
             mainKotlin.writeText(
                 """
@@ -236,7 +177,7 @@ fun main(args: Array<String>) {
                 companion object {
                     @JvmStatic
                     fun main(args: Array<String>) {
-                        val script = Main_${className}::class.java.classLoader.loadClass("${classReference}")
+                        val script = Main_${className}::class.java.classLoader.loadClass("$classReference")
                         script.getDeclaredConstructor(Array<String>::class.java).newInstance(args);
                     }
                 }
@@ -250,67 +191,37 @@ fun main(args: Array<String>) {
         }
 
         val scriptCompileResult =
-            evalBash("kotlinc ${compilerOpts} ${optionalCpArg} -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}' ${wrapperSrcArg}")
+            evalBash("kotlinc ${unifiedScript.compilerOpts} $optionalCpArg -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}' $wrapperSrcArg")
+
         with(scriptCompileResult) {
-            errorIf(exitCode != 0) { "compilation of '$scriptResource' failed\n$stderr" }
+            if (exitCode != 0) {
+                errorMsg("compilation of '${scriptFile.name}' failed\n$stderr")
+                quit(1)
+            }
+            Unit
         }
     }
 
-
     // print the final command to be run by eval+exec
-    val joinedUserArgs = userArgs.map { "\"${it.replace("\"", "\\\"")}\"" }.joinToString(" ")
+    val joinedUserArgs = userArgs.joinToString(" ") { "\"${it.replace("\"", "\\\"")}\"" }
 
     //if requested try to package the into a standalone binary
     if (docopt.getBoolean("package")) {
-        val binaryName = if (File(scriptResource).run { canRead() && listOf("kts", "kt").contains(extension) }) {
-            File(scriptResource).nameWithoutExtension
+        val binaryName = if (scriptFile.run { canRead() && listOf("kts", "kt").contains(extension) }) {
+            scriptFile.nameWithoutExtension
         } else {
             "k" + scriptFile.nameWithoutExtension
         }
 
-        packageKscript(jarFile, execClassName, dependencies, customRepos, kotlinOpts, binaryName)
+        PackageCreator().packageKscript(unifiedScript, jarFile, execClassName, binaryName)
 
         quit(0)
     }
 
     var extClassPath =
-        "${jarFile}${CP_SEPARATOR_CHAR}${KOTLIN_HOME}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar"
+        "${jarFile}${config.classPathSeparator}${config.kotlinHome}${File.separatorChar}lib${File.separatorChar}kotlin-script-runtime.jar"
 
-    if (classpath.isNotEmpty()) extClassPath += CP_SEPARATOR_CHAR + classpath
+    if (classpath.isNotEmpty()) extClassPath += config.classPathSeparator + classpath
 
-    println("kotlin ${kotlinOpts} -classpath \"${extClassPath}\" ${execClassName} ${joinedUserArgs} ")
-}
-
-
-/** Determine the latest version by checking github repo and print info if newer version is available. */
-private fun versionCheck() {
-
-    //    val latestVersion = fetchFromURL("https://git.io/v9R73")?.useLines {
-    //    val kscriptRawReleaseURL= "https://git.io/v9R73"
-    // todo use the actual kscript.app.Kscript.kt here to infer version
-    val kscriptRawReleaseURL = "https://raw.githubusercontent.com/holgerbrandl/kscript/releases/kscript"
-
-    val latestVersion = try {
-        BufferedReader(InputStreamReader(URL(kscriptRawReleaseURL).openStream())).useLines {
-            it.first { it.startsWith("KSCRIPT_VERSION") }.split("=")[1]
-        }
-    } catch (e: UnknownHostException) {
-        return // skip version check here, since the use has no connection to the internet at the moment
-    }
-
-    fun padVersion(version: String) = try {
-        var versionNumbers = version.split(".").map { Integer.valueOf(it) }
-        // adjust versions without a patch-release
-        while (versionNumbers.size != 3) {
-            versionNumbers = versionNumbers + 0
-        }
-
-        java.lang.String.format("%03d%03d%03d", *versionNumbers.toTypedArray())
-    } catch (e: MissingFormatArgumentException) {
-        throw IllegalArgumentException("Could not pad version $version", e)
-    }
-
-    if (padVersion(latestVersion) > padVersion(KSCRIPT_VERSION)) {
-        info("""A new version (v${latestVersion}) of kscript is available.""")
-    }
+    println("kotlin ${unifiedScript.kotlinOpts} -classpath \"$extClassPath\" $execClassName $joinedUserArgs ")
 }
