@@ -46,7 +46,7 @@ class DocOptWrapper(args: Iterable<String>, private val usage: String) {
 
     fun getNumber(key: String) = myDO[key]!!.toString().toFloat()
 
-    fun getBoolean(key: String) = myDO[key].toString().toBoolean()
+    fun getBoolean(key: String) = myDO[key]!!.toString().toBoolean()
 
     override fun toString(): String {
         return parsedArgs.toString()

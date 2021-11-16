@@ -188,25 +188,25 @@ object Templates {
         $selfName - Enhanced scripting support for Kotlin on *nix-based systems.
 
         Usage:
-        $selfName [options] <script> [<script_args>]...
-        $selfName --clear-cache
+         $selfName [options] <script> [<script_args>]...
+         $selfName --clear-cache
 
         The <script> can be a script file (*kts), a script URL, - for stdin, a *.kt source file with a main method, or some kotlin code.
 
         Use '--clear-cache' to wipe cached script jars and urls
 
         Options:
-        -i --interactive        Create interactive shell with dependencies as declared in script
-        -t --text               Enable stdin support API for more streamlined text processing
-        --idea                  Open script in temporary Intellij session
-        -s --silent             Suppress status logging to stderr
-        --package               Package script and dependencies into self-dependent binary
-        --add-bootstrap-header  Prepend bash header that installs kscript if necessary
+         -i --interactive        Create interactive shell with dependencies as declared in script
+         -t --text               Enable stdin support API for more streamlined text processing
+         --idea                  Open script in temporary Intellij session
+         -s --silent             Suppress status logging to stderr
+         --package               Package script and dependencies into self-dependent binary
+         --add-bootstrap-header  Prepend bash header that installs kscript if necessary
 
 
         Copyright : 2021 Holger Brandl
         License   : MIT
         Version   : v${version}
         Website   : https://github.com/holgerbrandl/kscript
-        """.trimIndent()
+        """.trimIndent().trim()
 }

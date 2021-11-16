@@ -36,15 +36,15 @@ fun main(args: Array<String>) {
         System.getenv("CUSTOM_KSCRIPT_PREAMBLE") ?: "",
         System.getenv("KSCRIPT_IDEA_COMMAND") ?: "idea",
         System.getenv("KSCRIPT_GRADLE_COMMAND") ?: "gradle",
-        Paths.get(System.getenv("KOTLIN_HOME") ?: guessKotlinHome()),
+        (System.getenv("KOTLIN_HOME") ?: guessKotlinHome())?.let { Paths.get(it) },
         if (System.getProperty("os.name").toLowerCase().contains("windows")) ";" else ":"
     )
 
-    infoMsg("args: " + args.joinToString(" "))
-
     // skip org.docopt for version and help to allow for lazy version-check
+    val usage = Templates.usage(config.selfName, KSCRIPT_VERSION)
+
     if (args.size == 1 && listOf("--help", "-h", "--version", "-v").contains(args[0])) {
-        info(Templates.usage(config.selfName, KSCRIPT_VERSION))
+        info(usage)
         versionCheck(KSCRIPT_VERSION)
         val systemInfo = evalBash("kotlin -version").stdout
         info("Kotlin    : " + systemInfo.split('(')[0].removePrefix("Kotlin version").trim())
@@ -56,14 +56,9 @@ fun main(args: Array<String>) {
     val userArgs = args.dropWhile { it.startsWith("-") && it != "-" }.drop(1)
     val kscriptArgs = args.take(args.size - userArgs.size)
 
-    infoMsg("userArgs: " + userArgs.joinToString(" "))
-    infoMsg("kscriptArgs: " + kscriptArgs.joinToString(" "))
-
-    val docopt = DocOptWrapper(kscriptArgs, Templates.usage(config.selfName, KSCRIPT_VERSION))
+    val docopt = DocOptWrapper(kscriptArgs, usage)
 
     Logger.silentMode = docopt.getBoolean("silent")
-
-    infoMsg("silentMode: " + Logger.silentMode)
 
     // create kscript dir if it does not yet exist
     val appDir = AppDir(config.kscriptDir)
@@ -71,7 +66,7 @@ fun main(args: Array<String>) {
     // optionally clear up the jar cache
     if (docopt.getBoolean("clear-cache")) {
         info("Cleaning up cache...")
-        appDir.urlCache.clear()
+        appDir.clear()
         quit(0)
     }
 
@@ -221,6 +216,11 @@ fun main(args: Array<String>) {
         PackageCreator(appDir).packageKscript(unifiedScript, jarFile, execClassName, binaryName)
 
         quit(0)
+    }
+
+    if (config.kotlinHome == null) {
+        errorMsg("KOTLIN_HOME is not set and could not be inferred from context".toString())
+        quit(1)
     }
 
     var extClassPath =

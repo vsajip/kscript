@@ -102,14 +102,9 @@ fun quit(status: Int): Nothing {
 }
 
 /** see discussion on https://github.com/holgerbrandl/kscript/issues/15*/
-fun guessKotlinHome(): String {
+fun guessKotlinHome(): String? {
     val kotlinHome = evalBash("KOTLIN_RUNNER=1 JAVACMD=echo kotlinc").stdout.run {
         "kotlin.home=([^\\s]*)".toRegex().find(this)?.groups?.get(1)?.value
-    }
-
-    if (kotlinHome == null) {
-        Logger.errorMsg("KOTLIN_HOME is not set and could not be inferred from context".toString())
-        quit(1)
     }
 
     return kotlinHome
