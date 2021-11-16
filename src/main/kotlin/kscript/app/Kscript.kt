@@ -4,6 +4,7 @@ import kscript.app.ShellUtils.isInPath
 import kscript.app.appdir.AppDir
 import kscript.app.code.Templates
 import kscript.app.model.Config
+import kscript.app.model.SourceType
 import kscript.app.resolver.Parser
 import kscript.app.resolver.ScriptResolver
 import kscript.app.util.Logger
@@ -84,26 +85,26 @@ fun main(args: Array<String>) {
     val script = scriptResolver.createFromInput(docopt.getString("script"), preambles)
 
     if (docopt.getBoolean("add-bootstrap-header")) {
-//        if (script.sourceType != SourceType.FILE) {
-//            errorMsg("Can not add bootstrap header to resources, which are not regular Kotlin files.")
-//            quit(1)
-//        }
-//
-//        val scriptLines = script.code.lines().dropWhile {
-//            it.startsWith("#!/") && it != "#!/bin/bash"
-//        }
-//
-//        val bootstrapHeader = Templates.bootstrapHeader.lines()
-//
-//        if (scriptLines.getOrNull(0) == bootstrapHeader[0] && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it.code }) {
-//            val lastHeaderLine = bootstrapHeader.findLast { it.isNotBlank() }!!
-//            val preexistingHeader = scriptLines.dropLastWhile { it != lastHeaderLine }.joinToString("\n")
-//            errorMsg("Bootstrap header already detected:\n\n$preexistingHeader\n\nYou can remove it to force the re-generation")
-//            quit(1)
-//        }
-//
-//        File(script.sourceUri!!).writeText((bootstrapHeader + scriptLines).joinToString("\n"))
-//        infoMsg("${script.sourceUri} updated")
+        if (script.sourceType != SourceType.FILE) {
+            errorMsg("Can not add bootstrap header to resources, which are not regular Kotlin files.")
+            quit(1)
+        }
+
+        val scriptLines = script.sections.map { it.code }.dropWhile {
+            it.startsWith("#!/") && it != "#!/bin/bash"
+        }
+
+        val bootstrapHeader = Templates.bootstrapHeader.lines()
+
+        if (scriptLines.getOrNull(0) == bootstrapHeader[0] && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it }) {
+            val lastHeaderLine = bootstrapHeader.findLast { it.isNotBlank() }!!
+            val preexistingHeader = scriptLines.dropLastWhile { it != lastHeaderLine }.joinToString("\n")
+            errorMsg("Bootstrap header already detected:\n\n$preexistingHeader\n\nYou can remove it to force the re-generation")
+            quit(1)
+        }
+
+        File(script.sourceUri!!).writeText((bootstrapHeader + scriptLines).joinToString("\n"))
+        infoMsg("${script.sourceUri} updated")
         quit(0)
     }
 
