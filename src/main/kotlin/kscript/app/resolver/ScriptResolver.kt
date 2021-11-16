@@ -35,7 +35,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
             val url = URL(string)
             val resolvedUri = resolveRedirects(url).toURI()
             val includeContext = resolvedUri.resolve(".")
-            val scriptText = prependPreambles(preambles, resolveUri(resolvedUri))
+            val scriptText = prependPreambles(preambles, readUri(resolvedUri))
             return Script(
                 SourceType.HTTP,
                 resolveScriptType(resolvedUri),
@@ -52,7 +52,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
 
             if (kotlinExtensions.contains(file.extension)) {
                 //Regular file
-                val scriptText = prependPreambles(preambles, resolveUri(uri))
+                val scriptText = prependPreambles(preambles, readUri(uri))
                 return Script(
                     SourceType.FILE,
                     resolveScriptType(uri),
@@ -91,6 +91,10 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         )
     }
 
+    private fun readUri(resolvedUri: URI): String {
+        return resolvedUri.toURL().readText()
+    }
+
     private fun prependPreambles(preambles: List<String>, string: String): String {
         return preambles.joinToString("\n") + string
     }
@@ -110,7 +114,14 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
     }
 
     private fun resolveInclude(include: Include, includeContext: URI): Section {
-        return ScriptSource(include.code, ....)
+        val uri = URI.create(include.include)
+        return ScriptSource(
+            include.code,
+            if (isUrl(include.include)) SourceType.HTTP else SourceType.FILE,
+            resolveScriptType(uri),
+            uri,
+            includeContext
+        )
     }
 
     private fun isUrl(string: String): Boolean {
@@ -140,7 +151,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         }
 
         //Try to guess the type by reading the code...
-        val code = resolveUri(uri)
+        val code = readUri(uri)
         return resolveScriptType(code)
     }
 
@@ -160,44 +171,96 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
 
 
     fun unifyScripts(script: Script): UnifiedScript {
-        //Resolve all ScriptSources with Script
-        val resolvedSources = resolveScriptSources(resolvedIncludes)
 
-        return script.copy(sections = resolvedSources)
-    }
+        val unifiedCode = mutableListOf<String>()
+        val dependencies = mutableSetOf<String>()
+        val repositories = mutableSetOf<Repository>()
+        val kotlinOpts = mutableSetOf<String>()
+        val compilerOpts = mutableSetOf<String>()
+        val imports = mutableSetOf<String>()
+        val scriptSources = mutableSetOf<ScriptSource>()
 
-    private fun resolveScriptSources(sections: List<Section>): List<Section> {
-        val result = mutableListOf<Section>()
+        var packageName: String? = null
+        var entry: String? = null
 
-        for (section in sections) {
-            if (section is ScriptSource) {
-                result += resolver.resolve(section)
-            } else {
-                result += section
+        for (section in script.sections) {
+
+            when(section) {
+                is ScriptSource -> {
+
+                }
+
+                is Import -> {
+                   imports.add(section.importName)
+                }
+
+                is Package -> {
+                    if (packageName == null) {
+                        packageName = section.packageName
+                    }
+                }
+
+                is SheBang -> {}
+
+                is Dependency -> {
+                    dependencies.addAll(section.dependencies)
+                }
+
+                is KotlinOpts -> {
+                    kotlinOpts.addAll(section.kotlinOpts)
+                }
+
+                is CompilerOpts -> {
+                    compilerOpts.addAll(section.compileOpts)
+                }
+
+                is Entry -> {
+                    if (entry == null ) {
+                        entry = section.entry
+                    }
+                }
+
+                is Repository -> {
+                    repositories.add(section)
+                }
+
+                is Code -> {
+                    unifiedCode.add(section.code)
+                }
             }
         }
 
-        return result
-    }
-
-    fun create(uri: URI): List<Section> {
-        try {
-            if (isRegularFile(uri)) {
-                return Parser.parse(uri.toURL().readText())
+        val code = StringBuilder().apply {
+            if (packageName != null) {
+                append("package $packageName\n\n")
             }
 
-            return Parser.parse(appDir.urlCache.code(uri.toURL()))
-        } catch (e: Exception) {
-            Logger.errorMsg("Failed to resolve include with URI: '${uri}'", e)
-            quit(1)
-        }
+            imports.forEach {
+                append("import $it\n")
+            }
+
+            unifiedCode.forEach {
+                append(it)
+            }
+        }.toString()
+
+
+        return UnifiedScript(code, packageName, entry, scriptSources, dependencies, repositories, kotlinOpts, compilerOpts)
     }
 
-    private fun resolveUri(resolvedUri: URI): String {
-        TODO("Not yet implemented")
-    }
 
-    fun resolveSources(script: Script): ResolvedScript {
-        TODO("Not yet implemented")
-    }
+
+
+//    fun create(uri: URI): List<Section> {
+//        try {
+//            if (isRegularFile(uri)) {
+//                return Parser.parse(uri.toURL().readText())
+//            }
+//
+//            return Parser.parse(appDir.urlCache.code(uri.toURL()))
+//        } catch (e: Exception) {
+//            Logger.errorMsg("Failed to resolve include with URI: '${uri}'", e)
+//            quit(1)
+//        }
+//    }
 }

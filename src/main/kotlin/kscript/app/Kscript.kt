@@ -4,7 +4,6 @@ import kscript.app.ShellUtils.isInPath
 import kscript.app.appdir.AppDir
 import kscript.app.code.Templates
 import kscript.app.model.Config
-import kscript.app.model.SourceType
 import kscript.app.resolver.Parser
 import kscript.app.resolver.ScriptResolver
 import kscript.app.util.Logger
@@ -41,6 +40,8 @@ fun main(args: Array<String>) {
         if (System.getProperty("os.name").toLowerCase().contains("windows")) ";" else ":"
     )
 
+    infoMsg("args: " + args.joinToString(" "))
+
     // skip org.docopt for version and help to allow for lazy version-check
     if (args.size == 1 && listOf("--help", "-h", "--version", "-v").contains(args[0])) {
         info(Templates.usage(config.selfName, KSCRIPT_VERSION))
@@ -55,9 +56,14 @@ fun main(args: Array<String>) {
     val userArgs = args.dropWhile { it.startsWith("-") && it != "-" }.drop(1)
     val kscriptArgs = args.take(args.size - userArgs.size)
 
+    infoMsg("userArgs: " + userArgs.joinToString(" "))
+    infoMsg("kscriptArgs: " + kscriptArgs.joinToString(" "))
+
     val docopt = DocOptWrapper(kscriptArgs, Templates.usage(config.selfName, KSCRIPT_VERSION))
 
     Logger.silentMode = docopt.getBoolean("silent")
+
+    infoMsg("silentMode: " + Logger.silentMode)
 
     // create kscript dir if it does not yet exist
     val appDir = AppDir(config.kscriptDir)
@@ -83,26 +89,26 @@ fun main(args: Array<String>) {
     val script = scriptResolver.createFromInput(docopt.getString("script"), preambles)
 
     if (docopt.getBoolean("add-bootstrap-header")) {
-        if (script.sourceType != SourceType.FILE) {
-            errorMsg("Can not add bootstrap header to resources, which are not regular Kotlin files.")
-            quit(1)
-        }
-
-        val scriptLines = script.code.lines().dropWhile {
-            it.startsWith("#!/") && it != "#!/bin/bash"
-        }
-
-        val bootstrapHeader = Templates.bootstrapHeader.lines()
-
-        if (scriptLines.getOrNull(0) == bootstrapHeader[0] && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it.code }) {
-            val lastHeaderLine = bootstrapHeader.findLast { it.isNotBlank() }!!
-            val preexistingHeader = scriptLines.dropLastWhile { it != lastHeaderLine }.joinToString("\n")
-            errorMsg("Bootstrap header already detected:\n\n$preexistingHeader\n\nYou can remove it to force the re-generation")
-            quit(1)
-        }
-
-        File(script.sourceUri!!).writeText((bootstrapHeader + scriptLines).joinToString("\n"))
-        infoMsg("${script.sourceUri} updated")
+//        if (script.sourceType != SourceType.FILE) {
+//            errorMsg("Can not add bootstrap header to resources, which are not regular Kotlin files.")
+//            quit(1)
+//        }
+//
+//        val scriptLines = script.code.lines().dropWhile {
+//            it.startsWith("#!/") && it != "#!/bin/bash"
+//        }
+//
+//        val bootstrapHeader = Templates.bootstrapHeader.lines()
+//
+//        if (scriptLines.getOrNull(0) == bootstrapHeader[0] && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it.code }) {
+//            val lastHeaderLine = bootstrapHeader.findLast { it.isNotBlank() }!!
+//            val preexistingHeader = scriptLines.dropLastWhile { it != lastHeaderLine }.joinToString("\n")
+//            errorMsg("Bootstrap header already detected:\n\n$preexistingHeader\n\nYou can remove it to force the re-generation")
+//            quit(1)
+//        }
+//
+//        File(script.sourceUri!!).writeText((bootstrapHeader + scriptLines).joinToString("\n"))
+//        infoMsg("${script.sourceUri} updated")
         quit(0)
     }
 
@@ -117,8 +123,7 @@ fun main(args: Array<String>) {
     }
 
     val classpath =
-        DependencyResolver(config, appDir).resolveDependencies(unifiedScript.dependencies, unifiedScript.repositories)
-            ?: ""
+        DependencyResolver(config, appDir).resolveClasspath(unifiedScript.dependencies, unifiedScript.repositories)
     val optionalCpArg = if (classpath.isNotEmpty()) "-classpath '${classpath}'" else ""
 
     //  Optionally enter interactive mode
@@ -213,7 +218,7 @@ fun main(args: Array<String>) {
             "k" + scriptFile.nameWithoutExtension
         }
 
-        PackageCreator().packageKscript(unifiedScript, jarFile, execClassName, binaryName)
+        PackageCreator(appDir).packageKscript(unifiedScript, jarFile, execClassName, binaryName)
 
         quit(0)
     }

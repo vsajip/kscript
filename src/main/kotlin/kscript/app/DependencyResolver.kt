@@ -4,7 +4,6 @@ import kotlinx.coroutines.runBlocking
 import kscript.app.appdir.AppDir
 import kscript.app.model.Config
 import kscript.app.model.Repository
-import kscript.app.util.Logger
 import kscript.app.util.Logger.errorMsg
 import kscript.app.util.Logger.infoMsg
 import java.io.File
@@ -14,46 +13,43 @@ import kotlin.script.experimental.dependencies.FileSystemDependenciesResolver
 import kotlin.script.experimental.dependencies.maven.MavenDependenciesResolver
 import kotlin.script.experimental.dependencies.maven.MavenRepositoryCoordinates
 
-val DEP_LOOKUP_CACHE_FILE = File(KSCRIPT_DIR, "dependency_cache.txt")
-
 class DependencyResolver(private val config: Config, private val appDir: AppDir) {
 
-    fun resolveDependencies(depIds: Set<String>, repositories: Set<Repository>): String? {
+    fun resolveClasspath(dependencyIds: Set<String>, repositories: Set<Repository>): String {
         // if no dependencies were provided we stop here
-        if (depIds.isEmpty()) {
-            return null
+        if (dependencyIds.isEmpty()) {
+            return ""
         }
 
-        val depsHash = depIds.joinToString(config.classPathSeparator)
+        val dependenciesHash = dependencyIds.toList().sorted().joinToString(config.classPathSeparator)
 
 
         // Use cached classpath from previous run if present
-        if (DEP_LOOKUP_CACHE_FILE.isFile) {
-            val cache = DEP_LOOKUP_CACHE_FILE.readLines().filter { it.isNotBlank() }
-                .associateBy({ it.split(" ")[0] }, { it.split(" ")[1] })
+        val cache = appDir.dependencyCache.read().lines().filter { it.isNotBlank() }
+            .associateBy({ it.split(" ")[0] }, { it.split(" ")[1] })
 
-            if (cache.containsKey(depsHash)) {
-                val cachedCP = cache.getValue(depsHash)
+        if (cache.containsKey(dependenciesHash)) {
+            val cachedCP = cache.getValue(dependenciesHash)
 
-                // Make sure that local dependencies have not been wiped since resolving them (like by deleting .m2) (see #146)
-                if (cachedCP.split(config.classPathSeparator).all { File(it).exists() }) {
-                    return cachedCP
-                }
-
-                infoMsg("Detected missing dependencies in cache.")
+            // Make sure that local dependencies have not been wiped since resolving them (like by deleting .m2) (see #146)
+            if (cachedCP.split(config.classPathSeparator).all { File(it).exists() }) {
+                return cachedCP
             }
+
+            infoMsg("Detected missing dependencies in cache.")
         }
+
 
         infoMsg("Resolving dependencies...")
 
         try {
-            val artifacts = resolveDependenciesViaKotlin(depIds, repositories)
+            val artifacts = resolveDependenciesViaKotlin(dependencyIds, repositories)
             val classPath = artifacts.map { it.absolutePath }.joinToString(config.classPathSeparator)
 
             infoMsg("Dependencies resolved")
 
             // Add classpath to cache
-            DEP_LOOKUP_CACHE_FILE.appendText("$depsHash $classPath\n")
+            appDir.dependencyCache.append("$dependenciesHash $classPath\n")
 
             // Print the classpath
             return classPath
@@ -66,7 +62,7 @@ class DependencyResolver(private val config: Config, private val appDir: AppDir)
     }
 
 
-    fun resolveDependenciesViaKotlin(depIds: Set<String>, customRepos: Set<Repository>): List<File> {
+    private fun resolveDependenciesViaKotlin(depIds: Set<String>, customRepos: Set<Repository>): List<File> {
 
         // validate dependencies
         depIds.map { depIdToArtifact(it) }
@@ -93,7 +89,7 @@ class DependencyResolver(private val config: Config, private val appDir: AppDir)
     }
 
 
-    fun depIdToArtifact(depId: String) {
+    private fun depIdToArtifact(depId: String) {
         val regex = Regex("^([^:]*):([^:]*):([^:@]*)(:(.*))?(@(.*))?\$")
         val matchResult = regex.find(depId)
 
@@ -117,10 +113,10 @@ class DependencyResolver(private val config: Config, private val appDir: AppDir)
 }
 
 // called by unit tests
-object DependencyUtil {
-    @JvmStatic
-    fun main(args: Array<String>) {
-        Logger.silentMode = true
-        infoMsg(resolveDependencies(args.toSet(), emptySet()) ?: "")
-    }
-}
+//object DependencyUtil {
+//    @JvmStatic
+//    fun main(args: Array<String>) {
+//        Logger.silentMode = true
+//        infoMsg(resolveDependencies(args.toSet(), emptySet()) ?: "")
+//    }
+//}

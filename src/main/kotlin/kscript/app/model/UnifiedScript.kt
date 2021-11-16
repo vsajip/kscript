@@ -9,7 +9,7 @@ data class UnifiedScript(
     val packageName: String?,
     val entryPoint: String?,
 
-    val scriptSources: Set<URI>,
+    val scriptSources: Set<ScriptSource>,
     val dependencies: Set<String>,
     val repositories: Set<Repository>,
     val kotlinOpts: Set<String>,

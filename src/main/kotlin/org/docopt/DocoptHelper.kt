@@ -8,7 +8,7 @@ import java.io.File
  */
 
 /** Simple Kotlin facade for org.org.docopt.Docopt.Docopt(java.lang.String) .*/
-class DocOptWrapper(args: Iterable<String>, val usage: String) {
+class DocOptWrapper(args: Iterable<String>, private val usage: String) {
 
     val parsedArgs = try {
         Docopt(usage).withExit(false).parse(args.toList())
@@ -22,7 +22,7 @@ class DocOptWrapper(args: Iterable<String>, val usage: String) {
             ps.println(message)
         }
 
-        if (e.getPrintUsage()) {
+        if (e.printUsage) {
             ps.println(usage)
         }
 
@@ -46,7 +46,7 @@ class DocOptWrapper(args: Iterable<String>, val usage: String) {
 
     fun getNumber(key: String) = myDO[key]!!.toString().toFloat()
 
-    fun getBoolean(key: String) = myDO[key]!!.toString().toBoolean()
+    fun getBoolean(key: String) = myDO[key].toString().toBoolean()
 
     override fun toString(): String {
         return parsedArgs.toString()

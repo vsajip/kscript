@@ -6,6 +6,7 @@ enum class SourceType { FILE, HTTP, STD_INPUT, OTHER_FILE, PARAMETER }
 enum class ScriptType(val extension: String) { KT(".kt"), KTS(".kts") }
 
 abstract class Section(open val code: String)
+
 data class Include(override val code: String, val include: String) : Section(code)
 data class Package(override val code: String, val packageName: String) : Section(code)
 data class Import(override val code: String, val importName: String) : Section(code)

@@ -11,11 +11,9 @@ repositories {
 
 group = "com.github.holgerbrandl.kscript.launcher"
 
-//val kotlinVersion: String by rootProject.extra
 val kotlinVersion: String ="1.4.32"
 
 tasks.test {
-    // Use the built-in JUnit support of Gradle.
     useJUnitPlatform()
 }
 
@@ -37,8 +35,7 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
-//    testImplementation("org.assertj:assertj-core:3.21.0")
-    testImplementation ("com.willowtreeapps.assertk:assertk-jvm:0.24")
+    testImplementation ("com.willowtreeapps.assertk:assertk-jvm:0.25")
     testImplementation(kotlin("script-runtime"))
 }
 
