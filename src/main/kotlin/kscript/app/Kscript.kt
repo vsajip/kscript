@@ -4,6 +4,7 @@ import kscript.app.ShellUtils.isInPath
 import kscript.app.appdir.AppDir
 import kscript.app.code.Templates
 import kscript.app.model.Config
+import kscript.app.model.ScriptType
 import kscript.app.model.SourceType
 import kscript.app.resolver.Parser
 import kscript.app.resolver.ScriptResolver
@@ -109,10 +110,10 @@ fun main(args: Array<String>) {
     }
 
     val unifiedScript = scriptResolver.unifyScripts(script)
-    val scriptFile = appDir.urlCache.scriplet(unifiedScript.code, script.scriptType.extension).toFile()
 
     //  Create temporary dev environment
     if (docopt.getBoolean("idea")) {
+        val scriptFile = appDir.urlCache.scriplet(unifiedScript.code, script.scriptType.extension).toFile()
         val ideaProjectCreator = IdeaProjectCreator(appDir)
         println(ideaProjectCreator.createProject(scriptFile, unifiedScript, userArgs, config))
         exitProcess(0)
@@ -124,33 +125,37 @@ fun main(args: Array<String>) {
 
     //  Optionally enter interactive mode
     if (docopt.getBoolean("interactive")) {
+        val scriptFile = appDir.urlCache.scriplet(unifiedScript.code, script.scriptType.extension).toFile()
         infoMsg("Creating REPL from $scriptFile")
         println("kotlinc ${unifiedScript.compilerOpts} ${unifiedScript.kotlinOpts} $optionalCpArg")
 
         exitProcess(0)
     }
 
-    val scriptFileExt = scriptFile.extension
-
-
     // Even if we just need and support the //ENTRY directive in case of kt-class
     // files, we extract it here to fail if it was used in kts files.
     val entryDirective = unifiedScript.entryPoint
 
-    if (entryDirective != null && scriptFileExt == "kts") {
-        errorMsg("@Entry directive is just supported for kt class files".toString())
+    if (entryDirective != null && script.scriptType == ScriptType.KTS) {
+        errorMsg("@Entry directive is just supported for kt class files")
         quit(1)
     }
 
+    val tmpDir = appDir.projectCache.projectDir(unifiedScript.code)
+
     // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
     // For valid characters see https://stackoverflow.com/questions/4814040/allowed-characters-in-filename
-    val className = scriptFile.nameWithoutExtension.replace("[^A-Za-z0-9]".toRegex(), "_").capitalize()
-        // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
-        .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_$it" else it }
+//    val className = scriptFile.nameWithoutExtension.replace("[^A-Za-z0-9]".toRegex(), "_").capitalize()
+//        // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
+//        .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_$it" else it }
 
+    val className = "Scriplet"
+
+    val scriptFile = File(tmpDir, "$className.kt")
+    scriptFile.writeText(unifiedScript.code)
 
     // Define the entrypoint for the scriptlet jar
-    val execClassName = if (scriptFileExt == "kts") {
+    val execClassName = if (script.scriptType == ScriptType.KTS) {
         "Main_${className}"
     } else {
         // extract package from kt-file
@@ -160,20 +165,19 @@ fun main(args: Array<String>) {
     val jarFile = appDir.jarCache.calculateJarFile(unifiedScript.code)
 
     if (!jarFile.isFile) {
-
         if (!isInPath("kotlinc")) {
-            errorMsg("${"kotlinc"} is not in PATH".toString())
+            errorMsg("${"kotlinc"} is not in PATH")
             quit(1)
         }
 
-        // create main-wrapper for kts scripts
-        val wrapperSrcArg = if (scriptFileExt == "kts") {
-            val mainKotlin = File(createTempDir("kscript"), "$execClassName.kt")
+        val filesToCompile = mutableListOf<File>()
+        filesToCompile.add(scriptFile)
 
+        // create main-wrapper for kts scripts
+        if (script.scriptType == ScriptType.KTS) {
             val classReference = (unifiedScript.packageName ?: "") + className
 
-            mainKotlin.writeText(
-                """
+            val code = """
             class Main_${className}{
                 companion object {
                     @JvmStatic
@@ -184,22 +188,21 @@ fun main(args: Array<String>) {
                 }
             }
             """.trimIndent()
-            )
 
-            "'${mainKotlin.absolutePath}'"
-        } else {
-            ""
+            val mainKotlin = File(tmpDir, "$execClassName.kt")
+            mainKotlin.writeText(code)
+            filesToCompile.add(mainKotlin)
         }
 
-        val scriptCompileResult =
-            evalBash("kotlinc ${unifiedScript.compilerOpts} $optionalCpArg -d '${jarFile.absolutePath}' '${scriptFile.absolutePath}' $wrapperSrcArg")
+        val fileArguments = filesToCompile.joinToString(" ") { "'${it.absolutePath}'" }
+        val compilerOpts = unifiedScript.compilerOpts.joinToString(" ")
 
-        with(scriptCompileResult) {
-            if (exitCode != 0) {
-                errorMsg("compilation of '${scriptFile.name}' failed\n$stderr")
-                quit(1)
-            }
-            Unit
+        val scriptCompileResult =
+            evalBash("kotlinc $compilerOpts $optionalCpArg -d '${jarFile.absolutePath}' $fileArguments")
+
+        if (scriptCompileResult.exitCode != 0) {
+            errorMsg("compilation of '${scriptFile.name}' failed\n$scriptCompileResult.stderr")
+            quit(1)
         }
     }
 
@@ -220,7 +223,7 @@ fun main(args: Array<String>) {
     }
 
     if (config.kotlinHome == null) {
-        errorMsg("KOTLIN_HOME is not set and could not be inferred from context".toString())
+        errorMsg("KOTLIN_HOME is not set and could not be inferred from context")
         quit(1)
     }
 

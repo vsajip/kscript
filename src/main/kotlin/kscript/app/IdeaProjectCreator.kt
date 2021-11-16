@@ -30,7 +30,6 @@ class IdeaProjectCreator(private val appDir: AppDir) {
             createSymLink(File(this, scriptFile.name), scriptFile)
         }
 
-
         File(tmpProjectDir, ".idea/runConfigurations/Main.xml").writeText(
             Templates.runConfig(scriptFile, tmpProjectDir, userArgs)
         )

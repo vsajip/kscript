@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "1.4.32"
+    kotlin("jvm") version "1.5.31"
     id("com.github.johnrengelman.shadow") version "6.1.0"
 }
 
@@ -11,7 +11,7 @@ repositories {
 
 group = "com.github.holgerbrandl.kscript.launcher"
 
-val kotlinVersion: String ="1.4.32"
+val kotlinVersion: String ="1.5.31"
 
 tasks.test {
     useJUnitPlatform()
