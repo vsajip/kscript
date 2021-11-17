@@ -11,7 +11,7 @@ object Logger {
 
     fun warnMsg(msg: String) = System.err.println("[kscript] [WARN] $msg")
 
-    fun errorMsg(msg: String, exception: Exception? = null) {
+    fun errorMsg(msg: String?, exception: Exception? = null) {
         System.err.println("[kscript] [ERROR] $msg")
         exception ?: return
         System.err.println(exception.message?.lines()!!.map { it.prependIndent("[kscript] [ERROR] ") })

@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.endsWith
 import kscript.app.appdir.AppDir
 import kscript.app.model.Config
+import kscript.app.model.ConfigBuilder
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.nio.file.Paths
@@ -11,16 +12,7 @@ import java.nio.file.Paths
 class DependencyResolverTest {
     @Test
     fun `Resolve classpath`() {
-        val config = Config(
-            "kscript",
-            Paths.get("~/.kscript"),
-            "",
-            "idea",
-            "gradle",
-            null,
-            if (System.getProperty("os.name").lowercase().contains("windows")) ";" else ":"
-        )
-
+        val config = Config.builder().build()
         val appDir = AppDir(Paths.get("~/.kscript"))
 
         val dependencyResolver = DependencyResolver(config, appDir)

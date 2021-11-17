@@ -2,11 +2,10 @@ package kscript.app.resolver
 
 import kotlinx.coroutines.runBlocking
 import kscript.app.appdir.AppDir
+import kscript.app.exception.InvalidDependencyLocatorException
 import kscript.app.model.Config
 import kscript.app.model.Repository
-import kscript.app.util.Logger.errorMsg
 import kscript.app.util.Logger.infoMsg
-import kscript.app.util.quit
 import java.io.File
 import kotlin.script.experimental.api.valueOrThrow
 import kotlin.script.experimental.dependencies.CompoundDependenciesResolver
@@ -23,7 +22,6 @@ class DependencyResolver(private val config: Config, private val appDir: AppDir)
         }
 
         val dependenciesHash = dependencyIds.toList().sorted().joinToString(config.classPathSeparator)
-
 
         // Use cached classpath from previous run if present
         val cache = appDir.dependencyCache.read().lines().filter { it.isNotBlank() }
@@ -62,8 +60,6 @@ class DependencyResolver(private val config: Config, private val appDir: AppDir)
 
 
     private fun resolveDependenciesViaKotlin(depIds: Set<String>, customRepos: Set<Repository>): List<File> {
-
-
         // validate dependencies
         depIds.map { depIdToArtifact(it) }
 
@@ -91,12 +87,9 @@ class DependencyResolver(private val config: Config, private val appDir: AppDir)
 
     private fun depIdToArtifact(depId: String) {
         val regex = Regex("^([^:]*):([^:]*):([^:@]*)(:(.*))?(@(.*))?\$")
-        val matchResult = regex.find(depId)
-
-        if (matchResult == null) {
-            errorMsg("Invalid dependency locator: '${depId}'. Expected format is groupId:artifactId:version[:classifier][@type]")
-            quit(1)
-        }
+        regex.find(depId) ?: throw InvalidDependencyLocatorException(
+            "Invalid dependency locator: '${depId}'. Expected format is groupId:artifactId:version[:classifier][@type]"
+        )
     }
 
     fun formatVersion(version: String): String {
@@ -109,5 +102,4 @@ class DependencyResolver(private val config: Config, private val appDir: AppDir)
             }
         }
     }
-
 }
