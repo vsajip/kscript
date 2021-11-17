@@ -1,20 +1,22 @@
 package kscript.app.resolver
 
 import kscript.app.appdir.AppDir
-import kscript.app.model.Config
 import kscript.app.model.Dependency
-import kscript.app.model.Repository
 import kscript.app.util.Logger
 import java.io.File
 
-class ClasspathResolver(private val config: Config, private val appDir: AppDir, private val dependencyResolver: DependencyResolver) {
-    fun resolve(dependencyIds: Set<Dependency>, repositories: Set<Repository>): String {
+class ClasspathResolver(
+    private val classpathSeparator: String,
+    private val appDir: AppDir,
+    private val dependencyResolver: DependencyResolver
+) {
+    fun resolve(dependencyIds: Set<Dependency>): String {
         // if no dependencies were provided we stop here
         if (dependencyIds.isEmpty()) {
             return ""
         }
 
-        val dependenciesHash = dependencyIds.toList().sortedBy { it.value }.joinToString(config.classPathSeparator)
+        val dependenciesHash = dependencyIds.toList().sortedBy { it.value }.joinToString(classpathSeparator)
 
         // Use cached classpath from previous run if present
         val cache = appDir.dependencyCache.read().lines().filter { it.isNotBlank() }
@@ -24,7 +26,7 @@ class ClasspathResolver(private val config: Config, private val appDir: AppDir, 
             val cachedCP = cache.getValue(dependenciesHash)
 
             // Make sure that local dependencies have not been wiped since resolving them (like by deleting .m2) (see #146)
-            if (cachedCP.split(config.classPathSeparator).all { File(it).exists() }) {
+            if (cachedCP.split(classpathSeparator).all { File(it).exists() }) {
                 return cachedCP
             }
 
@@ -35,8 +37,8 @@ class ClasspathResolver(private val config: Config, private val appDir: AppDir, 
         Logger.infoMsg("Resolving dependencies...")
 
         try {
-            val artifacts = dependencyResolver.resolve(dependencyIds, repositories)
-            val classPath = artifacts.joinToString(config.classPathSeparator) { it.absolutePath }
+            val artifacts = dependencyResolver.resolve(dependencyIds)
+            val classPath = artifacts.joinToString(classpathSeparator) { it.absolutePath }
 
             Logger.infoMsg("Dependencies resolved")
 

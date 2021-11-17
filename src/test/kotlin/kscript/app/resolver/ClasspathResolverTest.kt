@@ -1,36 +1,44 @@
 package kscript.app.resolver
 
 import assertk.assertThat
-import assertk.assertions.endsWith
+import assertk.assertions.isEqualTo
+import io.mockk.every
 import io.mockk.mockk
 import kscript.app.appdir.AppDir
-import kscript.app.model.Config
 import kscript.app.model.Dependency
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.io.File
 import java.nio.file.Paths
 
 class ClasspathResolverTest {
-    private val config = Config.builder().build()
     private val appDir = AppDir(Paths.get("~/.kscript"))
+    private val log4jDep = Dependency("log4j:log4j:1.2.14")
+    private val log4jDepNonExistingVersion = Dependency("log4j:log4j:9.8.76")
+
     private lateinit var dependencyResolver: DependencyResolver
     private lateinit var classpathResolver: ClasspathResolver
 
     @BeforeEach
     fun setUp() {
         dependencyResolver = mockk()
-        classpathResolver =  ClasspathResolver(config, appDir, dependencyResolver)
+        val fileMock = mockk<File>()
+        every { fileMock.absolutePath } returns "~/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar"
+        every { dependencyResolver.resolve(setOf(log4jDep)) } returns listOf(fileMock)
+        every { dependencyResolver.resolve(setOf(log4jDepNonExistingVersion)) } throws RuntimeException()
+
+        classpathResolver = ClasspathResolver(":", appDir, dependencyResolver)
     }
 
     @Test
     fun `Resolve classpath`() {
         assertThat(
-            classpathResolver.resolve(setOf(Dependency("log4j:log4j:1.2.14")), emptySet()).replace('\\', '/')
-        ).endsWith(".m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar")
+            classpathResolver.resolve(setOf(log4jDep))
+        ).isEqualTo("~/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar")
 
         assertThrows<RuntimeException> {
-            classpathResolver.resolve(setOf(Dependency("log4j:log4j:9.8.76")), emptySet())
+            classpathResolver.resolve(setOf(Dependency("log4j:log4j:9.8.76")))
         }
     }
 }

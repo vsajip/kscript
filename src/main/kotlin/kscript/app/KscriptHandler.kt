@@ -85,9 +85,8 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
 
         val classpath = try {
-            ClasspathResolver(config, appDir, DependencyResolver()).resolve(
-                resolvedScript.dependencies, resolvedScript.repositories
-            )
+            ClasspathResolver(config.classPathSeparator, appDir, DependencyResolver(resolvedScript.repositories)).resolve(
+                resolvedScript.dependencies            )
         } catch (e: Exception) {
             // Probably a wrapped Nullpointer from 'DefaultRepositorySystem.resolveDependencies()', this however is probably a connection problem.
             Logger.errorMsg("Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators. If you suspect this is a bug, you can create an issue on https://github.com/holgerbrandl/kscript")
