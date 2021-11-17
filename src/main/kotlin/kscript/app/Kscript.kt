@@ -1,18 +1,24 @@
 package kscript.app
 
-import kscript.app.ShellUtils.isInPath
+import kscript.app.util.ShellUtils.isInPath
 import kscript.app.appdir.AppDir
 import kscript.app.code.Templates
+import kscript.app.creator.IdeaProjectCreator
+import kscript.app.creator.PackageCreator
 import kscript.app.model.Config
 import kscript.app.model.ScriptType
 import kscript.app.model.SourceType
-import kscript.app.resolver.Parser
+import kscript.app.parser.Parser
+import kscript.app.resolver.DependencyResolver
 import kscript.app.resolver.ScriptResolver
 import kscript.app.util.Logger
 import kscript.app.util.Logger.errorMsg
 import kscript.app.util.Logger.info
 import kscript.app.util.Logger.infoMsg
 import kscript.app.util.VersionChecker.versionCheck
+import kscript.app.util.evalBash
+import kscript.app.util.guessKotlinHome
+import kscript.app.util.quit
 import org.docopt.DocOptWrapper
 import java.io.File
 import java.nio.file.Paths
@@ -120,8 +126,15 @@ fun main(args: Array<String>) {
         exitProcess(0)
     }
 
-    val classpath =
+    val classpath = try {
         DependencyResolver(config, appDir).resolveClasspath(resolvedScript.dependencies, resolvedScript.repositories)
+    } catch (e: Exception) {
+        // Probably a wrapped Nullpointer from 'DefaultRepositorySystem.resolveDependencies()', this however is probably a connection problem.
+        errorMsg("Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators. If you suspect this is a bug, you can create an issue on https://github.com/holgerbrandl/kscript")
+        errorMsg("Exception: $e")
+        quit(1)
+    }
+
     val optionalCpArg = if (classpath.isNotEmpty()) "-classpath '${classpath}'" else ""
 
     //  Optionally enter interactive mode
@@ -144,11 +157,11 @@ fun main(args: Array<String>) {
 
     // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
     // For valid characters see https://stackoverflow.com/questions/4814040/allowed-characters-in-filename
-//    val className = scriptFile.nameWithoutExtension.replace("[^A-Za-z0-9]".toRegex(), "_").capitalize()
-//        // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
-//        .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_$it" else it }
 
-    val className = "Scriplet"
+    val className = script.scriptName.replace("[^A-Za-z0-9]".toRegex(), "_").replaceFirstChar { it.titlecase() }
+        // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
+        .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_$it" else it }
+
 
     val scriptFile = File(projectDir, className + script.scriptType.extension)
     scriptFile.writeText(resolvedScript.code)
@@ -158,10 +171,11 @@ fun main(args: Array<String>) {
         "Main_${className}"
     } else {
         // extract package from kt-file
-        """${resolvedScript.packageName ?: ""}${entryDirective ?: "${className}Kt"}"""
+        val packageName = if (resolvedScript.packageName != null) resolvedScript.packageName + "." else ""
+        """${packageName}${entryDirective ?: "${className}Kt"}"""
     }
 
-    val jarFile = appDir.jarCache.calculateJarFile(resolvedScript.code)
+    val jarFile = projectDir.resolve("jar/scriplet.jar")
 
     if (!jarFile.isFile) {
         if (!isInPath("kotlinc")) {

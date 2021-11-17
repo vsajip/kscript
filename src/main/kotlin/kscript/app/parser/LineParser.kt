@@ -1,7 +1,7 @@
-package kscript.app.resolver
+package kscript.app.parser
 
 import kscript.app.model.*
-import kscript.app.quit
+import kscript.app.util.quit
 import kscript.app.util.Logger
 
 object LineParser {
@@ -13,54 +13,47 @@ object LineParser {
     }
 
     fun parseInclude(line: String): Section? {
-        //Regex("^@file:Include\\(\"(.+)\"\\)$|^//INCLUDE\\s+(.+)$")
         val fileInclude = "@file:Include"
         val include = "//INCLUDE "
 
         line.trim().let {
             return when {
-                it.startsWith(fileInclude) -> Include(line, it.substring(fileInclude.length))
-                it.startsWith(include) -> Include(line, it.substring(include.length))
+                it.startsWith(fileInclude) -> Include(
+                    line, extractQuotedValueInParenthesis(line.substring(fileInclude.length))
+                )
+                it.startsWith(include) -> Include(line, extractValue(it.substring(include.length)))
                 else -> null
             }
         }
     }
 
     fun parseDependency(line: String): Section? {
-        //Regex("^@file:DependsOn\\s*\\((.+)\\)\\s*$|^@file:DependsOnMaven\\s*\\((.+)\\)\\s*$|^//DEPS\\s+(.+)\\s*$")
         val fileDependsOn = "@file:DependsOn"
         val fileDependsOnMaven = "@file:DependsOnMaven"
         val depends = "//DEPS "
 
         line.trim().let {
             return when {
-                it.startsWith(fileDependsOn) -> Dependency(
-                    line, extractValues(it.substring(fileDependsOn.length), "\"") ?: throw ParseError(
-                        line, "Value quoting error."
-                    )
-                )
                 it.startsWith(fileDependsOnMaven) -> Dependency(
-                    line, extractValues(it.substring(fileDependsOnMaven.length), "\"") ?: throw ParseError(
-                        line, "Value quoting error."
-                    )
+                    line, extractQuotedValuesInParenthesis(line.substring(fileDependsOnMaven.length))
                 )
-                it.startsWith(depends) -> Dependency(
-                    line, extractValues(it.substring(depends.length)) ?: throw ParseError(
-                        line, "Parsing error."
-                    )
+                it.startsWith(fileDependsOn) -> Dependency(
+                    line, extractQuotedValuesInParenthesis(line.substring(fileDependsOn.length))
                 )
+                it.startsWith(depends) -> Dependency(line, extractValues(it.substring(depends.length)))
                 else -> null
             }
         }
     }
 
     fun parseEntry(line: String): Section? {
-        //Regex("^@file:EntryPoint\\(\"(.+)\"\\)")
         val fileEntry = "@file:EntryPoint"
+        val entry = "//ENTRY "
 
         line.trim().let {
             return when {
-                it.startsWith(fileEntry) -> Entry(line, it.substring(fileEntry.length))
+                it.startsWith(fileEntry) -> Entry(line, extractQuotedValueInParenthesis(it.substring(fileEntry.length)))
+                it.startsWith(entry) -> Entry(line, extractValue(it.substring(entry.length)))
                 else -> null
             }
         }
@@ -76,10 +69,7 @@ object LineParser {
         line.trim().let {
             return when {
                 it.startsWith(fileMavenRepository) -> {
-                    val value = dropEnclosing(it.substring(fileMavenRepository.length), "(", ")") ?: throw ParseError(
-                        line, "No (matching) parenthesis."
-                    )
-
+                    val value = dropEnclosing(it.substring(fileMavenRepository.length), "(", ")")
                     val repository = value.split(",").map { it.trim(' ', '"', '(') }.let { annotationParams ->
                         val keyValSep = "[ ]*=[ ]*\"".toRegex()
 
@@ -110,44 +100,30 @@ object LineParser {
     }
 
     fun parseKotlinOpts(line: String): Section? {
-        //Regex("^@file:KotlinOpts(\"(.*)\")$|^//KOTLIN_OPTS\\s+(.*)$")
         val fileKotlinOpts = "@file:KotlinOpts"
         val kotlinOpts = "//KOTLIN_OPTS "
 
         line.trim().let {
             return when {
                 it.startsWith(fileKotlinOpts) -> KotlinOpts(
-                    line, extractValues(it.substring(fileKotlinOpts.length), "\"") ?: throw ParseError(
-                        line, "Value quoting error."
-                    )
+                    line, extractQuotedValuesInParenthesis(it.substring(fileKotlinOpts.length))
                 )
-                it.startsWith(kotlinOpts) -> KotlinOpts(
-                    line, extractValues(it.substring(kotlinOpts.length)) ?: throw ParseError(
-                        line, "Value quoting error."
-                    )
-                )
+                it.startsWith(kotlinOpts) -> KotlinOpts(line, extractValues(it.substring(kotlinOpts.length)))
                 else -> null
             }
         }
     }
 
     fun parseCompilerOpts(line: String): Section? {
-        //Regex("^@file:CompilerOpts(\"(.*)\")$|$//COMPILER_OPTS\\s+(.*)$")
         val fileCompilerOpts = "@file:CompilerOpts"
         val compilerOpts = "//COMPILER_OPTS "
 
         line.trim().let {
             return when {
                 it.startsWith(fileCompilerOpts) -> CompilerOpts(
-                    line, extractValues(it.substring(fileCompilerOpts.length), "\"") ?: throw ParseError(
-                        line, "Value quoting error."
-                    )
+                    line, extractQuotedValuesInParenthesis(it.substring(fileCompilerOpts.length))
                 )
-                it.startsWith(compilerOpts) -> CompilerOpts(
-                    line, extractValues(it.substring(compilerOpts.length)) ?: throw ParseError(
-                        line, "Value quoting error."
-                    )
-                )
+                it.startsWith(compilerOpts) -> CompilerOpts(line, extractValues(it.substring(compilerOpts.length)))
                 else -> null
             }
         }
@@ -175,18 +151,45 @@ object LineParser {
         }
     }
 
-    private fun extractValues(string: String, prefix: String = "", suffix: String = prefix): List<String>? {
+    private fun extractQuotedValueInParenthesis(string: String): String {
+        val result = extractQuotedValuesInParenthesis(string)
+
+        if (result.size != 1) {
+            throw ParseError(string, "Expected single value, but get ${result.size}")
+        }
+
+        return result[0]
+    }
+
+    private fun extractQuotedValuesInParenthesis(string: String): List<String> {
+        val processed = string.trim()
+        return extractValues(dropEnclosing(processed, "(", ")"), "\"")
+    }
+
+    private fun extractValue(string: String, prefix: String = "", suffix: String = prefix): String {
+        val result = extractValues(string, prefix, suffix)
+
+        if (result.size != 1) {
+            throw ParseError(string, "Expected single value, but get ${result.size}")
+        }
+
+        return result[0]
+    }
+
+    private fun extractValues(string: String, prefix: String = "", suffix: String = prefix): List<String> {
         string.trim().let {
-            return string.split(',').map { it.trim() }.map { dropEnclosing(it, prefix, suffix) ?: return null }
+            return string.split(',').map { it.trim() }
+                .map { dropEnclosing(it, prefix, suffix) ?: throw ParseError(string, "Value quoting error.") }
         }
     }
 
-    private fun dropEnclosing(string: String, prefix: String, suffix: String = prefix): String? {
+    private fun dropEnclosing(string: String, prefix: String, suffix: String = prefix): String {
         string.trim().let {
             if (it.startsWith(prefix) && it.endsWith(suffix)) {
                 return it.substring(prefix.length, it.length - suffix.length)
             }
-            return null
+
+            throw ParseError(string, "Value '$string' is not delimited with '$prefix' and '$suffix'")
         }
     }
 

@@ -8,5 +8,6 @@ data class Script(
     val scriptType: ScriptType,
     val sourceUri: URI?,
     val sourceContextUri: URI,
+    val scriptName: String,
     val sections: List<Section>,
 )

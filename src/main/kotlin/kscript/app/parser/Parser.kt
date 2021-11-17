@@ -1,4 +1,4 @@
-package kscript.app.resolver
+package kscript.app.parser
 
 import kscript.app.model.Code
 import kscript.app.model.Directive

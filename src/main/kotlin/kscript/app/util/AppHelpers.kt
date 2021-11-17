@@ -1,6 +1,5 @@
-package kscript.app
+package kscript.app.util
 
-import kscript.app.util.Logger
 import kscript.app.util.Logger.infoMsg
 import java.io.BufferedReader
 import java.io.File

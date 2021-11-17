@@ -1,4 +1,4 @@
-package kscript.app
+package kscript.app.resolver
 
 import kotlinx.coroutines.runBlocking
 import kscript.app.appdir.AppDir
@@ -6,6 +6,7 @@ import kscript.app.model.Config
 import kscript.app.model.Repository
 import kscript.app.util.Logger.errorMsg
 import kscript.app.util.Logger.infoMsg
+import kscript.app.util.quit
 import java.io.File
 import kotlin.script.experimental.api.valueOrThrow
 import kotlin.script.experimental.dependencies.CompoundDependenciesResolver
@@ -54,15 +55,14 @@ class DependencyResolver(private val config: Config, private val appDir: AppDir)
             // Print the classpath
             return classPath
         } catch (e: Exception) {
-            // Probably a wrapped Nullpointer from 'DefaultRepositorySystem.resolveDependencies()', this however is probably a connection problem.
-            errorMsg("Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators. If you suspect this is a bug, you can create an issue on https://github.com/holgerbrandl/kscript")
-            errorMsg("Exception: $e")
-            quit(1)
+            infoMsg("Exception during dependency resolution... $e")
+            throw e
         }
     }
 
 
     private fun resolveDependenciesViaKotlin(depIds: Set<String>, customRepos: Set<Repository>): List<File> {
+
 
         // validate dependencies
         depIds.map { depIdToArtifact(it) }
@@ -111,12 +111,3 @@ class DependencyResolver(private val config: Config, private val appDir: AppDir)
     }
 
 }
-
-// called by unit tests
-//object DependencyUtil {
-//    @JvmStatic
-//    fun main(args: Array<String>) {
-//        Logger.silentMode = true
-//        infoMsg(resolveDependencies(args.toSet(), emptySet()) ?: "")
-//    }
-//}

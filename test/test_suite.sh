@@ -173,11 +173,6 @@ echo "Starting $SUITE tests:"
 resolve_deps() { kotlin -classpath ${PROJECT_DIR}/build/libs/kscript.jar kscript.app.DependencyUtil "$@";}
 export -f resolve_deps
 
-assert_stderr "resolve_deps log4j:log4j:1.2.14" "${HOME}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar"
-
-## impossible version
-assert "resolve_deps log4j:log4j:9.8.76" "false"
-
 ## wrong format should exit with 1
 assert "resolve_deps log4j:1.0" "false"
 

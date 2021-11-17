@@ -1,6 +1,6 @@
 package kscript.app.model
 
-import kscript.app.resolver.LineParser
+import kscript.app.parser.LineParser
 
 enum class Directive(val processor: (String) -> Section?) {
     SheBang(LineParser::parseSheBang),

@@ -2,7 +2,9 @@ package kscript.app.resolver
 
 import kscript.app.appdir.AppDir
 import kscript.app.model.*
-import kscript.app.quit
+import kscript.app.parser.ParseError
+import kscript.app.parser.Parser
+import kscript.app.util.quit
 import kscript.app.util.Logger
 import java.io.File
 import java.io.FileInputStream
@@ -12,6 +14,7 @@ import java.net.URL
 
 class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
     private val kotlinExtensions = listOf("kts", "kt")
+    private val scripletName = "Scriplet"
 
     //from input
     fun createFromInput(string: String, preambles: List<String> = emptyList()): Script {
@@ -25,6 +28,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
                 resolveScriptType(scriptText),
                 null,
                 includeContext,
+                scripletName,
                 resolveSections(scriptText, includeContext)
             )
         }
@@ -32,6 +36,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         //Is it a URL?
         if (isUrl(string)) {
             val url = URL(string)
+            url.file
             val resolvedUri = resolveRedirects(url).toURI()
             val includeContext = resolvedUri.resolve(".")
             val scriptText = prependPreambles(preambles, readUri(resolvedUri))
@@ -40,6 +45,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
                 resolveScriptType(resolvedUri),
                 resolvedUri,
                 includeContext,
+                getFileNameWithoutExtension(resolvedUri),
                 resolveSections(scriptText, includeContext)
             )
         }
@@ -57,6 +63,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
                     resolveScriptType(uri),
                     uri,
                     includeContext,
+                    file.nameWithoutExtension,
                     resolveSections(scriptText, includeContext)
                 )
             } else {
@@ -68,6 +75,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
                     resolveScriptType(scriptText),
                     uri,
                     includeContext,
+                    scripletName,
                     resolveSections(scriptText, includeContext)
                 )
             }
@@ -86,8 +94,28 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
             resolveScriptType(scriptText),
             null,
             includeContext,
+            scripletName,
             resolveSections(scriptText, includeContext)
         )
+    }
+
+    fun getFileNameWithoutExtension(path: URI): String {
+        val filename = getFileName(path)!!
+        val idx = filename.lastIndexOf('.')
+        return filename.substring(0, idx)
+    }
+
+    fun getFileName(path: URI): String? {
+        return getFileName(path.normalize().path)
+    }
+
+    fun getFileName(path: String): String? {
+        val idx = path.lastIndexOf("/")
+        var filename = path
+        if (idx >= 0) {
+            filename = path.substring(idx + 1, path.length)
+        }
+        return filename
     }
 
     private fun readUri(resolvedUri: URI): String {
@@ -124,7 +152,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
     }
 
     private fun isUrl(string: String): Boolean {
-        val normalizedString = string.toLowerCase().trim()
+        val normalizedString = string.lowercase().trim()
         return normalizedString.startsWith("http://") || normalizedString.startsWith("https://")
     }
 
@@ -193,6 +221,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
                 }
 
                 is Package -> {
+                    //TODO: Only top level packages should be used here
                     if (packageName == null) {
                         packageName = section.packageName
                     }
@@ -215,6 +244,8 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
                 is Entry -> {
                     if (entry == null ) {
                         entry = section.entry
+                    } else {
+                        throw ParseError(section.code, "Duplicated Entry point.")
                     }
                 }
 

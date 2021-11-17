@@ -1,11 +1,13 @@
-package kscript.app
+package kscript.app.creator
 
-import kscript.app.ShellUtils.isInPath
+import kscript.app.util.ShellUtils.isInPath
 import kscript.app.appdir.AppDir
 import kscript.app.code.Templates
 import kscript.app.model.ResolvedScript
 import kscript.app.util.Logger.errorMsg
 import kscript.app.util.Logger.infoMsg
+import kscript.app.util.evalBash
+import kscript.app.util.quit
 import java.io.File
 import java.nio.file.Paths
 
