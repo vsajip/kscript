@@ -28,7 +28,7 @@ class PackageCreator(private val appDir: AppDir) {
 
         val tmpProjectDir = appDir.projectCache.projectDir()
 
-        val jvmOptions = resolvedScript.kotlinOpts.filter { it.startsWith("-J") }.map { it.removePrefix("-J") }
+        val jvmOptions = resolvedScript.kotlinOpts.map { it.value }.filter { it.startsWith("-J") }.map { it.removePrefix("-J") }
             .joinToString(", ") { '"' + it + '"' }
 
         // https://shekhargulati.com/2015/09/10/gradle-tip-using-gradle-plugin-from-local-maven-repository/

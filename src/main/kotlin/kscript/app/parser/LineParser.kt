@@ -6,61 +6,72 @@ import kscript.app.util.Logger
 import kscript.app.util.quit
 
 object LineParser {
-    fun parseSheBang(line: String): Annotation? {
+    fun parseSheBang(line: String): List<Annotation> {
         if (line.startsWith("#!/")) {
-            return SheBang()
+            return listOf(SheBang)
         }
-        return null
+        return emptyList()
     }
 
-    fun parseInclude(line: String): Annotation? {
+    fun parseInclude(line: String): List<Annotation> {
         val fileInclude = "@file:Include"
         val include = "//INCLUDE "
 
         line.trim().let {
             return when {
-                it.startsWith(fileInclude) -> Include(
-                    extractQuotedValueInParenthesis(it.substring(fileInclude.length))
+                it.startsWith(fileInclude) -> listOf(
+                    Include(
+                        extractQuotedValueInParenthesis(it.substring(fileInclude.length))
+                    )
                 )
-                it.startsWith(include) -> Include(extractValue(it.substring(include.length)))
-                else -> null
+                it.startsWith(include) -> listOf(Include(extractValue(it.substring(include.length))))
+                else -> emptyList()
             }
         }
     }
 
-    fun parseDependency(line: String): Annotation? {
+    private fun validateDependency(line: String, dependency: String): String {
+        val regex = Regex("^([^:]*):([^:]*):([^:@]*)(:(.*))?(@(.*))?\$")
+        regex.find(dependency) ?: throw ParseError(line,
+            "Invalid dependency locator: '${dependency}'. Expected format is groupId:artifactId:version[:classifier][@type]"
+        )
+        return dependency
+    }
+
+
+    fun parseDependency(line: String): List<Annotation> {
         val fileDependsOn = "@file:DependsOn"
         val fileDependsOnMaven = "@file:DependsOnMaven"
         val depends = "//DEPS "
 
-        line.trim().let {
-            return when {
-                it.startsWith(fileDependsOnMaven) -> Dependency(
-                    extractQuotedValuesInParenthesis(it.substring(fileDependsOnMaven.length))
+        line.trim().let { s ->
+            val dependencies = when {
+                s.startsWith(fileDependsOnMaven) -> extractQuotedValuesInParenthesis(
+                    s.substring(fileDependsOnMaven.length)
                 )
-                it.startsWith(fileDependsOn) -> Dependency(
-                    extractQuotedValuesInParenthesis(it.substring(fileDependsOn.length))
-                )
-                it.startsWith(depends) -> Dependency(extractValues(it.substring(depends.length)))
-                else -> null
+                s.startsWith(fileDependsOn) -> extractQuotedValuesInParenthesis(s.substring(fileDependsOn.length))
+                s.startsWith(depends) -> extractValues(s.substring(depends.length))
+                else -> emptyList()
             }
+
+            return dependencies.map { Dependency(validateDependency(line, it)) }
         }
     }
 
-    fun parseEntry(line: String): Annotation? {
+    fun parseEntry(line: String): List<Annotation> {
         val fileEntry = "@file:EntryPoint"
         val entry = "//ENTRY "
 
         line.trim().let {
             return when {
-                it.startsWith(fileEntry) -> Entry(extractQuotedValueInParenthesis(it.substring(fileEntry.length)))
-                it.startsWith(entry) -> Entry(extractValue(it.substring(entry.length)))
-                else -> null
+                it.startsWith(fileEntry) -> listOf(Entry(extractQuotedValueInParenthesis(it.substring(fileEntry.length))))
+                it.startsWith(entry) -> listOf(Entry(extractValue(it.substring(entry.length))))
+                else -> emptyList()
             }
         }
     }
 
-    fun parseRepository(line: String): Annotation? {
+    fun parseRepository(line: String): List<Annotation> {
         //Format:
         // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/")
         // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/", user="user", password="pass")
@@ -92,62 +103,68 @@ object LineParser {
                             decodeEnv(namedArgs.getOrDefault("password", annotationParams.getOrNull(3) ?: ""))
                         )
                     }
-                    return repository
+                    return listOf(repository)
                 }
-                else -> null
+                else -> emptyList()
             }
         }
     }
 
-    fun parseKotlinOpts(line: String): Annotation? {
+    fun parseKotlinOpts(line: String): List<Annotation> {
         val fileKotlinOpts = "@file:KotlinOpts"
         val kotlinOpts = "//KOTLIN_OPTS "
 
         line.trim().let {
             return when {
-                it.startsWith(fileKotlinOpts) -> KotlinOpts(
-                    extractQuotedValuesInParenthesis(it.substring(fileKotlinOpts.length))
-                )
-                it.startsWith(kotlinOpts) -> KotlinOpts(extractValues(it.substring(kotlinOpts.length)))
-                else -> null
+                it.startsWith(fileKotlinOpts) -> extractQuotedValuesInParenthesis(it.substring(fileKotlinOpts.length)).map {
+                    KotlinOpt(
+                        it
+                    )
+                }
+
+                it.startsWith(kotlinOpts) -> extractValues(it.substring(kotlinOpts.length)).map { KotlinOpt(it) }
+                else -> emptyList()
             }
         }
     }
 
-    fun parseCompilerOpts(line: String): Annotation? {
+    fun parseCompilerOpts(line: String): List<Annotation> {
         val fileCompilerOpts = "@file:CompilerOpts"
         val compilerOpts = "//COMPILER_OPTS "
 
         line.trim().let {
             return when {
-                it.startsWith(fileCompilerOpts) -> CompilerOpts(
-                    extractQuotedValuesInParenthesis(it.substring(fileCompilerOpts.length))
-                )
-                it.startsWith(compilerOpts) -> CompilerOpts(extractValues(it.substring(compilerOpts.length)))
-                else -> null
+                it.startsWith(fileCompilerOpts) -> extractQuotedValuesInParenthesis(it.substring(fileCompilerOpts.length)).map {
+                    CompilerOpt(
+                        it
+                    )
+                }
+
+                it.startsWith(compilerOpts) -> extractValues(it.substring(compilerOpts.length)).map { CompilerOpt(it) }
+                else -> emptyList()
             }
         }
     }
 
-    fun parsePackage(line: String): Annotation? {
+    fun parsePackage(line: String): List<Annotation> {
         val packagePrefix = "package "
 
         line.trim().let {
             if (it.startsWith(packagePrefix)) {
-                return Package(it.substring(packagePrefix.length))
+                return listOf(Package(it.substring(packagePrefix.length)))
             }
-            return null
+            return emptyList()
         }
     }
 
-    fun parseImport(line: String): Annotation? {
+    fun parseImport(line: String): List<Annotation> {
         val importPrefix = "import "
 
         line.trim().let {
             if (it.startsWith(importPrefix)) {
-                return Import(it.substring(importPrefix.length))
+                return listOf(Import(it.substring(importPrefix.length)))
             }
-            return null
+            return emptyList()
         }
     }
 
@@ -168,10 +185,9 @@ object LineParser {
             throw ParseError(string, "Missing parenthesis")
         }
 
-        val annotationArgs = """(["'])(\\?.*?)\1""".toRegex()
-            .findAll(string.drop(1)).toList().map {
-                it.groupValues[2]
-            }
+        val annotationArgs = """(["'])(\\?.*?)\1""".toRegex().findAll(string.drop(1)).toList().map {
+            it.groupValues[2]
+        }
 
         return annotationArgs
     }

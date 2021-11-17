@@ -5,8 +5,8 @@ import kscript.app.model.*
 import kscript.app.model.Annotation
 import kscript.app.parser.ParseError
 import kscript.app.parser.Parser
-import kscript.app.util.quit
 import kscript.app.util.Logger
+import kscript.app.util.quit
 import java.io.File
 import java.io.FileInputStream
 import java.net.HttpURLConnection
@@ -131,20 +131,26 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         val sections = mutableListOf<Section>()
 
         for (section in parser.parse(scriptText)) {
-            sections += if (section.annotation is Include) {
-                Section(section.code, resolveInclude(section.annotation, includeContext))
-            } else {
-                section
+            val resolvedAnnotations = mutableListOf<Annotation>()
+
+            for (annotation in section.annotation) {
+                resolvedAnnotations += if (annotation is Include) {
+                    resolveInclude(annotation, includeContext)
+                } else {
+                    annotation
+                }
             }
+
+            sections += Section(section.code, resolvedAnnotations)
         }
 
         return sections
     }
 
     private fun resolveInclude(include: Include, includeContext: URI): Annotation {
-        val uri = URI.create(include.include)
+        val uri = URI.create(include.value)
         return ScriptSource(
-            if (isUrl(include.include)) SourceType.HTTP else SourceType.FILE,
+            if (isUrl(include.value)) SourceType.HTTP else SourceType.FILE,
             resolveScriptType(uri),
             uri,
             includeContext
@@ -199,72 +205,75 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
 
     fun resolve(script: Script): ResolvedScript {
         val unifiedCode = mutableListOf<String>()
-        val dependencies = mutableSetOf<String>()
+        val dependencies = mutableSetOf<Dependency>()
         val repositories = mutableSetOf<Repository>()
-        val kotlinOpts = mutableSetOf<String>()
-        val compilerOpts = mutableSetOf<String>()
-        val imports = mutableSetOf<String>()
+        val kotlinOpts = mutableSetOf<KotlinOpt>()
+        val compilerOpts = mutableSetOf<CompilerOpt>()
+        val imports = mutableSetOf<Import>()
         val scriptSources = mutableSetOf<ScriptSource>()
 
-        var packageName: String? = null
-        var entry: String? = null
+        var packageName: Package? = null
+        var entry: Entry? = null
 
         for (section in script.sections) {
-            when(val annotation = section.annotation) {
-                is ScriptSource -> {
+            for (annotation in section.annotation) {
+                when (annotation) {
+                    is ScriptSource -> {
 
-                }
-
-                is Import -> {
-                   imports.add(annotation.importName)
-                }
-
-                is Package -> {
-                    //TODO: Only top level packages should be used here
-                    if (packageName == null) {
-                        packageName = annotation.packageName
                     }
-                }
 
-                is SheBang -> {}
-
-                is Dependency -> {
-                    dependencies.addAll(annotation.dependencies)
-                }
-
-                is KotlinOpts -> {
-                    kotlinOpts.addAll(annotation.kotlinOpts)
-                }
-
-                is CompilerOpts -> {
-                    compilerOpts.addAll(annotation.compileOpts)
-                }
-
-                is Entry -> {
-                    if (entry == null ) {
-                        entry = annotation.entry
-                    } else {
-                        throw ParseError(section.code, "Duplicated Entry point.")
+                    is Import -> {
+                        imports.add(annotation)
                     }
-                }
 
-                is Repository -> {
-                    repositories.add(annotation)
-                }
+                    is Package -> {
+                        //TODO: Only top level packages should be used here
+                        if (packageName == null) {
+                            packageName = annotation
+                        }
+                    }
 
-                is Code -> {
-                    unifiedCode.add(section.code)
+                    is SheBang -> {
+                    }
+
+                    is Dependency -> {
+                        dependencies.add(annotation)
+                    }
+
+                    is KotlinOpt -> {
+                        kotlinOpts.add(annotation)
+                    }
+
+                    is CompilerOpt -> {
+                        compilerOpts.add(annotation)
+                    }
+
+                    is Entry -> {
+                        if (entry == null) {
+                            entry = annotation
+                        } else {
+                            throw ParseError(section.code, "Duplicated Entry point.")
+                        }
+                    }
+
+                    is Repository -> {
+                        repositories.add(annotation)
+                    }
+
+                    is Code -> {
+                        unifiedCode.add(section.code)
+                    }
                 }
             }
         }
 
         val code = StringBuilder().apply {
             if (packageName != null) {
-                append("package $packageName\n\n")
+                append("package ${packageName.value}\n\n")
             }
 
             imports.forEach {
-                append("import $it\n")
+                append("import ${it.value}\n")
             }
 
             unifiedCode.forEach {
@@ -272,12 +281,10 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
             }
         }.toString()
 
-
-        return ResolvedScript(code, packageName, entry, scriptSources, dependencies, repositories, kotlinOpts, compilerOpts)
+        return ResolvedScript(
+            code, packageName, entry, scriptSources, dependencies, repositories, kotlinOpts, compilerOpts
+        )
     }
-
-
-
 
 //    fun create(uri: URI): List<Section> {
 //        try {

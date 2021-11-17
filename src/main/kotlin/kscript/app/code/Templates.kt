@@ -1,5 +1,6 @@
 package kscript.app.code
 
+import kscript.app.model.Dependency
 import kscript.app.model.Repository
 import org.intellij.lang.annotations.Language
 import java.io.File
@@ -38,9 +39,9 @@ object Templates {
         return ""
     }
 
-    private fun createGradleDependenciesSection(dependencies: Set<String>) = dependencies.joinToString("\n") {
+    private fun createGradleDependenciesSection(dependencies: Set<Dependency>) = dependencies.joinToString("\n") {
         """
-        implementation \"$it\"
+        implementation \"${it.value}\"
         """.trimIndent()
     }
 
@@ -55,7 +56,7 @@ object Templates {
 
     fun createGradlePackageScript(
         repositories: Set<Repository>,
-        dependencies: Set<String>,
+        dependencies: Set<Dependency>,
         filePaths: String,
         wrapperClassName: String,
         appName: String,
@@ -63,7 +64,8 @@ object Templates {
     ): String {
         val kotlinVersion = KotlinVersion.CURRENT
         val extendedDependencies = setOf(
-            "org.jetbrains.kotlin:kotlin-stdlib", "org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion"
+            Dependency("org.jetbrains.kotlin:kotlin-stdlib"),
+            Dependency("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         ) + dependencies
 
         return """     
@@ -104,11 +106,12 @@ object Templates {
 
 
     fun createGradleIdeaScript(
-        repositories: Set<Repository>, dependencies: Set<String>, kotlinOptions: String
+        repositories: Set<Repository>, dependencies: Set<Dependency>, kotlinOptions: String
     ): String {
         val kotlinVersion = KotlinVersion.CURRENT
         val extendedDependencies = setOf(
-            "org.jetbrains.kotlin:kotlin-stdlib", "org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion"
+            Dependency("org.jetbrains.kotlin:kotlin-stdlib"),
+            Dependency("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         ) + dependencies
 
         return """

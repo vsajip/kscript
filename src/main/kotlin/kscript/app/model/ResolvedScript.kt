@@ -4,12 +4,12 @@ package kscript.app.model
 data class ResolvedScript(
     val code: String,
 
-    val packageName: String?,
-    val entryPoint: String?,
+    val packageName: Package?,
+    val entryPoint: Entry?,
 
     val scriptSources: Set<ScriptSource>,
-    val dependencies: Set<String>,
+    val dependencies: Set<Dependency>,
     val repositories: Set<Repository>,
-    val kotlinOpts: Set<String>,
-    val compilerOpts: Set<String>
+    val kotlinOpts: Set<KotlinOpt>,
+    val compilerOpts: Set<CompilerOpt>
 )

@@ -122,12 +122,12 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         scriptFile.writeText(resolvedScript.code)
 
         // Define the entrypoint for the scriptlet jar
-        val packageName = if (resolvedScript.packageName != null) resolvedScript.packageName + "." else ""
+        val packageName = if (resolvedScript.packageName != null) resolvedScript.packageName.value + "." else ""
         val execClassName = if (script.scriptType == ScriptType.KTS) {
             "Main_${className}"
         } else {
             // extract package from kt-file
-            """${packageName}${entryDirective ?: "${className}Kt"}"""
+            """${packageName}${entryDirective?.value ?: "${className}Kt"}"""
         }
 
         val jarFile = projectDir.resolve("jar/scriplet.jar")
@@ -200,7 +200,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         if (classpath.isNotEmpty()) extClassPath += config.classPathSeparator + classpath
 
-        val kotlinOpts = resolvedScript.kotlinOpts.joinToString(" ")
+        val kotlinOpts = resolvedScript.kotlinOpts.joinToString(" ") { it.value }
 
         val kotlinCommand = "kotlin $kotlinOpts -classpath \"$extClassPath\" $execClassName $joinedUserArgs"
         Logger.infoMsg(kotlinCommand)

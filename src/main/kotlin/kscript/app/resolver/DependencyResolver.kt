@@ -2,8 +2,8 @@ package kscript.app.resolver
 
 import kotlinx.coroutines.runBlocking
 import kscript.app.appdir.AppDir
-import kscript.app.exception.InvalidDependencyLocatorException
 import kscript.app.model.Config
+import kscript.app.model.Dependency
 import kscript.app.model.Repository
 import kscript.app.util.Logger.infoMsg
 import java.io.File
@@ -15,13 +15,13 @@ import kotlin.script.experimental.dependencies.maven.MavenRepositoryCoordinates
 
 class DependencyResolver(private val config: Config, private val appDir: AppDir) {
 
-    fun resolveClasspath(dependencyIds: Set<String>, repositories: Set<Repository>): String {
+    fun resolveClasspath(dependencyIds: Set<Dependency>, repositories: Set<Repository>): String {
         // if no dependencies were provided we stop here
         if (dependencyIds.isEmpty()) {
             return ""
         }
 
-        val dependenciesHash = dependencyIds.toList().sorted().joinToString(config.classPathSeparator)
+        val dependenciesHash = dependencyIds.toList().sortedBy { it.value }.joinToString(config.classPathSeparator)
 
         // Use cached classpath from previous run if present
         val cache = appDir.dependencyCache.read().lines().filter { it.isNotBlank() }
@@ -59,10 +59,7 @@ class DependencyResolver(private val config: Config, private val appDir: AppDir)
     }
 
 
-    private fun resolveDependenciesViaKotlin(depIds: Set<String>, customRepos: Set<Repository>): List<File> {
-        // validate dependencies
-        depIds.map { depIdToArtifact(it) }
-
+    private fun resolveDependenciesViaKotlin(depIds: Set<Dependency>, customRepos: Set<Repository>): List<File> {
         val extRepos = customRepos //+ MavenRepo("jcenter", "https://jcenter.bintray.com")
 
         val repoCoords = extRepos.map { MavenRepositoryCoordinates(it.url, it.user, it.password, null, null) }
@@ -77,19 +74,11 @@ class DependencyResolver(private val config: Config, private val appDir: AppDir)
         val resolvedDependencies = runBlocking {
             depIds.map {
                 infoMsg("Resolving $it...")
-                resolver.resolve(it)
+                resolver.resolve(it.value)
             }.map { it.valueOrThrow() }
         }.flatten()
 
         return resolvedDependencies
-    }
-
-
-    private fun depIdToArtifact(depId: String) {
-        val regex = Regex("^([^:]*):([^:]*):([^:@]*)(:(.*))?(@(.*))?\$")
-        regex.find(depId) ?: throw InvalidDependencyLocatorException(
-            "Invalid dependency locator: '${depId}'. Expected format is groupId:artifactId:version[:classifier][@type]"
-        )
     }
 
     fun formatVersion(version: String): String {

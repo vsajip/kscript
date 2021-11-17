@@ -35,7 +35,7 @@ class IdeaProjectCreator(private val appDir: AppDir) {
             Templates.runConfig(scriptFile, tmpProjectDir, userArgs)
         )
 
-        val opts = resolvedScript.compilerOpts.toList()
+        val opts = resolvedScript.compilerOpts.map { it.value }
 
         var jvmTargetOption: String? = null
         for (i in opts.indices) {

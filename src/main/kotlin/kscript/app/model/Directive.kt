@@ -2,7 +2,7 @@ package kscript.app.model
 
 import kscript.app.parser.LineParser
 
-enum class Directive(val processor: (String) -> Annotation?) {
+enum class Directive(val processor: (String) -> List<Annotation>) {
     SheBang(LineParser::parseSheBang),
     Include(LineParser::parseInclude),
     Dependency(LineParser::parseDependency),

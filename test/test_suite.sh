@@ -166,27 +166,6 @@ assert "$f" "Usage: $f [-ae] [--foo] file+"
 assert_end "$SUITE"
 
 ########################################################################################################################
-SUITE="dependency lookup"
-echo
-echo "Starting $SUITE tests:"
-
-resolve_deps() { kotlin -classpath ${PROJECT_DIR}/build/libs/kscript.jar kscript.app.DependencyUtil "$@";}
-export -f resolve_deps
-
-## wrong format should exit with 1
-assert "resolve_deps log4j:1.0" "false"
-
-assert_stderr "resolve_deps log4j:1.0" "[ERROR] Invalid dependency locator: 'log4j:1.0'.  Expected format is groupId:artifactId:version[:classifier][@type]"
-
-## other version of wrong format should die with useful error.
-assert_raises "resolve_deps log4j:::1.0" 1
-
-## one good dependency,  one wrong
-assert_raises "resolve_deps org.org.docopt:org.docopt:0.9.0-SNAPSHOT log4j:log4j:1.2.14" 1
-
-assert_end "$SUITE"
-
-########################################################################################################################
 SUITE="annotation-driven configuration"
 echo
 echo "Starting $SUITE tests:"

@@ -1,26 +1,23 @@
 package kscript.app.parser
 
 import assertk.assertThat
-import assertk.assertions.isEqualTo
-import assertk.assertions.isNotNull
-import assertk.assertions.prop
+import assertk.assertions.*
 import kscript.app.model.Dependency
 import kscript.app.model.Import
 import kscript.app.parser.LineParser.parseDependency
 import kscript.app.parser.LineParser.parseImport
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
-class LineProcessorTest {
+class LineParserTest {
     @Test
     fun `Import processing`() {
-        assertThat(parseImport("import com.script.test1")).isNotNull().prop(Import::importName)
-            .isEqualTo("com.script.test1")
-        assertThat(parseImport("      import com.script.test2            ")).isNotNull().prop(Import::importName)
-            .isEqualTo("com.script.test2")
+        assertThat(parseImport("import com.script.test1")).containsExactlyInAnyOrder(Import("com.script.test1"))
+        assertThat(parseImport("      import com.script.test2            ")).containsExactlyInAnyOrder(Import("com.script.test2"))
     }
 
     @ParameterizedTest
@@ -38,7 +35,7 @@ class LineProcessorTest {
             "    //DEPS $listWithoutQuotes",
         )) {
             println("Case: '$line'")
-            assertThat(parseDependency(line)).isNotNull().prop(Dependency::dependencies).isEqualTo(list)
+            assertThat(parseDependency(line)).containsExactlyInAnyOrder(*list.map { Dependency(it) }.toTypedArray())
         }
     }
 
@@ -56,7 +53,26 @@ class LineProcessorTest {
             "      @file:DependsOnMaven($listWithQuotes)    ",
         )) {
             println("Case: '$line'")
-            assertThat(parseDependency(line)).isNotNull().prop(Dependency::dependencies).isEqualTo(list)
+            assertThat(parseDependency(line)).containsExactlyInAnyOrder(*list.map { Dependency(it) }.toTypedArray())
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidDependencies")
+    fun `Dependency processing - common scenarios - invalid dependencies`(list: List<String>) {
+        val listWithQuotes = list.joinToString(", ") { "\"$it\"" }
+        val listWithoutQuotes = list.joinToString(", ")
+
+        for (line in listOf(
+            "@file:DependsOn($listWithQuotes)",
+            "@file:DependsOn($listWithQuotes) //Comment",
+            "@file:DependsOnMaven($listWithQuotes)",
+            "      @file:DependsOnMaven($listWithQuotes)    ",
+            "//DEPS $listWithoutQuotes",
+            "    //DEPS $listWithoutQuotes",
+        )) {
+            println("Case: '$line'")
+            assertThat { parseDependency(line) }.isFailure().messageContains("$line\nInvalid dependency locator: 'log4j")
         }
     }
 
@@ -73,6 +89,14 @@ class LineProcessorTest {
         @JvmStatic
         fun dynamicDependencies(): Stream<Arguments> = Stream.of(
             Arguments.of(listOf("log4j:log4j:[1.2,)", "com.offbytwo:docopt:[0.6,)"))
+        )
+
+        @JvmStatic
+        fun invalidDependencies(): Stream<Arguments> = Stream.of(
+            Arguments.of(listOf("log4j:1.0")),
+            Arguments.of(listOf("com.offbytwo:docopt:0.6", "log4j:1.0")),
+            Arguments.of(listOf("log4j:::1.0", "com.offbytwo:docopt:0.6", "log4j:1.0")),
+
         )
     }
 }
