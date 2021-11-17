@@ -238,7 +238,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
             }
 
             unifiedCode.forEach {
-                append(it)
+                append("$it\n")
             }
         }.toString()
 

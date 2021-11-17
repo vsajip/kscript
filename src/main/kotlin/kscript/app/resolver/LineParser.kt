@@ -46,7 +46,7 @@ object LineParser {
                 )
                 it.startsWith(depends) -> Dependency(
                     line, extractValues(it.substring(depends.length)) ?: throw ParseError(
-                        line, "Value quoting error."
+                        line, "Parsing error."
                     )
                 )
                 else -> null
