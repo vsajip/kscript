@@ -2,6 +2,7 @@ package kscript.app.resolver
 
 import kscript.app.appdir.AppDir
 import kscript.app.model.*
+import kscript.app.model.Annotation
 import kscript.app.parser.ParseError
 import kscript.app.parser.Parser
 import kscript.app.util.quit
@@ -130,8 +131,8 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         val sections = mutableListOf<Section>()
 
         for (section in parser.parse(scriptText)) {
-            sections += if (section is Include) {
-                resolveInclude(section, includeContext)
+            sections += if (section.annotation is Include) {
+                Section(section.code, resolveInclude(section.annotation, includeContext))
             } else {
                 section
             }
@@ -140,10 +141,9 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         return sections
     }
 
-    private fun resolveInclude(include: Include, includeContext: URI): Section {
+    private fun resolveInclude(include: Include, includeContext: URI): Annotation {
         val uri = URI.create(include.include)
         return ScriptSource(
-            include.code,
             if (isUrl(include.include)) SourceType.HTTP else SourceType.FILE,
             resolveScriptType(uri),
             uri,
@@ -210,47 +210,46 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         var entry: String? = null
 
         for (section in script.sections) {
-
-            when(section) {
+            when(val annotation = section.annotation) {
                 is ScriptSource -> {
 
                 }
 
                 is Import -> {
-                   imports.add(section.importName)
+                   imports.add(annotation.importName)
                 }
 
                 is Package -> {
                     //TODO: Only top level packages should be used here
                     if (packageName == null) {
-                        packageName = section.packageName
+                        packageName = annotation.packageName
                     }
                 }
 
                 is SheBang -> {}
 
                 is Dependency -> {
-                    dependencies.addAll(section.dependencies)
+                    dependencies.addAll(annotation.dependencies)
                 }
 
                 is KotlinOpts -> {
-                    kotlinOpts.addAll(section.kotlinOpts)
+                    kotlinOpts.addAll(annotation.kotlinOpts)
                 }
 
                 is CompilerOpts -> {
-                    compilerOpts.addAll(section.compileOpts)
+                    compilerOpts.addAll(annotation.compileOpts)
                 }
 
                 is Entry -> {
                     if (entry == null ) {
-                        entry = section.entry
+                        entry = annotation.entry
                     } else {
                         throw ParseError(section.code, "Duplicated Entry point.")
                     }
                 }
 
                 is Repository -> {
-                    repositories.add(section)
+                    repositories.add(annotation)
                 }
 
                 is Code -> {

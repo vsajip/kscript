@@ -2,6 +2,7 @@ package kscript.app.parser
 
 import kscript.app.model.Code
 import kscript.app.model.Directive
+import kscript.app.model.Annotation
 import kscript.app.model.Section
 
 class ParseError(lineText: String, exceptionMessage: String) : RuntimeException(lineText + "\n" + exceptionMessage)
@@ -22,10 +23,11 @@ class Parser {
     private fun parseLine(line: String): Section {
         for (directive in Directive.values()) {
             val parsedLine = directive.processor(line)
+
             if (parsedLine != null) {
-                return parsedLine
+                return Section(line, parsedLine)
             }
         }
-        return Code(line)
+        return Section(line, Code())
     }
 }

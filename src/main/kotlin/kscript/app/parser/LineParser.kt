@@ -1,33 +1,34 @@
 package kscript.app.parser
 
 import kscript.app.model.*
+import kscript.app.model.Annotation
 import kscript.app.util.Logger
 import kscript.app.util.quit
 
 object LineParser {
-    fun parseSheBang(line: String): Section? {
+    fun parseSheBang(line: String): Annotation? {
         if (line.startsWith("#!/")) {
-            return SheBang(line)
+            return SheBang()
         }
         return null
     }
 
-    fun parseInclude(line: String): Section? {
+    fun parseInclude(line: String): Annotation? {
         val fileInclude = "@file:Include"
         val include = "//INCLUDE "
 
         line.trim().let {
             return when {
                 it.startsWith(fileInclude) -> Include(
-                    line, extractQuotedValueInParenthesis(it.substring(fileInclude.length))
+                    extractQuotedValueInParenthesis(it.substring(fileInclude.length))
                 )
-                it.startsWith(include) -> Include(line, extractValue(it.substring(include.length)))
+                it.startsWith(include) -> Include(extractValue(it.substring(include.length)))
                 else -> null
             }
         }
     }
 
-    fun parseDependency(line: String): Section? {
+    fun parseDependency(line: String): Annotation? {
         val fileDependsOn = "@file:DependsOn"
         val fileDependsOnMaven = "@file:DependsOnMaven"
         val depends = "//DEPS "
@@ -35,31 +36,31 @@ object LineParser {
         line.trim().let {
             return when {
                 it.startsWith(fileDependsOnMaven) -> Dependency(
-                    line, extractQuotedValuesInParenthesis(it.substring(fileDependsOnMaven.length))
+                    extractQuotedValuesInParenthesis(it.substring(fileDependsOnMaven.length))
                 )
                 it.startsWith(fileDependsOn) -> Dependency(
-                    line, extractQuotedValuesInParenthesis(it.substring(fileDependsOn.length))
+                    extractQuotedValuesInParenthesis(it.substring(fileDependsOn.length))
                 )
-                it.startsWith(depends) -> Dependency(line, extractValues(it.substring(depends.length)))
+                it.startsWith(depends) -> Dependency(extractValues(it.substring(depends.length)))
                 else -> null
             }
         }
     }
 
-    fun parseEntry(line: String): Section? {
+    fun parseEntry(line: String): Annotation? {
         val fileEntry = "@file:EntryPoint"
         val entry = "//ENTRY "
 
         line.trim().let {
             return when {
-                it.startsWith(fileEntry) -> Entry(line, extractQuotedValueInParenthesis(it.substring(fileEntry.length)))
-                it.startsWith(entry) -> Entry(line, extractValue(it.substring(entry.length)))
+                it.startsWith(fileEntry) -> Entry(extractQuotedValueInParenthesis(it.substring(fileEntry.length)))
+                it.startsWith(entry) -> Entry(extractValue(it.substring(entry.length)))
                 else -> null
             }
         }
     }
 
-    fun parseRepository(line: String): Section? {
+    fun parseRepository(line: String): Annotation? {
         //Format:
         // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/")
         // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/", user="user", password="pass")
@@ -85,7 +86,6 @@ object LineParser {
                         }
 
                         Repository(
-                            line,
                             namedArgs.getOrDefault("id", annotationParams[0]),
                             decodeEnv(namedArgs.getOrDefault("url", annotationParams[1])),
                             decodeEnv(namedArgs.getOrDefault("user", annotationParams.getOrNull(2) ?: "")),
@@ -99,53 +99,53 @@ object LineParser {
         }
     }
 
-    fun parseKotlinOpts(line: String): Section? {
+    fun parseKotlinOpts(line: String): Annotation? {
         val fileKotlinOpts = "@file:KotlinOpts"
         val kotlinOpts = "//KOTLIN_OPTS "
 
         line.trim().let {
             return when {
                 it.startsWith(fileKotlinOpts) -> KotlinOpts(
-                    line, extractQuotedValuesInParenthesis(it.substring(fileKotlinOpts.length))
+                    extractQuotedValuesInParenthesis(it.substring(fileKotlinOpts.length))
                 )
-                it.startsWith(kotlinOpts) -> KotlinOpts(line, extractValues(it.substring(kotlinOpts.length)))
+                it.startsWith(kotlinOpts) -> KotlinOpts(extractValues(it.substring(kotlinOpts.length)))
                 else -> null
             }
         }
     }
 
-    fun parseCompilerOpts(line: String): Section? {
+    fun parseCompilerOpts(line: String): Annotation? {
         val fileCompilerOpts = "@file:CompilerOpts"
         val compilerOpts = "//COMPILER_OPTS "
 
         line.trim().let {
             return when {
                 it.startsWith(fileCompilerOpts) -> CompilerOpts(
-                    line, extractQuotedValuesInParenthesis(it.substring(fileCompilerOpts.length))
+                    extractQuotedValuesInParenthesis(it.substring(fileCompilerOpts.length))
                 )
-                it.startsWith(compilerOpts) -> CompilerOpts(line, extractValues(it.substring(compilerOpts.length)))
+                it.startsWith(compilerOpts) -> CompilerOpts(extractValues(it.substring(compilerOpts.length)))
                 else -> null
             }
         }
     }
 
-    fun parsePackage(line: String): Section? {
+    fun parsePackage(line: String): Annotation? {
         val packagePrefix = "package "
 
         line.trim().let {
             if (it.startsWith(packagePrefix)) {
-                return Package(line, it.substring(packagePrefix.length))
+                return Package(it.substring(packagePrefix.length))
             }
             return null
         }
     }
 
-    fun parseImport(line: String): Section? {
+    fun parseImport(line: String): Annotation? {
         val importPrefix = "import "
 
         line.trim().let {
             if (it.startsWith(importPrefix)) {
-                return Import(line, it.substring(importPrefix.length))
+                return Import(it.substring(importPrefix.length))
             }
             return null
         }

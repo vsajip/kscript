@@ -17,14 +17,10 @@ import java.util.stream.Stream
 class LineProcessorTest {
     @Test
     fun `Import processing`() {
-        assertThat(parseImport("import com.script.test1")).isNotNull().let {
-            it.prop(Import::importName).isEqualTo("com.script.test1")
-        }
-
-        assertThat(parseImport("      import com.script.test2            ")).isNotNull().let {
-            it.prop(Import::importName).isEqualTo("com.script.test2")
-            it.prop(Import::code).isEqualTo("      import com.script.test2            ")
-        }
+        assertThat(parseImport("import com.script.test1")).isNotNull().prop(Import::importName)
+            .isEqualTo("com.script.test1")
+        assertThat(parseImport("      import com.script.test2            ")).isNotNull().prop(Import::importName)
+            .isEqualTo("com.script.test2")
     }
 
     @ParameterizedTest
@@ -42,10 +38,7 @@ class LineProcessorTest {
             "    //DEPS $listWithoutQuotes",
         )) {
             println("Case: '$line'")
-            assertThat(parseDependency(line)).isNotNull().let {
-                it.prop(Dependency::dependencies).isEqualTo(list)
-                it.prop(Dependency::code).isEqualTo(line)
-            }
+            assertThat(parseDependency(line)).isNotNull().prop(Dependency::dependencies).isEqualTo(list)
         }
     }
 
@@ -63,10 +56,7 @@ class LineProcessorTest {
             "      @file:DependsOnMaven($listWithQuotes)    ",
         )) {
             println("Case: '$line'")
-            assertThat(parseDependency(line)).isNotNull().let {
-                it.prop(Dependency::dependencies).isEqualTo(list)
-                it.prop(Dependency::code).isEqualTo(line)
-            }
+            assertThat(parseDependency(line)).isNotNull().prop(Dependency::dependencies).isEqualTo(list)
         }
     }
 
