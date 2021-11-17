@@ -15,6 +15,7 @@ class AppDir(path: Path) {
         Files.createDirectories(jarCachePath)
         FileUtils.cleanDirectory(jarCachePath.toFile())
         Files.createDirectories(projectCachePath)
+        dependencyCachePath.toFile().createNewFile()
     }
 
     val urlCache = UrlCache(urlCachePath)
@@ -26,6 +27,6 @@ class AppDir(path: Path) {
         urlCache.clear()
         jarCache.clear()
         projectCache.clear()
-        Files.delete(dependencyCachePath)
+        Files.deleteIfExists(dependencyCachePath)
     }
 }

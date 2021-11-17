@@ -1,7 +1,6 @@
 package kscript.app.resolver
 
 import kscript.app.appdir.AppDir
-import kscript.app.isRegularFile
 import kscript.app.model.*
 import kscript.app.quit
 import kscript.app.util.Logger
@@ -143,7 +142,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
     }
 
     private fun resolveScriptType(uri: URI): ScriptType {
-        val path = uri.path.toLowerCase()
+        val path = uri.path.lowercase()
 
         when {
             path.endsWith(".kt") -> return ScriptType.KT
@@ -170,8 +169,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
     }
 
 
-    fun unifyScripts(script: Script): UnifiedScript {
-
+    fun resolve(script: Script): ResolvedScript {
         val unifiedCode = mutableListOf<String>()
         val dependencies = mutableSetOf<String>()
         val repositories = mutableSetOf<Repository>()
@@ -245,7 +243,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         }.toString()
 
 
-        return UnifiedScript(code, packageName, entry, scriptSources, dependencies, repositories, kotlinOpts, compilerOpts)
+        return ResolvedScript(code, packageName, entry, scriptSources, dependencies, repositories, kotlinOpts, compilerOpts)
     }
 
 

@@ -4,7 +4,7 @@ import kscript.app.ShellUtils.isInPath
 import kscript.app.appdir.AppDir
 import kscript.app.code.Templates
 import kscript.app.model.Config
-import kscript.app.model.UnifiedScript
+import kscript.app.model.ResolvedScript
 import kscript.app.util.Logger.errorMsg
 import kscript.app.util.Logger.infoMsg
 import java.io.File
@@ -13,8 +13,7 @@ import java.nio.file.Files
 
 class IdeaProjectCreator(private val appDir: AppDir) {
 
-    fun createProject(scriptFile: File, unifiedScript: UnifiedScript, userArgs: List<String>, config: Config): String {
-
+    fun createProject(scriptFile: File, resolvedScript: ResolvedScript, userArgs: List<String>, config: Config): String {
         if (!isInPath(config.intellijCommand)) {
             errorMsg("Could not find '${config.intellijCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_IDEA_COMMAND' env property")
             quit(1)
@@ -34,7 +33,7 @@ class IdeaProjectCreator(private val appDir: AppDir) {
             Templates.runConfig(scriptFile, tmpProjectDir, userArgs)
         )
 
-        val opts = unifiedScript.compilerOpts.toList()
+        val opts = resolvedScript.compilerOpts.toList()
 
         var jvmTargetOption: String? = null
         for (i in opts.indices) {
@@ -45,7 +44,7 @@ class IdeaProjectCreator(private val appDir: AppDir) {
 
         val kotlinOptions = Templates.kotlinOptions(jvmTargetOption)
         val gradleScript =
-            Templates.createGradleIdeaScript(unifiedScript.repositories, unifiedScript.dependencies, kotlinOptions)
+            Templates.createGradleIdeaScript(resolvedScript.repositories, resolvedScript.dependencies, kotlinOptions)
 
         File(tmpProjectDir, "build.gradle.kts").writeText(gradleScript)
 

@@ -39,7 +39,7 @@ fun main(args: Array<String>) {
         System.getenv("KSCRIPT_IDEA_COMMAND") ?: "idea",
         System.getenv("KSCRIPT_GRADLE_COMMAND") ?: "gradle",
         (System.getenv("KOTLIN_HOME") ?: guessKotlinHome())?.let { Paths.get(it) },
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) ";" else ":"
+        if (System.getProperty("os.name").lowercase().contains("windows")) ";" else ":"
     )
 
     // skip org.docopt for version and help to allow for lazy version-check
@@ -109,39 +109,38 @@ fun main(args: Array<String>) {
         quit(0)
     }
 
-    val unifiedScript = scriptResolver.unifyScripts(script)
+    val resolvedScript = scriptResolver.resolve(script)
+    val projectDir = appDir.projectCache.projectDir(resolvedScript.code)
 
     //  Create temporary dev environment
     if (docopt.getBoolean("idea")) {
-        val scriptFile = appDir.urlCache.scriplet(unifiedScript.code, script.scriptType.extension).toFile()
+        val scriptFile = appDir.urlCache.scriplet(resolvedScript.code, script.scriptType.extension).toFile()
         val ideaProjectCreator = IdeaProjectCreator(appDir)
-        println(ideaProjectCreator.createProject(scriptFile, unifiedScript, userArgs, config))
+        println(ideaProjectCreator.createProject(scriptFile, resolvedScript, userArgs, config))
         exitProcess(0)
     }
 
     val classpath =
-        DependencyResolver(config, appDir).resolveClasspath(unifiedScript.dependencies, unifiedScript.repositories)
+        DependencyResolver(config, appDir).resolveClasspath(resolvedScript.dependencies, resolvedScript.repositories)
     val optionalCpArg = if (classpath.isNotEmpty()) "-classpath '${classpath}'" else ""
 
     //  Optionally enter interactive mode
     if (docopt.getBoolean("interactive")) {
-        val scriptFile = appDir.urlCache.scriplet(unifiedScript.code, script.scriptType.extension).toFile()
+        val scriptFile = appDir.urlCache.scriplet(resolvedScript.code, script.scriptType.extension).toFile()
         infoMsg("Creating REPL from $scriptFile")
-        println("kotlinc ${unifiedScript.compilerOpts} ${unifiedScript.kotlinOpts} $optionalCpArg")
+        println("kotlinc ${resolvedScript.compilerOpts} ${resolvedScript.kotlinOpts} $optionalCpArg")
 
         exitProcess(0)
     }
 
     // Even if we just need and support the //ENTRY directive in case of kt-class
     // files, we extract it here to fail if it was used in kts files.
-    val entryDirective = unifiedScript.entryPoint
+    val entryDirective = resolvedScript.entryPoint
 
     if (entryDirective != null && script.scriptType == ScriptType.KTS) {
         errorMsg("@Entry directive is just supported for kt class files")
         quit(1)
     }
-
-    val tmpDir = appDir.projectCache.projectDir(unifiedScript.code)
 
     // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
     // For valid characters see https://stackoverflow.com/questions/4814040/allowed-characters-in-filename
@@ -151,18 +150,18 @@ fun main(args: Array<String>) {
 
     val className = "Scriplet"
 
-    val scriptFile = File(tmpDir, "$className.kt")
-    scriptFile.writeText(unifiedScript.code)
+    val scriptFile = File(projectDir, className + script.scriptType.extension)
+    scriptFile.writeText(resolvedScript.code)
 
     // Define the entrypoint for the scriptlet jar
     val execClassName = if (script.scriptType == ScriptType.KTS) {
         "Main_${className}"
     } else {
         // extract package from kt-file
-        """${unifiedScript.packageName ?: ""}${entryDirective ?: "${className}Kt"}"""
+        """${resolvedScript.packageName ?: ""}${entryDirective ?: "${className}Kt"}"""
     }
 
-    val jarFile = appDir.jarCache.calculateJarFile(unifiedScript.code)
+    val jarFile = appDir.jarCache.calculateJarFile(resolvedScript.code)
 
     if (!jarFile.isFile) {
         if (!isInPath("kotlinc")) {
@@ -175,7 +174,7 @@ fun main(args: Array<String>) {
 
         // create main-wrapper for kts scripts
         if (script.scriptType == ScriptType.KTS) {
-            val classReference = (unifiedScript.packageName ?: "") + className
+            val classReference = (resolvedScript.packageName ?: "") + className
 
             val code = """
             class Main_${className}{
@@ -189,13 +188,13 @@ fun main(args: Array<String>) {
             }
             """.trimIndent()
 
-            val mainKotlin = File(tmpDir, "$execClassName.kt")
+            val mainKotlin = File(projectDir, "$execClassName.kt")
             mainKotlin.writeText(code)
             filesToCompile.add(mainKotlin)
         }
 
         val fileArguments = filesToCompile.joinToString(" ") { "'${it.absolutePath}'" }
-        val compilerOpts = unifiedScript.compilerOpts.joinToString(" ")
+        val compilerOpts = resolvedScript.compilerOpts.joinToString(" ")
 
         val scriptCompileResult =
             evalBash("kotlinc $compilerOpts $optionalCpArg -d '${jarFile.absolutePath}' $fileArguments")
@@ -217,7 +216,7 @@ fun main(args: Array<String>) {
             "k" + scriptFile.nameWithoutExtension
         }
 
-        PackageCreator(appDir).packageKscript(unifiedScript, jarFile, execClassName, binaryName)
+        PackageCreator(appDir).packageKscript(resolvedScript, jarFile, execClassName, binaryName)
 
         quit(0)
     }
@@ -232,5 +231,10 @@ fun main(args: Array<String>) {
 
     if (classpath.isNotEmpty()) extClassPath += config.classPathSeparator + classpath
 
-    println("kotlin ${unifiedScript.kotlinOpts} -classpath \"$extClassPath\" $execClassName $joinedUserArgs ")
+    val kotlinOpts = resolvedScript.kotlinOpts.joinToString(" ")
+
+    val kotlinCommand = "kotlin $kotlinOpts -classpath \"$extClassPath\" $execClassName $joinedUserArgs"
+    infoMsg(kotlinCommand)
+
+    println(kotlinCommand)
 }

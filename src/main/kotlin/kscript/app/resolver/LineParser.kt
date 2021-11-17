@@ -177,7 +177,7 @@ object LineParser {
 
     private fun extractValues(string: String, prefix: String = "", suffix: String = prefix): List<String>? {
         string.trim().let {
-            return string.split(',').map { it.trim() }.map { dropEnclosing(it, "\"") ?: return null }
+            return string.split(',').map { it.trim() }.map { dropEnclosing(it, prefix, suffix) ?: return null }
         }
     }
 

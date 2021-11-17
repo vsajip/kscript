@@ -1,12 +1,15 @@
 package kscript.app.model
 
-import java.net.URI
-
-//Script with all ScriptSources replaced with real Script's
+//All scripts unified to single code
 data class ResolvedScript(
-    val sourceType: SourceType,
-    val scriptType: ScriptType,
-    val sourceUri: URI?,
-    val sourceContextUri: URI,
-    val sections: List<Section>,
+    val code: String,
+
+    val packageName: String?,
+    val entryPoint: String?,
+
+    val scriptSources: Set<ScriptSource>,
+    val dependencies: Set<String>,
+    val repositories: Set<Repository>,
+    val kotlinOpts: Set<String>,
+    val compilerOpts: Set<String>
 )

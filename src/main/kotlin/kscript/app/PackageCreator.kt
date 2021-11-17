@@ -3,7 +3,7 @@ package kscript.app
 import kscript.app.ShellUtils.isInPath
 import kscript.app.appdir.AppDir
 import kscript.app.code.Templates
-import kscript.app.model.UnifiedScript
+import kscript.app.model.ResolvedScript
 import kscript.app.util.Logger.errorMsg
 import kscript.app.util.Logger.infoMsg
 import java.io.File
@@ -15,7 +15,7 @@ class PackageCreator(private val appDir: AppDir) {
      * See https://github.com/puniverse/capsule
      */
     fun packageKscript(
-        unifiedScript: UnifiedScript, scriptJar: File, wrapperClassName: String, appName: String
+        resolvedScript: ResolvedScript, scriptJar: File, wrapperClassName: String, appName: String
     ) {
         if (!isInPath("gradle")) {
             errorMsg("gradle is required to package kscripts")
@@ -26,14 +26,14 @@ class PackageCreator(private val appDir: AppDir) {
 
         val tmpProjectDir = appDir.projectCache.projectDir()
 
-        val jvmOptions = unifiedScript.kotlinOpts.filter { it.startsWith("-J") }.map { it.removePrefix("-J") }
+        val jvmOptions = resolvedScript.kotlinOpts.filter { it.startsWith("-J") }.map { it.removePrefix("-J") }
             .joinToString(", ") { '"' + it + '"' }
 
         // https://shekhargulati.com/2015/09/10/gradle-tip-using-gradle-plugin-from-local-maven-repository/
 
         val gradleScript = Templates.createGradlePackageScript(
-            unifiedScript.repositories,
-            unifiedScript.dependencies,
+            resolvedScript.repositories,
+            resolvedScript.dependencies,
             scriptJar.invariantSeparatorsPath,
             wrapperClassName,
             appName,
