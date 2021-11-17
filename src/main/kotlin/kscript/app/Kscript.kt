@@ -157,7 +157,6 @@ fun main(args: Array<String>) {
 
     // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
     // For valid characters see https://stackoverflow.com/questions/4814040/allowed-characters-in-filename
-
     val className = script.scriptName.replace("[^A-Za-z0-9]".toRegex(), "_").replaceFirstChar { it.titlecase() }
         // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
         .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_$it" else it }
@@ -167,11 +166,11 @@ fun main(args: Array<String>) {
     scriptFile.writeText(resolvedScript.code)
 
     // Define the entrypoint for the scriptlet jar
+    val packageName = if (resolvedScript.packageName != null) resolvedScript.packageName + "." else ""
     val execClassName = if (script.scriptType == ScriptType.KTS) {
         "Main_${className}"
     } else {
         // extract package from kt-file
-        val packageName = if (resolvedScript.packageName != null) resolvedScript.packageName + "." else ""
         """${packageName}${entryDirective ?: "${className}Kt"}"""
     }
 
@@ -188,7 +187,7 @@ fun main(args: Array<String>) {
 
         // create main-wrapper for kts scripts
         if (script.scriptType == ScriptType.KTS) {
-            val classReference = (resolvedScript.packageName ?: "") + className
+            val classReference = packageName + className
 
             val code = """
             class Main_${className}{

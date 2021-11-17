@@ -9,6 +9,10 @@ import kscript.app.model.Import
 import kscript.app.parser.LineParser.parseDependency
 import kscript.app.parser.LineParser.parseImport
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import java.util.stream.Stream
 
 class LineProcessorTest {
     @Test
@@ -23,30 +27,62 @@ class LineProcessorTest {
         }
     }
 
-    @Test
-    fun `Dependency processing`() {
-        assertThat(parseDependency("@file:DependsOn(\"org.javamoney:moneta:pom:1.3\")")).isNotNull().let {
-            it.prop(Dependency::dependencies).isEqualTo(listOf("org.javamoney:moneta:pom:1.3"))
-        }
+    @ParameterizedTest
+    @MethodSource("staticDependencies")
+    fun `Dependency processing - common scenarios - static dependencies`(list: List<String>) {
+        val listWithQuotes = list.joinToString(", ") { "\"$it\"" }
+        val listWithoutQuotes = list.joinToString(", ")
 
-        assertThat(parseDependency("@file:DependsOn(\"org.javamoney:moneta:pom:1.3\", \"log4j:log4j:1.2.14\", \"com.offbytwo:docopt:0.6.0.20150202\")")).isNotNull().let {
-            it.prop(Dependency::dependencies).isEqualTo(listOf("org.javamoney:moneta:pom:1.3", "log4j:log4j:1.2.14", "com.offbytwo:docopt:0.6.0.20150202"))
+        for (line in listOf(
+            "@file:DependsOn($listWithQuotes)",
+            "@file:DependsOn($listWithQuotes) //Comment",
+            "@file:DependsOnMaven($listWithQuotes)",
+            "      @file:DependsOnMaven($listWithQuotes)    ",
+            "//DEPS $listWithoutQuotes",
+            "    //DEPS $listWithoutQuotes",
+        )) {
+            println("Case: '$line'")
+            assertThat(parseDependency(line)).isNotNull().let {
+                it.prop(Dependency::dependencies).isEqualTo(list)
+                it.prop(Dependency::code).isEqualTo(line)
+            }
         }
+    }
 
-        assertThat(parseDependency("@file:DependsOnMaven(\"org.javamoney:moneta:pom:1.3\")")).isNotNull().let {
-            it.prop(Dependency::dependencies).isEqualTo(listOf("org.javamoney:moneta:pom:1.3"))
-        }
 
-        assertThat(parseDependency("@file:DependsOnMaven(\"org.javamoney:moneta:pom:1.3\", \"log4j:log4j:1.2.14\", \"com.offbytwo:docopt:0.6.0.20150202\")")).isNotNull().let {
-            it.prop(Dependency::dependencies).isEqualTo(listOf("org.javamoney:moneta:pom:1.3", "log4j:log4j:1.2.14", "com.offbytwo:docopt:0.6.0.20150202"))
-        }
+    @ParameterizedTest
+    @MethodSource("dynamicDependencies")
+    fun `Dependency processing - common scenarios - dynamic dependencies`(list: List<String>) {
+        val listWithQuotes = list.joinToString(", ") { "\"$it\"" }
+        val listWithoutQuotes = list.joinToString(", ")
 
-        assertThat(parseDependency("//DEPS org.javamoney:moneta:pom:1.3")).isNotNull().let {
-            it.prop(Dependency::dependencies).isEqualTo(listOf("org.javamoney:moneta:pom:1.3"))
+        for (line in listOf(
+            "@file:DependsOn($listWithQuotes)",
+            "@file:DependsOn($listWithQuotes) //Comment",
+            "@file:DependsOnMaven($listWithQuotes)",
+            "      @file:DependsOnMaven($listWithQuotes)    ",
+        )) {
+            println("Case: '$line'")
+            assertThat(parseDependency(line)).isNotNull().let {
+                it.prop(Dependency::dependencies).isEqualTo(list)
+                it.prop(Dependency::code).isEqualTo(line)
+            }
         }
+    }
 
-        assertThat(parseDependency("//DEPS org.javamoney:moneta:pom:1.3, log4j:log4j:1.2.14, com.offbytwo:docopt:0.6.0.20150202")).isNotNull().let {
-            it.prop(Dependency::dependencies).isEqualTo(listOf("org.javamoney:moneta:pom:1.3", "log4j:log4j:1.2.14", "com.offbytwo:docopt:0.6.0.20150202"))
-        }
+    companion object {
+        @JvmStatic
+        fun staticDependencies(): Stream<Arguments> = Stream.of(
+            Arguments.of(listOf("org.javamoney:moneta:pom:1.3")), Arguments.of(
+                listOf(
+                    "org.javamoney:moneta:pom:1.3", "log4j:log4j:1.2.14", "com.offbytwo:docopt:0.6.0.20150202"
+                )
+            )
+        )
+
+        @JvmStatic
+        fun dynamicDependencies(): Stream<Arguments> = Stream.of(
+            Arguments.of(listOf("log4j:log4j:[1.2,)", "com.offbytwo:docopt:[0.6,)"))
+        )
     }
 }

@@ -1,8 +1,8 @@
 package kscript.app.parser
 
 import kscript.app.model.*
-import kscript.app.util.quit
 import kscript.app.util.Logger
+import kscript.app.util.quit
 
 object LineParser {
     fun parseSheBang(line: String): Section? {
@@ -19,7 +19,7 @@ object LineParser {
         line.trim().let {
             return when {
                 it.startsWith(fileInclude) -> Include(
-                    line, extractQuotedValueInParenthesis(line.substring(fileInclude.length))
+                    line, extractQuotedValueInParenthesis(it.substring(fileInclude.length))
                 )
                 it.startsWith(include) -> Include(line, extractValue(it.substring(include.length)))
                 else -> null
@@ -35,10 +35,10 @@ object LineParser {
         line.trim().let {
             return when {
                 it.startsWith(fileDependsOnMaven) -> Dependency(
-                    line, extractQuotedValuesInParenthesis(line.substring(fileDependsOnMaven.length))
+                    line, extractQuotedValuesInParenthesis(it.substring(fileDependsOnMaven.length))
                 )
                 it.startsWith(fileDependsOn) -> Dependency(
-                    line, extractQuotedValuesInParenthesis(line.substring(fileDependsOn.length))
+                    line, extractQuotedValuesInParenthesis(it.substring(fileDependsOn.length))
                 )
                 it.startsWith(depends) -> Dependency(line, extractValues(it.substring(depends.length)))
                 else -> null
@@ -162,8 +162,18 @@ object LineParser {
     }
 
     private fun extractQuotedValuesInParenthesis(string: String): List<String> {
-        val processed = string.trim()
-        return extractValues(dropEnclosing(processed, "(", ")"), "\"")
+        // https://stackoverflow.com/questions/171480/regex-grabbing-values-between-quotation-marks
+
+        if (!string.startsWith("(")) {
+            throw ParseError(string, "Missing parenthesis")
+        }
+
+        val annotationArgs = """(["'])(\\?.*?)\1""".toRegex()
+            .findAll(string.drop(1)).toList().map {
+                it.groupValues[2]
+            }
+
+        return annotationArgs
     }
 
     private fun extractValue(string: String, prefix: String = "", suffix: String = prefix): String {
@@ -178,8 +188,7 @@ object LineParser {
 
     private fun extractValues(string: String, prefix: String = "", suffix: String = prefix): List<String> {
         string.trim().let {
-            return string.split(',').map { it.trim() }
-                .map { dropEnclosing(it, prefix, suffix) ?: throw ParseError(string, "Value quoting error.") }
+            return it.split("[ ;,]+".toRegex()).map(String::trim)
         }
     }
 
