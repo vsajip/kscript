@@ -6,9 +6,11 @@ import kscript.app.util.Logger
 import kscript.app.util.quit
 
 object LineParser {
+    private val sheBang = listOf(SheBang)
+
     fun parseSheBang(line: String): List<Annotation> {
         if (line.startsWith("#!/")) {
-            return listOf(SheBang)
+            return sheBang
         }
         return emptyList()
     }
@@ -32,12 +34,23 @@ object LineParser {
 
     private fun validateDependency(line: String, dependency: String): String {
         val regex = Regex("^([^:]*):([^:]*):([^:@]*)(:(.*))?(@(.*))?\$")
-        regex.find(dependency) ?: throw ParseError(line,
+        regex.find(dependency) ?: throw ParseException(
+            line,
             "Invalid dependency locator: '${dependency}'. Expected format is groupId:artifactId:version[:classifier][@type]"
         )
         return dependency
     }
 
+    fun formatVersion(version: String): String {
+        // replace + with open version range for maven
+        return version.let { it ->
+            if (it.endsWith("+")) {
+                "[${it.dropLast(1)},)"
+            } else {
+                it
+            }
+        }
+    }
 
     fun parseDependency(line: String): List<Annotation> {
         val fileDependsOn = "@file:DependsOn"
@@ -46,15 +59,16 @@ object LineParser {
 
         line.trim().let { s ->
             val dependencies = when {
-                s.startsWith(fileDependsOnMaven) -> extractQuotedValuesInParenthesis(
-                    s.substring(fileDependsOnMaven.length)
-                )
+                s.startsWith(fileDependsOnMaven) -> extractQuotedValuesInParenthesis(s.substring(fileDependsOnMaven.length))
                 s.startsWith(fileDependsOn) -> extractQuotedValuesInParenthesis(s.substring(fileDependsOn.length))
                 s.startsWith(depends) -> extractValues(s.substring(depends.length))
                 else -> emptyList()
             }
 
-            return dependencies.map { Dependency(validateDependency(line, it)) }
+            return dependencies.map {
+                val validated = validateDependency(line, it)
+                Dependency(validated)
+            }
         }
     }
 
@@ -90,7 +104,7 @@ object LineParser {
                         }.toMap()
 
                         if (annotationParams.size < 2) {
-                            throw ParseError(
+                            throw ParseException(
                                 line,
                                 "Missing ${2 - annotationParams.size} of the required arguments for @file:MavenRepository(id, url)"
                             )
@@ -172,7 +186,7 @@ object LineParser {
         val result = extractQuotedValuesInParenthesis(string)
 
         if (result.size != 1) {
-            throw ParseError(string, "Expected single value, but get ${result.size}")
+            throw ParseException(string, "Expected single value, but get ${result.size}")
         }
 
         return result[0]
@@ -182,7 +196,7 @@ object LineParser {
         // https://stackoverflow.com/questions/171480/regex-grabbing-values-between-quotation-marks
 
         if (!string.startsWith("(")) {
-            throw ParseError(string, "Missing parenthesis")
+            throw ParseException(string, "Missing parenthesis")
         }
 
         val annotationArgs = """(["'])(\\?.*?)\1""".toRegex().findAll(string.drop(1)).toList().map {
@@ -196,7 +210,7 @@ object LineParser {
         val result = extractValues(string, prefix, suffix)
 
         if (result.size != 1) {
-            throw ParseError(string, "Expected single value, but get ${result.size}")
+            throw ParseException(string, "Expected single value, but get ${result.size}")
         }
 
         return result[0]
@@ -214,7 +228,7 @@ object LineParser {
                 return it.substring(prefix.length, it.length - suffix.length)
             }
 
-            throw ParseError(string, "Value '$string' is not delimited with '$prefix' and '$suffix'")
+            throw ParseException(string, "Value '$string' is not delimited with '$prefix' and '$suffix'")
         }
     }
 

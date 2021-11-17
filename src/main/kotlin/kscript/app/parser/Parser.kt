@@ -4,8 +4,6 @@ import kscript.app.model.Code
 import kscript.app.model.Directive
 import kscript.app.model.Section
 
-class ParseError(lineText: String, exceptionMessage: String) : RuntimeException(lineText + "\n" + exceptionMessage)
-
 class Parser {
     fun parse(string: String): List<Section> {
         val codeTextAsLines = string.lines()

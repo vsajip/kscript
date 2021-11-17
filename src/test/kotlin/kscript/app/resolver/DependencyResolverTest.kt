@@ -1,29 +1,24 @@
 package kscript.app.resolver
 
-import assertk.assertThat
-import assertk.assertions.endsWith
-import kscript.app.appdir.AppDir
-import kscript.app.model.Config
-import kscript.app.model.ConfigBuilder
 import kscript.app.model.Dependency
+import kscript.app.model.Repository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.nio.file.Paths
 
 class DependencyResolverTest {
+    private val dependencyResolver = DependencyResolver()
+
     @Test
-    fun `Resolve classpath`() {
-        val config = Config.builder().build()
-        val appDir = AppDir(Paths.get("~/.kscript"))
+    fun `Resolve dependencies`() {
 
-        val dependencyResolver = DependencyResolver(config, appDir)
+        dependencyResolver.resolve(setOf(Dependency("log4j:log4j:1.2.14")), emptySet())
 
-        assertThat(
-            dependencyResolver.resolveClasspath(setOf(Dependency("log4j:log4j:1.2.14")), emptySet()).replace('\\', '/')
-        ).endsWith(".m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar")
+        //TODO clear local file first
+        dependencyResolver.resolve(setOf(Dependency("net.clearvolume:cleargl:jar:2.0.1")), setOf(Repository("imagej-releases","http://maven.imagej.net/content/repositories/releases")))
+
 
         assertThrows<RuntimeException> {
-            dependencyResolver.resolveClasspath(setOf(Dependency("log4j:log4j:9.8.76")), emptySet())
+            dependencyResolver.resolve(setOf(Dependency("log4j:log4j:9.8.76")), emptySet())
         }
     }
 }

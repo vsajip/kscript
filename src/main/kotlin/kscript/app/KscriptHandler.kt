@@ -8,9 +8,13 @@ import kscript.app.model.Config
 import kscript.app.model.ScriptType
 import kscript.app.model.SourceType
 import kscript.app.parser.Parser
+import kscript.app.resolver.ClasspathResolver
 import kscript.app.resolver.DependencyResolver
 import kscript.app.resolver.ScriptResolver
-import kscript.app.util.*
+import kscript.app.util.Logger
+import kscript.app.util.ShellUtils
+import kscript.app.util.evalBash
+import kscript.app.util.quit
 import org.docopt.DocOptWrapper
 import java.io.File
 import kotlin.system.exitProcess
@@ -79,10 +83,10 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             exitProcess(0)
         }
 
+
         val classpath = try {
-            DependencyResolver(config, appDir).resolveClasspath(
-                resolvedScript.dependencies,
-                resolvedScript.repositories
+            ClasspathResolver(config, appDir, DependencyResolver()).resolve(
+                resolvedScript.dependencies, resolvedScript.repositories
             )
         } catch (e: Exception) {
             // Probably a wrapped Nullpointer from 'DefaultRepositorySystem.resolveDependencies()', this however is probably a connection problem.

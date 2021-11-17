@@ -3,7 +3,7 @@ package kscript.app.resolver
 import kscript.app.appdir.AppDir
 import kscript.app.model.*
 import kscript.app.model.Annotation
-import kscript.app.parser.ParseError
+import kscript.app.parser.ParseException
 import kscript.app.parser.Parser
 import kscript.app.util.Logger
 import kscript.app.util.quit
@@ -252,7 +252,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
                         if (entry == null) {
                             entry = annotation
                         } else {
-                            throw ParseError(section.code, "Duplicated Entry point.")
+                            throw ParseException(section.code, "Duplicated Entry point.")
                         }
                     }
 

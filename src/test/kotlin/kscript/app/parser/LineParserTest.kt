@@ -4,8 +4,10 @@ import assertk.assertThat
 import assertk.assertions.*
 import kscript.app.model.Dependency
 import kscript.app.model.Import
+import kscript.app.model.Repository
 import kscript.app.parser.LineParser.parseDependency
 import kscript.app.parser.LineParser.parseImport
+import kscript.app.parser.LineParser.parseRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -15,14 +17,21 @@ import java.util.stream.Stream
 
 class LineParserTest {
     @Test
-    fun `Import processing`() {
+    fun `Import parsing`() {
         assertThat(parseImport("import com.script.test1")).containsExactlyInAnyOrder(Import("com.script.test1"))
         assertThat(parseImport("      import com.script.test2            ")).containsExactlyInAnyOrder(Import("com.script.test2"))
     }
 
+    @Test
+    fun `Repository parsing`() {
+        assertThat(parseRepository("@file:MavenRepository(\"imagej-releases\",\"http://maven.imagej.net/content/repositories/releases\" )")).containsExactlyInAnyOrder(
+            Repository("imagej-releases", "http://maven.imagej.net/content/repositories/releases")
+        )
+    }
+
     @ParameterizedTest
     @MethodSource("staticDependencies")
-    fun `Dependency processing - common scenarios - static dependencies`(list: List<String>) {
+    fun `Dependency parsing - common scenarios - static dependencies`(list: List<String>) {
         val listWithQuotes = list.joinToString(", ") { "\"$it\"" }
         val listWithoutQuotes = list.joinToString(", ")
 
@@ -42,7 +51,7 @@ class LineParserTest {
 
     @ParameterizedTest
     @MethodSource("dynamicDependencies")
-    fun `Dependency processing - common scenarios - dynamic dependencies`(list: List<String>) {
+    fun `Dependency parsing - common scenarios - dynamic dependencies`(list: List<String>) {
         val listWithQuotes = list.joinToString(", ") { "\"$it\"" }
         val listWithoutQuotes = list.joinToString(", ")
 
@@ -59,7 +68,7 @@ class LineParserTest {
 
     @ParameterizedTest
     @MethodSource("invalidDependencies")
-    fun `Dependency processing - common scenarios - invalid dependencies`(list: List<String>) {
+    fun `Dependency parsing - common scenarios - invalid dependencies`(list: List<String>) {
         val listWithQuotes = list.joinToString(", ") { "\"$it\"" }
         val listWithoutQuotes = list.joinToString(", ")
 

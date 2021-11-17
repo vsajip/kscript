@@ -35,7 +35,9 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
-    testImplementation ("com.willowtreeapps.assertk:assertk-jvm:0.25")
+    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.25")
+    testImplementation("io.mockk:mockk:1.12.1")
+
     testImplementation(kotlin("script-runtime"))
 }
 
