@@ -9,7 +9,8 @@ data class Config(
     val intellijCommand: String,
     val gradleCommand: String,
     val kotlinHome: Path?,
-    val classPathSeparator: String
+    val classPathSeparator: String,
+    val separatorChar: Char
 ) {
     companion object {
         fun builder() = ConfigBuilder()

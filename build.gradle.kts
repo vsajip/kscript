@@ -25,10 +25,10 @@ tasks.test {
 
 tasks.withType<Test> {
     addTestListener(object : TestListener {
-        override fun beforeSuite(suite: TestDescriptor) {}
+        override fun beforeSuite(suite: TestDescriptor) { logger.quiet("\nTest class: ${suite.displayName}") }
         override fun beforeTest(testDescriptor: TestDescriptor) {}
         override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
-            logger.quiet("${String.format( "%-40s - %-10s", testDescriptor.name, result.resultType )} ")
+            logger.quiet("${String.format( "%-60s - %-10s", testDescriptor.name, result.resultType )} ")
         }
 
         override fun afterSuite(suite: TestDescriptor, result: TestResult) {}

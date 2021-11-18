@@ -4,13 +4,14 @@ import kscript.app.appdir.AppDir
 import kscript.app.model.Dependency
 import kscript.app.util.Logger
 import java.io.File
+import java.nio.file.Path
 
 class ClasspathResolver(
     private val classpathSeparator: String,
     private val appDir: AppDir,
     private val dependencyResolver: DependencyResolver
 ) {
-    fun resolve(dependencyIds: Set<Dependency>): String {
+    fun resolve(dependencyIds: Set<Dependency>, vararg otherPaths: Path): String {
         // if no dependencies were provided we stop here
         if (dependencyIds.isEmpty()) {
             return ""

@@ -84,21 +84,11 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             exitProcess(0)
         }
 
+        val dependencyResolver = DependencyResolver(resolvedScript.repositories)
+        val classpathResolver = ClasspathResolver(config.classPathSeparator, appDir, dependencyResolver)
+        val kotlinCommandResolver = KotlinCommandResolver(config, resolvedScript, classpathResolver)
 
-        val classpath = try {
-            ClasspathResolver(
-                config.classPathSeparator, appDir, DependencyResolver(resolvedScript.repositories)
-            ).resolve(
-                resolvedScript.dependencies
-            )
-        } catch (e: Exception) {
-            // Probably a wrapped Nullpointer from 'DefaultRepositorySystem.resolveDependencies()', this however is probably a connection problem.
-            Logger.errorMsg("Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators. If you suspect this is a bug, you can create an issue on https://github.com/holgerbrandl/kscript")
-            Logger.errorMsg("Exception: $e")
-            quit(1)
-        }
-
-        val kotlinCommandResolver = KotlinCommandResolver(resolvedScript)
+        val classpath = classpathResolver.resolve(resolvedScript.dependencies)
 
         val optionalCpArg = if (classpath.isNotEmpty()) "-classpath '${classpath}'" else ""
 
@@ -170,7 +160,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             }
 
             val fileArguments = filesToCompile.joinToString(" ") { "'${it.absolutePath}'" }
-            val compilerOpts = resolvedScript.compilerOpts.joinToString(" ") { "${it.value}" }
+            val compilerOpts = resolvedScript.compilerOpts.joinToString(" ") { it.value }
 
             val scriptCompileResult =
                 evalBash("kotlinc $compilerOpts $optionalCpArg -d '${jarFile.absolutePath}' $fileArguments")

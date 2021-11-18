@@ -5,14 +5,8 @@ import kscript.app.model.Dependency
 import kscript.app.model.Repository
 import kscript.app.util.Logger.infoMsg
 import java.io.File
-import kotlin.collections.List
-import kotlin.collections.Set
-import kotlin.collections.flatten
-import kotlin.collections.joinToString
-import kotlin.collections.map
-import kotlin.collections.mutableMapOf
 import kotlin.collections.set
-import kotlin.script.experimental.api.valueOrThrow
+import kotlin.script.experimental.api.valueOr
 import kotlin.script.experimental.dependencies.CompoundDependenciesResolver
 import kotlin.script.experimental.dependencies.FileSystemDependenciesResolver
 import kotlin.script.experimental.dependencies.RepositoryCoordinates
@@ -50,7 +44,16 @@ class DependencyResolver(private val customRepos: Set<Repository>) {
                 resolver.resolve(it.value)
             }.map {
                 infoMsg(it.reports.toString())
-                it.valueOrThrow()
+                it.valueOr {
+                    // Probably a wrapped Nullpointer from 'DefaultRepositorySystem.resolveDependencies()', this however is probably a connection problem.
+
+                    throw IllegalStateException(
+                        "Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators. If you suspect this is a bug, you can create an issue on https://github.com/holgerbrandl/kscript" + it.reports.joinToString(
+                            "\n"
+                        ) { it.exception?.toString() ?: it.message },
+                        it.reports.find { it.exception != null }?.exception
+                    )
+                }
             }
         }.flatten()
 
