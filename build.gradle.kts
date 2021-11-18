@@ -1,4 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     kotlin("jvm") version "1.5.31"
@@ -11,22 +13,40 @@ repositories {
 
 group = "com.github.holgerbrandl.kscript.launcher"
 
-val kotlinVersion: String ="1.5.31"
+val kotlinVersion: String = "1.5.31"
 
 tasks.test {
     useJUnitPlatform()
+
+    testLogging {
+        events(TestLogEvent.FAILED); exceptionFormat = TestExceptionFormat.FULL
+    }
 }
+
+tasks.withType<Test> {
+    addTestListener(object : TestListener {
+        override fun beforeSuite(suite: TestDescriptor) {}
+        override fun beforeTest(testDescriptor: TestDescriptor) {}
+        override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
+            logger.quiet("${String.format( "%40s - %-10s", testDescriptor.name, result.resultType )} ")
+        }
+
+        override fun afterSuite(suite: TestDescriptor, result: TestResult) {}
+    })
+}
+
 
 dependencies {
     implementation("com.offbytwo:docopt:0.6.0.20150202")
 
     implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven:$kotlinVersion")
 
-
+    //WARN: resolving artifacts with kotlin-scripting in 1.5.31 doesn't work, so that's why 1.4.32
+    //Alternative is Maven Archeologist: https://github.com/square/maven-archeologist
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:1.4.32")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies:1.4.32")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven:1.4.32")
 
     implementation("commons-io:commons-io:2.11.0")
     implementation("commons-codec:commons-codec:1.15")

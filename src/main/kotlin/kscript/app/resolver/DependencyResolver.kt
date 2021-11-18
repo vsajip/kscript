@@ -5,23 +5,30 @@ import kscript.app.model.Dependency
 import kscript.app.model.Repository
 import kscript.app.util.Logger.infoMsg
 import java.io.File
+import kotlin.collections.List
+import kotlin.collections.Set
+import kotlin.collections.flatten
+import kotlin.collections.joinToString
+import kotlin.collections.map
+import kotlin.collections.mutableMapOf
+import kotlin.collections.set
 import kotlin.script.experimental.api.valueOrThrow
 import kotlin.script.experimental.dependencies.CompoundDependenciesResolver
 import kotlin.script.experimental.dependencies.FileSystemDependenciesResolver
 import kotlin.script.experimental.dependencies.RepositoryCoordinates
-import kotlin.script.experimental.dependencies.impl.DependenciesResolverOptionsName
 import kotlin.script.experimental.dependencies.impl.makeExternalDependenciesResolverOptions
-import kotlin.script.experimental.dependencies.impl.set
 import kotlin.script.experimental.dependencies.maven.MavenDependenciesResolver
 
 class DependencyResolver(private val customRepos: Set<Repository>) {
     private val mvnResolver = MavenDependenciesResolver().apply {
+        addRepository(RepositoryCoordinates("https://repo.maven.apache.org/maven2"))
+
         customRepos.map {
             val options = mutableMapOf<String, String>()
 
             if (it.password.isNotBlank() && it.user.isNotBlank()) {
-                options[DependenciesResolverOptionsName.USERNAME] = it.user
-                options[DependenciesResolverOptionsName.PASSWORD] = it.password
+                options["username"] = it.user
+                options["password"] = it.password
             }
 
             infoMsg("Adding repository: $it")
@@ -35,6 +42,8 @@ class DependencyResolver(private val customRepos: Set<Repository>) {
         CompoundDependenciesResolver(FileSystemDependenciesResolver(), MavenDependenciesResolver(), mvnResolver)
 
     fun resolve(depIds: Set<Dependency>): List<File> {
+        infoMsg("deps: ${depIds.joinToString(", ") { it.value }}")
+
         val resolvedDependencies = runBlocking {
             depIds.map {
                 infoMsg("Resolving ${it.value}...")
@@ -44,6 +53,8 @@ class DependencyResolver(private val customRepos: Set<Repository>) {
                 it.valueOrThrow()
             }
         }.flatten()
+
+        infoMsg("resolvedDependencies: ${resolvedDependencies.joinToString(", ") { it.absolutePath }}")
 
         return resolvedDependencies
     }

@@ -16,7 +16,7 @@ echo
 echo "Starting $SUITE test suite... Compiling... Please wait..."
 
 cd $PROJECT_DIR
-./gradlew build
+./gradlew clean build
 status=$?
 cd -
 

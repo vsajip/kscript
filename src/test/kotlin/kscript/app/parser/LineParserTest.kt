@@ -53,7 +53,6 @@ class LineParserTest {
     @MethodSource("dynamicDependencies")
     fun `Dependency parsing - common scenarios - dynamic dependencies`(list: List<String>) {
         val listWithQuotes = list.joinToString(", ") { "\"$it\"" }
-        val listWithoutQuotes = list.joinToString(", ")
 
         for (line in listOf(
             "@file:DependsOn($listWithQuotes)",
