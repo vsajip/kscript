@@ -147,7 +147,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         return sections
     }
 
-    private fun resolveInclude(include: Include, includeContext: URI): Annotation {
+    private fun resolveInclude(include: Include, includeContext: URI): ScriptSource {
         val uri = URI.create(include.value)
         return ScriptSource(
             if (isUrl(include.value)) SourceType.HTTP else SourceType.FILE,
