@@ -1,6 +1,5 @@
 package kscript.app.util
 
-import kscript.app.util.Logger.infoMsg
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
@@ -26,7 +25,6 @@ fun evalBash(
     stdoutConsumer: Consumer<String> = StringBuilderConsumer(),
     stderrConsumer: Consumer<String> = StringBuilderConsumer()
 ): ProcessResult {
-    infoMsg(cmd)
     return runProcess(
         "bash", "-c", cmd, wd = wd, stderrConsumer = stderrConsumer, stdoutConsumer = stdoutConsumer
     )

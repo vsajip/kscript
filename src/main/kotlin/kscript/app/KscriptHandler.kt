@@ -200,7 +200,6 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         val kotlinOpts = resolvedScript.kotlinOpts.joinToString(" ") { it.value }
 
         val kotlinCommandString = "kotlin $kotlinOpts -classpath \"$extClassPath\" $execClassName $joinedUserArgs"
-        Logger.infoMsg(kotlinCommandString)
 
         println(kotlinCommandString)
     }

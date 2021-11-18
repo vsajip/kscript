@@ -45,7 +45,7 @@ fun main(args: Array<String>) {
 
         KscriptHandler(config, docopt).handle(userArgs)
     } catch (e: Exception) {
-        errorMsg(e.message, e)
+        errorMsg(e)
         exitProcess(1)
     }
 }

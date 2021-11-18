@@ -2,7 +2,6 @@ package kscript.app.resolver
 
 import kscript.app.appdir.AppDir
 import kscript.app.model.*
-import kscript.app.model.Annotation
 import kscript.app.parser.ParseException
 import kscript.app.parser.Parser
 import kscript.app.util.Logger
@@ -30,7 +29,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
                 null,
                 includeContext,
                 scripletName,
-                resolveSections(scriptText, includeContext)
+                parser.parse(scriptText)
             )
         }
 
@@ -47,7 +46,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
                 resolvedUri,
                 includeContext,
                 getFileNameWithoutExtension(resolvedUri),
-                resolveSections(scriptText, includeContext)
+                parser.parse(scriptText)
             )
         }
 
@@ -65,7 +64,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
                     uri,
                     includeContext,
                     file.nameWithoutExtension,
-                    resolveSections(scriptText, includeContext)
+                    parser.parse(scriptText)
                 )
             } else {
                 //If script input is a process substitution file handle we can not use for content reading:
@@ -77,7 +76,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
                     uri,
                     includeContext,
                     scripletName,
-                    resolveSections(scriptText, includeContext)
+                    parser.parse(scriptText)
                 )
             }
         }
@@ -96,7 +95,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
             null,
             includeContext,
             scripletName,
-            resolveSections(scriptText, includeContext)
+            parser.parse(scriptText)
         )
     }
 
@@ -127,33 +126,10 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         return preambles.joinToString("\n") + string
     }
 
-    private fun resolveSections(scriptText: String, includeContext: URI): List<Section> {
-        val sections = mutableListOf<Section>()
-
-        for (section in parser.parse(scriptText)) {
-            val resolvedAnnotations = mutableListOf<Annotation>()
-
-            for (annotation in section.annotation) {
-                resolvedAnnotations += if (annotation is Include) {
-                    resolveInclude(annotation, includeContext)
-                } else {
-                    annotation
-                }
-            }
-
-            sections += Section(section.code, resolvedAnnotations)
-        }
-
-        return sections
-    }
-
     private fun resolveInclude(include: Include, includeContext: URI): ScriptSource {
         val uri = URI.create(include.value)
         return ScriptSource(
-            if (isUrl(include.value)) SourceType.HTTP else SourceType.FILE,
-            resolveScriptType(uri),
-            uri,
-            includeContext
+            if (isUrl(include.value)) SourceType.HTTP else SourceType.FILE, resolveScriptType(uri), uri, includeContext
         )
     }
 
@@ -218,7 +194,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         for (section in script.sections) {
             for (annotation in section.annotation) {
                 when (annotation) {
-                    is ScriptSource -> {
+                    is Include -> {
 
                     }
 

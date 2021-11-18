@@ -36,14 +36,11 @@ class DependencyResolver(private val customRepos: Set<Repository>) {
         CompoundDependenciesResolver(FileSystemDependenciesResolver(), MavenDependenciesResolver(), mvnResolver)
 
     fun resolve(depIds: Set<Dependency>): List<File> {
-        infoMsg("deps: ${depIds.joinToString(", ") { it.value }}")
-
         val resolvedDependencies = runBlocking {
             depIds.map {
                 infoMsg("Resolving ${it.value}...")
                 resolver.resolve(it.value)
             }.map {
-                infoMsg(it.reports.toString())
                 it.valueOr {
                     // Probably a wrapped Nullpointer from 'DefaultRepositorySystem.resolveDependencies()', this however is probably a connection problem.
 
@@ -56,8 +53,6 @@ class DependencyResolver(private val customRepos: Set<Repository>) {
                 }
             }
         }.flatten()
-
-        infoMsg("resolvedDependencies: ${resolvedDependencies.joinToString(", ") { it.absolutePath }}")
 
         return resolvedDependencies
     }
