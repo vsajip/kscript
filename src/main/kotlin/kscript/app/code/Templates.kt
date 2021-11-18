@@ -16,7 +16,7 @@ object Templates {
         exec kscript $0 "$@"
         \*** IMPORTANT: Any code including imports and annotations must come after this line ***/
         
-    """.trimIndent()
+        """.trimIndent()
 
     val textProcessingPreamble = """
         //DEPS com.github.holgerbrandl:kscript-support-api:1.2.5
@@ -41,7 +41,7 @@ object Templates {
 
     private fun createGradleDependenciesSection(dependencies: Set<Dependency>) = dependencies.joinToString("\n") {
         """
-        implementation \"${it.value}\"
+        implementation "${it.value}"
         """.trimIndent()
     }
 

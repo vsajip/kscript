@@ -10,6 +10,7 @@ import kscript.app.model.SourceType
 import kscript.app.parser.Parser
 import kscript.app.resolver.ClasspathResolver
 import kscript.app.resolver.DependencyResolver
+import kscript.app.resolver.KotlinCommandResolver
 import kscript.app.resolver.ScriptResolver
 import kscript.app.util.Logger
 import kscript.app.util.ShellUtils
@@ -85,8 +86,11 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
 
         val classpath = try {
-            ClasspathResolver(config.classPathSeparator, appDir, DependencyResolver(resolvedScript.repositories)).resolve(
-                resolvedScript.dependencies            )
+            ClasspathResolver(
+                config.classPathSeparator, appDir, DependencyResolver(resolvedScript.repositories)
+            ).resolve(
+                resolvedScript.dependencies
+            )
         } catch (e: Exception) {
             // Probably a wrapped Nullpointer from 'DefaultRepositorySystem.resolveDependencies()', this however is probably a connection problem.
             Logger.errorMsg("Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators. If you suspect this is a bug, you can create an issue on https://github.com/holgerbrandl/kscript")
@@ -94,14 +98,14 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             quit(1)
         }
 
+        val kotlinCommandResolver = KotlinCommandResolver(resolvedScript)
+
         val optionalCpArg = if (classpath.isNotEmpty()) "-classpath '${classpath}'" else ""
 
         //  Optionally enter interactive mode
         if (docopt.getBoolean("interactive")) {
-            val scriptFile = appDir.urlCache.scriplet(resolvedScript.code, script.scriptType.extension).toFile()
-            Logger.infoMsg("Creating REPL from $scriptFile")
+            Logger.infoMsg("Creating REPL from ${script.scriptName}")
             println("kotlinc ${resolvedScript.compilerOpts} ${resolvedScript.kotlinOpts} $optionalCpArg")
-
             exitProcess(0)
         }
 
@@ -166,7 +170,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             }
 
             val fileArguments = filesToCompile.joinToString(" ") { "'${it.absolutePath}'" }
-            val compilerOpts = resolvedScript.compilerOpts.joinToString(" ")
+            val compilerOpts = resolvedScript.compilerOpts.joinToString(" ") { "${it.value}" }
 
             val scriptCompileResult =
                 evalBash("kotlinc $compilerOpts $optionalCpArg -d '${jarFile.absolutePath}' $fileArguments")
@@ -205,9 +209,9 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         val kotlinOpts = resolvedScript.kotlinOpts.joinToString(" ") { it.value }
 
-        val kotlinCommand = "kotlin $kotlinOpts -classpath \"$extClassPath\" $execClassName $joinedUserArgs"
-        Logger.infoMsg(kotlinCommand)
+        val kotlinCommandString = "kotlin $kotlinOpts -classpath \"$extClassPath\" $execClassName $joinedUserArgs"
+        Logger.infoMsg(kotlinCommandString)
 
-        println(kotlinCommand)
+        println(kotlinCommandString)
     }
 }

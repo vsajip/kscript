@@ -28,7 +28,7 @@ tasks.withType<Test> {
         override fun beforeSuite(suite: TestDescriptor) {}
         override fun beforeTest(testDescriptor: TestDescriptor) {}
         override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
-            logger.quiet("${String.format( "%40s - %-10s", testDescriptor.name, result.resultType )} ")
+            logger.quiet("${String.format( "%-40s - %-10s", testDescriptor.name, result.resultType )} ")
         }
 
         override fun afterSuite(suite: TestDescriptor, result: TestResult) {}
