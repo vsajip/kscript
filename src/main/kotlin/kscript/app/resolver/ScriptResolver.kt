@@ -126,11 +126,17 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         return preambles.joinToString("\n") + string
     }
 
-    private fun resolveInclude(include: Include, includeContext: URI): ScriptSource {
-        val uri = URI.create(include.value)
-        return ScriptSource(
-            if (isUrl(include.value)) SourceType.HTTP else SourceType.FILE, resolveScriptType(uri), uri, includeContext
-        )
+//    private fun resolveInclude(include: Include, includeContext: URI): ScriptSource {
+//        val uri = URI.create(include.value)
+//        return ScriptSource(
+//            if (isUrl(include.value)) SourceType.HTTP else SourceType.FILE, resolveScriptType(uri), uri, includeContext
+//        )
+//    }
+
+
+    //Creates new script with resolved all Includes
+    private fun resolveScript(script: Script): Script {
+        return script
     }
 
     private fun isUrl(string: String): Boolean {
@@ -186,7 +192,6 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         val kotlinOpts = mutableSetOf<KotlinOpt>()
         val compilerOpts = mutableSetOf<CompilerOpt>()
         val imports = mutableSetOf<Import>()
-        val scriptSources = mutableSetOf<ScriptSource>()
 
         var packageName: Package? = null
         var entry: Entry? = null
@@ -257,9 +262,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
             }
         }.toString()
 
-        return ResolvedScript(
-            code, packageName, entry, scriptSources, dependencies, repositories, kotlinOpts, compilerOpts
-        )
+        return ResolvedScript(code, packageName, entry, dependencies, repositories, kotlinOpts, compilerOpts)
     }
 
 //    fun create(uri: URI): List<Section> {

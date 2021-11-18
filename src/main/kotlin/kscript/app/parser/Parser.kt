@@ -1,10 +1,21 @@
 package kscript.app.parser
 
 import kscript.app.model.Code
-import kscript.app.model.Directive
 import kscript.app.model.Section
 
 class Parser {
+    private val annotationParsers = listOf(
+        LineParser::parseSheBang,
+        LineParser::parseInclude,
+        LineParser::parseDependency,
+        LineParser::parseRepository,
+        LineParser::parseEntry,
+        LineParser::parseKotlinOpts,
+        LineParser::parseCompilerOpts,
+        LineParser::parseImport,
+        LineParser::parsePackage,
+    )
+
     fun parse(string: String): List<Section> {
         val codeTextAsLines = string.lines()
 
@@ -18,8 +29,8 @@ class Parser {
     }
 
     private fun parseLine(line: String): Section {
-        for (directive in Directive.values()) {
-            val parsedAnnotations = directive.processor(line)
+        for (parser in annotationParsers) {
+            val parsedAnnotations = parser(line)
 
             if (parsedAnnotations.isNotEmpty()) {
                 return Section(line, parsedAnnotations)
