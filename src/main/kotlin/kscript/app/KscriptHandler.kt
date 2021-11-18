@@ -18,6 +18,7 @@ import kscript.app.util.evalBash
 import kscript.app.util.quit
 import org.docopt.DocOptWrapper
 import java.io.File
+import java.lang.IllegalStateException
 import kotlin.system.exitProcess
 
 class KscriptHandler(private val config: Config, private val docopt: DocOptWrapper) {
@@ -33,7 +34,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         if (docopt.getBoolean("clear-cache")) {
             Logger.info("Cleaning up cache...")
             appDir.clear()
-            quit(0)
+            return
         }
 
         val enableSupportApi = docopt.getBoolean("text")
@@ -51,8 +52,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         if (docopt.getBoolean("add-bootstrap-header")) {
             if (script.sourceType != SourceType.FILE) {
-                Logger.errorMsg("Can not add bootstrap header to resources, which are not regular Kotlin files.")
-                quit(1)
+                throw IllegalStateException("Can not add bootstrap header to resources, which are not regular Kotlin files.")
             }
 
             val scriptLines = script.sections.map { it.code }.dropWhile {
@@ -64,13 +64,12 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             if (scriptLines.getOrNull(0) == bootstrapHeader[0] && scriptLines.any { "command -v kscript >/dev/null 2>&1 || " in it }) {
                 val lastHeaderLine = bootstrapHeader.findLast { it.isNotBlank() }!!
                 val preexistingHeader = scriptLines.dropLastWhile { it != lastHeaderLine }.joinToString("\n")
-                Logger.errorMsg("Bootstrap header already detected:\n\n$preexistingHeader\n\nYou can remove it to force the re-generation")
-                quit(1)
+                throw IllegalStateException("Bootstrap header already detected:\n\n$preexistingHeader\n\nYou can remove it to force the re-generation")
             }
 
             File(script.sourceUri!!).writeText((bootstrapHeader + scriptLines).joinToString("\n"))
             Logger.infoMsg("${script.sourceUri} updated")
-            quit(0)
+            return
         }
 
         val resolvedScript = scriptResolver.resolve(script)
@@ -81,7 +80,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             val scriptFile = appDir.urlCache.scriplet(resolvedScript.code, script.scriptType.extension).toFile()
             val ideaProjectCreator = IdeaProjectCreator(appDir)
             println(ideaProjectCreator.createProject(scriptFile, resolvedScript, userArgs, config))
-            exitProcess(0)
+            return
         }
 
         val dependencyResolver = DependencyResolver(resolvedScript.repositories)
@@ -96,7 +95,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         if (docopt.getBoolean("interactive")) {
             Logger.infoMsg("Creating REPL from ${script.scriptName}")
             println("kotlinc ${resolvedScript.compilerOpts} ${resolvedScript.kotlinOpts} $optionalCpArg")
-            exitProcess(0)
+            return
         }
 
         // Even if we just need and support the //ENTRY directive in case of kt-class
@@ -104,8 +103,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         val entryDirective = resolvedScript.entryPoint
 
         if (entryDirective != null && script.scriptType == ScriptType.KTS) {
-            Logger.errorMsg("@Entry directive is just supported for kt class files")
-            quit(1)
+            throw IllegalStateException("@Entry directive is just supported for kt class files")
         }
 
         // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
@@ -131,8 +129,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         if (!jarFile.isFile) {
             if (!ShellUtils.isInPath("kotlinc")) {
-                Logger.errorMsg("${"kotlinc"} is not in PATH")
-                quit(1)
+                throw IllegalStateException("${"kotlinc"} is not in PATH")
             }
 
             val filesToCompile = mutableListOf<File>()
@@ -166,8 +163,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
                 evalBash("kotlinc $compilerOpts $optionalCpArg -d '${jarFile.absolutePath}' $fileArguments")
 
             if (scriptCompileResult.exitCode != 0) {
-                Logger.errorMsg("compilation of '${scriptFile.name}' failed\n$scriptCompileResult.stderr")
-                quit(1)
+                throw IllegalStateException("compilation of '${scriptFile.name}' failed\n$scriptCompileResult.stderr")
             }
         }
 
@@ -183,13 +179,11 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             }
 
             PackageCreator(appDir).packageKscript(resolvedScript, jarFile, execClassName, binaryName)
-
-            quit(0)
+            return
         }
 
         if (config.kotlinHome == null) {
-            Logger.errorMsg("KOTLIN_HOME is not set and could not be inferred from context")
-            quit(1)
+            throw IllegalStateException("KOTLIN_HOME is not set and could not be inferred from context")
         }
 
         var extClassPath =

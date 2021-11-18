@@ -2,8 +2,6 @@ package kscript.app.parser
 
 import kscript.app.model.*
 import kscript.app.model.Annotation
-import kscript.app.util.Logger
-import kscript.app.util.quit
 
 object LineParser {
     private val sheBang = listOf(SheBang)
@@ -59,7 +57,10 @@ object LineParser {
 
         line.trim().let { s ->
             val dependencies = when {
-                s.startsWith(fileDependsOnMaven) -> extractQuotedValuesInParenthesis(line, s.substring(fileDependsOnMaven.length))
+                s.startsWith(fileDependsOnMaven) -> extractQuotedValuesInParenthesis(
+                    line,
+                    s.substring(fileDependsOnMaven.length)
+                )
                 s.startsWith(fileDependsOn) -> extractQuotedValuesInParenthesis(line, s.substring(fileDependsOn.length))
                 s.startsWith(depends) -> extractValues(line, s.substring(depends.length))
                 else -> emptyList()
@@ -78,7 +79,14 @@ object LineParser {
 
         line.trim().let {
             return when {
-                it.startsWith(fileEntry) -> listOf(Entry(extractQuotedValueInParenthesis(line, it.substring(fileEntry.length))))
+                it.startsWith(fileEntry) -> listOf(
+                    Entry(
+                        extractQuotedValueInParenthesis(
+                            line,
+                            it.substring(fileEntry.length)
+                        )
+                    )
+                )
                 it.startsWith(entry) -> listOf(Entry(extractValue(line, it.substring(entry.length))))
                 else -> emptyList()
             }
@@ -130,7 +138,10 @@ object LineParser {
 
         line.trim().let {
             return when {
-                it.startsWith(fileKotlinOpts) -> extractQuotedValuesInParenthesis(line, it.substring(fileKotlinOpts.length)).map {
+                it.startsWith(fileKotlinOpts) -> extractQuotedValuesInParenthesis(
+                    line,
+                    it.substring(fileKotlinOpts.length)
+                ).map {
                     KotlinOpt(
                         it
                     )
@@ -148,13 +159,20 @@ object LineParser {
 
         line.trim().let {
             return when {
-                it.startsWith(fileCompilerOpts) -> extractQuotedValuesInParenthesis(line, it.substring(fileCompilerOpts.length)).map {
+                it.startsWith(fileCompilerOpts) -> extractQuotedValuesInParenthesis(
+                    line,
+                    it.substring(fileCompilerOpts.length)
+                ).map {
                     CompilerOpt(
                         it
                     )
                 }
 
-                it.startsWith(compilerOpts) -> extractValues(line, it.substring(compilerOpts.length)).map { CompilerOpt(it) }
+                it.startsWith(compilerOpts) -> extractValues(line, it.substring(compilerOpts.length)).map {
+                    CompilerOpt(
+                        it
+                    )
+                }
                 else -> emptyList()
             }
         }
@@ -206,7 +224,10 @@ object LineParser {
         // fail if any argument is a comma separated list of artifacts (see #101)
         annotationArgs.filter { it.contains(",[^)]".toRegex()) }.let {
             if (it.isNotEmpty()) {
-                throw ParseException(line, "Artifact locators must be provided as separate annotation arguments and not as comma-separated list: $it")
+                throw ParseException(
+                    line,
+                    "Artifact locators must be provided as separate annotation arguments and not as comma-separated list: $it"
+                )
             }
         }
 
@@ -223,7 +244,12 @@ object LineParser {
         return result[0]
     }
 
-    private fun extractValues(line: String, string: String, prefix: String = "", suffix: String = prefix): List<String> {
+    private fun extractValues(
+        line: String,
+        string: String,
+        prefix: String = "",
+        suffix: String = prefix
+    ): List<String> {
         string.trim().let {
             return it.split("[ ;,]+".toRegex()).map(String::trim)
         }
@@ -244,10 +270,7 @@ object LineParser {
         return if (value.startsWith("{{") && value.endsWith("}}")) {
             val envKey = value.substring(2, value.length - 2)
             val envValue = System.getenv()[envKey]
-            if (null == envValue) {
-                Logger.errorMsg("Could not resolve environment variable {{$envKey}} in maven repository credentials")
-                quit(1)
-            }
+                ?: throw IllegalStateException("Could not resolve environment variable {{$envKey}} in maven repository credentials")
             envValue
         } else {
             value

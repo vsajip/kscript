@@ -82,8 +82,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir) {
         }
 
         if (kotlinExtensions.contains(file.extension)) {
-            Logger.errorMsg("Could not read script from '$string'")
-            quit(1)
+            throw IllegalStateException("Could not read script from '$string'")
         }
 
         //As a last resort we assume that input is a Kotlin program...

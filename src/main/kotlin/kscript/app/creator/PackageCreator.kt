@@ -9,6 +9,7 @@ import kscript.app.util.Logger.infoMsg
 import kscript.app.util.evalBash
 import kscript.app.util.quit
 import java.io.File
+import java.lang.IllegalStateException
 import java.nio.file.Paths
 
 class PackageCreator(private val appDir: AppDir) {
@@ -20,8 +21,7 @@ class PackageCreator(private val appDir: AppDir) {
         resolvedScript: ResolvedScript, scriptJar: File, wrapperClassName: String, appName: String
     ) {
         if (!isInPath("gradle")) {
-            errorMsg("gradle is required to package kscripts")
-            quit(1)
+            throw IllegalStateException("gradle is required to package kscripts")
         }
 
         infoMsg("Packaging script '$appName' into standalone executable...")
@@ -59,8 +59,7 @@ class PackageCreator(private val appDir: AppDir) {
 
         with(packageResult) {
             if (exitCode != 0) {
-                errorMsg("packaging of '$appName' failed:\n$packageResult")
-                quit(1)
+                throw IllegalStateException("packaging of '$appName' failed:\n$packageResult")
             }
             Unit
         }

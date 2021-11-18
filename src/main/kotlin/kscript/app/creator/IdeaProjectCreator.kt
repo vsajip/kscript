@@ -11,14 +11,14 @@ import kscript.app.util.quit
 import kscript.app.util.runProcess
 import java.io.File
 import java.io.IOException
+import java.lang.IllegalStateException
 import java.nio.file.Files
 
 class IdeaProjectCreator(private val appDir: AppDir) {
 
     fun createProject(scriptFile: File, resolvedScript: ResolvedScript, userArgs: List<String>, config: Config): String {
         if (!isInPath(config.intellijCommand)) {
-            errorMsg("Could not find '${config.intellijCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_IDEA_COMMAND' env property")
-            quit(1)
+            throw IllegalStateException("Could not find '${config.intellijCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_IDEA_COMMAND' env property")
         }
 
         infoMsg("Setting up idea project...")
@@ -54,10 +54,9 @@ class IdeaProjectCreator(private val appDir: AppDir) {
 
         // Create gradle wrapper
         if (!isInPath(config.gradleCommand)) {
-            errorMsg(
+            throw IllegalStateException(
                 "Could not find '${config.gradleCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_GRADLE_COMMAND' env property"
             )
-            quit(1)
         }
 
         runProcess("${config.gradleCommand} wrapper", wd = tmpProjectDir)

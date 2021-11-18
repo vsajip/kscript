@@ -6,6 +6,7 @@ import kscript.app.util.Logger
 import kscript.app.util.Logger.errorMsg
 import kscript.app.util.VersionChecker
 import kscript.app.util.evalBash
+import kscript.app.util.quit
 import org.docopt.DocOptWrapper
 import kotlin.system.exitProcess
 
@@ -46,6 +47,6 @@ fun main(args: Array<String>) {
         KscriptHandler(config, docopt).handle(userArgs)
     } catch (e: Exception) {
         errorMsg(e)
-        exitProcess(1)
+        quit(1)
     }
 }
