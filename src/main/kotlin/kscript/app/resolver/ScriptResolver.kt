@@ -17,11 +17,11 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
     private val scripletName = "Scriplet"
 
     //from input
-    //level 1       -   full resolval
-    //level 0       -   only input file
-    //level 1 to n  -   respective levels
-    fun createFromInput(
-        string: String, preambles: List<String> = emptyList(), maxResolutionLevel: Int = -1
+    //level Int.Max -   full resolution
+    //level 0       -   do not resolve includes in base file and any other
+    //level 1 to n  -   resolve includes up to respective level (1 is a base script)
+    fun resolveFromInput(
+        string: String, preambles: List<String> = emptyList(), maxResolutionLevel: Int = Int.MAX_VALUE
     ): Pair<Script, ResolvedScript> {
         val resolutionContext = ResolutionContext(maxResolutionLevel)
 
@@ -144,6 +144,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
             val resultingAnnotations = mutableListOf<Annotation>()
 
             for (annotation in section.annotations) {
+
                 when (annotation) {
                     is Include -> if (currentLevel < resolutionContext.maxResolutionLevel) {
                         val uri = resolveInclude(includeContext, annotation.value, config.homeDir)

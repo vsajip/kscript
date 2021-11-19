@@ -47,8 +47,9 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         val scriptResolver = ScriptResolver(Parser(), appDir, config)
 
         if (docopt.getBoolean("add-bootstrap-header")) {
-            val (script, _) = scriptResolver.createFromInput(
-                docopt.getString("script"), preambles, maxResolutionLevel = 0
+            val (script, _) = scriptResolver.resolveFromInput(
+                docopt.getString("script"),
+                maxResolutionLevel = 0
             )
 
             if (script.sourceType != SourceType.FILE) {
@@ -72,7 +73,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             return
         }
 
-        val (script, resolvedScript) = scriptResolver.createFromInput(docopt.getString("script"), preambles)
+        val (script, resolvedScript) = scriptResolver.resolveFromInput(docopt.getString("script"), preambles)
         val projectDir = appDir.projectCache.projectDir(resolvedScript.code)
 
         //  Create temporary dev environment

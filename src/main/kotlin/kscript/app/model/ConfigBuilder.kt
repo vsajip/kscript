@@ -16,7 +16,7 @@ class ConfigBuilder internal constructor() {
     var classPathSeparator: String =
         if (System.getProperty("os.name").lowercase().contains("windows")) ";" else ":"
     var separatorChar: Char = File.separatorChar
-    var homeDir: Path = Paths.get(System.getenv("HOME")!!)
+    var homeDir: Path = Paths.get(System.getProperty("user.home")!!)
 
     fun build(): Config {
         return Config(
