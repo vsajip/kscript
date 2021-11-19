@@ -6,6 +6,9 @@ data class ResolvedScript(
     val packageName: Package?,
     val entryPoint: Entry?,
 
+    val scripts: Set<Script>,
+    val includes: Set<Include>,
+
     val dependencies: Set<Dependency>,
     val repositories: Set<Repository>,
     val kotlinOpts: Set<KotlinOpt>,

@@ -15,11 +15,8 @@ import kscript.app.resolver.ScriptResolver
 import kscript.app.util.Logger
 import kscript.app.util.ShellUtils
 import kscript.app.util.evalBash
-import kscript.app.util.quit
 import org.docopt.DocOptWrapper
 import java.io.File
-import java.lang.IllegalStateException
-import kotlin.system.exitProcess
 
 class KscriptHandler(private val config: Config, private val docopt: DocOptWrapper) {
 
@@ -47,10 +44,13 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             add(config.customPreamble)
         }
 
-        val scriptResolver = ScriptResolver(Parser(), appDir)
-        val script = scriptResolver.createFromInput(docopt.getString("script"), preambles)
+        val scriptResolver = ScriptResolver(Parser(), appDir, config)
 
         if (docopt.getBoolean("add-bootstrap-header")) {
+            val (script, _) = scriptResolver.createFromInput(
+                docopt.getString("script"), preambles, maxResolutionLevel = 0
+            )
+
             if (script.sourceType != SourceType.FILE) {
                 throw IllegalStateException("Can not add bootstrap header to resources, which are not regular Kotlin files.")
             }
@@ -72,7 +72,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             return
         }
 
-        val resolvedScript = scriptResolver.resolve(script)
+        val (script, resolvedScript) = scriptResolver.createFromInput(docopt.getString("script"), preambles)
         val projectDir = appDir.projectCache.projectDir(resolvedScript.code)
 
         //  Create temporary dev environment

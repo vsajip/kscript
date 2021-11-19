@@ -15,7 +15,8 @@ class ConfigBuilder internal constructor() {
     var kotlinHome: Path? = (System.getenv("KOTLIN_HOME") ?: guessKotlinHome())?.let { Paths.get(it) }
     var classPathSeparator: String =
         if (System.getProperty("os.name").lowercase().contains("windows")) ";" else ":"
-    var separatorChar = File.separatorChar
+    var separatorChar: Char = File.separatorChar
+    var homeDir: Path = Paths.get(System.getenv("HOME")!!)
 
     fun build(): Config {
         return Config(
@@ -26,7 +27,8 @@ class ConfigBuilder internal constructor() {
             gradleCommand,
             kotlinHome,
             classPathSeparator,
-            separatorChar
+            separatorChar,
+            homeDir
         )
     }
 }
