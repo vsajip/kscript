@@ -10,7 +10,10 @@ echo "PROJECT_DIR:        $PROJECT_DIR"
 echo "KSCRIPT_EXEC_DIR:   $KSCRIPT_EXEC_DIR"
 echo
 
-export PATH=$KSCRIPT_EXEC_DIR:$PATH
+if [[ "$PATH" != *"$KSCRIPT_EXEC_DIR"* ]]; then
+  export PATH=$KSCRIPT_EXEC_DIR:$PATH
+fi
+
 echo  "KScript path for testing: $(which kscript)"
 
 if [[ ! -f "$KSCRIPT_EXEC_DIR/assert.sh" ]]; then
@@ -23,8 +26,11 @@ export DEBUG="--verbose"
 . assert.sh
 
 # Fake idea binary just printing passed arguments...
-echo "#!/usr/bin/env bash" > "${KSCRIPT_EXEC_DIR}/idea"
-echo "echo \$*" >> "${KSCRIPT_EXEC_DIR}/idea"
+if [[ ! -f "$KSCRIPT_EXEC_DIR/idea" ]]; then
+  echo "#!/usr/bin/env bash" > "${KSCRIPT_EXEC_DIR}/idea"
+  echo "echo \$*" >> "${KSCRIPT_EXEC_DIR}/idea"
+  chmod +x "${KSCRIPT_EXEC_DIR}/idea"
+fi
 
 ## define test helper, see https://github.com/lehmannro/assert.sh/issues/24
 assert_statement(){
