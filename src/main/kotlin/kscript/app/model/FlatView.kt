@@ -1,12 +1,12 @@
 package kscript.app.model
 
-data class ResolvedScript(
+data class FlatView(
     val code: String,
 
     val packageName: Package?,
     val entryPoint: Entry?,
 
-    val scripts: Set<Script>,
+    val layeredViews: Set<LayeredView>,
     val includes: Set<Include>,
 
     val dependencies: Set<Dependency>,

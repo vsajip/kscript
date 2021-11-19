@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-source ./setup_environment.sh
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+PROJECT_DIR=$(realpath "$SCRIPT_DIR/../")
 
 echo "Starting KScript test suite..."
 
@@ -21,6 +22,10 @@ if [[ "$status" -ne "0" ]]; then
 fi
 
 echo "$SUITE test suite successfully accomplished."
+
+########################################################################################################################
+
+source "$SCRIPT_DIR/setup_environment.sh"
 
 ########################################################################################################################
 SUITE="script input modes"

@@ -11,7 +11,7 @@ data class ResolutionContext(
     var entryLevel: Int = 0,
     var entry: Entry? = null,
 
-    val scripts: MutableSet<Script> = mutableSetOf(),
+    val layeredViews: MutableSet<LayeredView> = mutableSetOf(),
     val includes: MutableSet<Include> = mutableSetOf(),
     val dependencies: MutableSet<Dependency> = mutableSetOf(),
     val repositories: MutableSet<Repository> = mutableSetOf(),

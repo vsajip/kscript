@@ -3,11 +3,9 @@ package kscript.app.creator
 import kscript.app.util.ShellUtils.isInPath
 import kscript.app.appdir.AppDir
 import kscript.app.code.Templates
-import kscript.app.model.ResolvedScript
-import kscript.app.util.Logger.errorMsg
+import kscript.app.model.FlatView
 import kscript.app.util.Logger.infoMsg
 import kscript.app.util.evalBash
-import kscript.app.util.quit
 import java.io.File
 import java.lang.IllegalStateException
 import java.nio.file.Paths
@@ -18,7 +16,7 @@ class PackageCreator(private val appDir: AppDir) {
      * See https://github.com/puniverse/capsule
      */
     fun packageKscript(
-        resolvedScript: ResolvedScript, scriptJar: File, wrapperClassName: String, appName: String
+        flatView: FlatView, scriptJar: File, wrapperClassName: String, appName: String
     ) {
         if (!isInPath("gradle")) {
             throw IllegalStateException("gradle is required to package kscripts")
@@ -28,14 +26,14 @@ class PackageCreator(private val appDir: AppDir) {
 
         val tmpProjectDir = appDir.projectCache.projectDir()
 
-        val jvmOptions = resolvedScript.kotlinOpts.map { it.value }.filter { it.startsWith("-J") }.map { it.removePrefix("-J") }
+        val jvmOptions = flatView.kotlinOpts.map { it.value }.filter { it.startsWith("-J") }.map { it.removePrefix("-J") }
             .joinToString(", ") { '"' + it + '"' }
 
         // https://shekhargulati.com/2015/09/10/gradle-tip-using-gradle-plugin-from-local-maven-repository/
 
         val gradleScript = Templates.createGradlePackageScript(
-            resolvedScript.repositories,
-            resolvedScript.dependencies,
+            flatView.repositories,
+            flatView.dependencies,
             scriptJar.invariantSeparatorsPath,
             wrapperClassName,
             appName,

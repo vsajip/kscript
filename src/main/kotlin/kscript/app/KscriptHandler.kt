@@ -79,8 +79,8 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         //  Create temporary dev environment
         if (docopt.getBoolean("idea")) {
             val scriptFile = appDir.urlCache.scriplet(resolvedScript.code, script.scriptType.extension).toFile()
-            val ideaProjectCreator = IdeaProjectCreator(appDir)
-            println(ideaProjectCreator.createProject(scriptFile, resolvedScript, userArgs, config))
+            val ideaProjectCreator = IdeaProjectCreator(config, appDir)
+            println(ideaProjectCreator.createProject(scriptFile, resolvedScript, userArgs))
             return
         }
 

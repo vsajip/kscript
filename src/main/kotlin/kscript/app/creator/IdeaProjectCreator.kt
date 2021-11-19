@@ -4,19 +4,18 @@ import kscript.app.util.ShellUtils.isInPath
 import kscript.app.appdir.AppDir
 import kscript.app.code.Templates
 import kscript.app.model.Config
-import kscript.app.model.ResolvedScript
+import kscript.app.model.FlatView
 import kscript.app.util.Logger.errorMsg
 import kscript.app.util.Logger.infoMsg
-import kscript.app.util.quit
 import kscript.app.util.runProcess
 import java.io.File
 import java.io.IOException
 import java.lang.IllegalStateException
 import java.nio.file.Files
 
-class IdeaProjectCreator(private val appDir: AppDir) {
+class IdeaProjectCreator(private val config: Config, private val appDir: AppDir) {
 
-    fun createProject(scriptFile: File, resolvedScript: ResolvedScript, userArgs: List<String>, config: Config): String {
+    fun createProject(scriptFile: File, flatView: FlatView, userArgs: List<String>): String {
         if (!isInPath(config.intellijCommand)) {
             throw IllegalStateException("Could not find '${config.intellijCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_IDEA_COMMAND' env property")
         }
@@ -35,7 +34,7 @@ class IdeaProjectCreator(private val appDir: AppDir) {
             Templates.runConfig(scriptFile, tmpProjectDir, userArgs)
         )
 
-        val opts = resolvedScript.compilerOpts.map { it.value }
+        val opts = flatView.compilerOpts.map { it.value }
 
         var jvmTargetOption: String? = null
         for (i in opts.indices) {
@@ -46,7 +45,7 @@ class IdeaProjectCreator(private val appDir: AppDir) {
 
         val kotlinOptions = Templates.kotlinOptions(jvmTargetOption)
         val gradleScript =
-            Templates.createGradleIdeaScript(resolvedScript.repositories, resolvedScript.dependencies, kotlinOptions)
+            Templates.createGradleIdeaScript(flatView.repositories, flatView.dependencies, kotlinOptions)
 
         File(tmpProjectDir, "build.gradle.kts").writeText(gradleScript)
 
