@@ -1,14 +1,8 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PROJECT_DIR=$(realpath "$SCRIPT_DIR/../")
-KSCRIPT_EXEC_DIR="$PROJECT_DIR/build/libs"
+source ./setup_environment.sh
 
 echo "Starting KScript test suite..."
-echo "Script dir :        $SCRIPT_DIR"
-echo "Project dir:        $PROJECT_DIR"
-echo "KScript exec dir:   $KSCRIPT_EXEC_DIR"
-echo
 
 ########################################################################################################################
 SUITE="JUnit"
@@ -27,46 +21,6 @@ if [[ "$status" -ne "0" ]]; then
 fi
 
 echo "$SUITE test suite successfully accomplished."
-
-########################################################################################################################
-echo
-echo "Configuring KScript for further testing..."
-
-export PATH=$KSCRIPT_EXEC_DIR:$PATH
-echo  "KScript path for testing: $(which kscript)"
-
-if [[ ! -f "$KSCRIPT_EXEC_DIR/assert.sh" ]]; then
-  echo "Installing assert.sh"
-  wget --quiet -O "$KSCRIPT_EXEC_DIR/assert.sh" https://raw.githubusercontent.com/lehmannro/assert.sh/master/assert.sh
-  chmod u+x "$KSCRIPT_EXEC_DIR/assert.sh"
-fi
-
-export DEBUG="--verbose"
-. assert.sh
-
-## define test helper, see https://github.com/lehmannro/assert.sh/issues/24
-assert_statement(){
-    # usage cmd exp_stout exp_stder exp_exit_code
-    assert "$1" "$2"
-    assert "( $1 ) 2>&1 >/dev/null" "$3"
-    assert_raises "$1" "$4"
-}
-#assert_statment "echo foo; echo bar  >&2; exit 1" "foo" "bar" 1
-
-
-assert_stderr(){
-    assert "( $1 ) 2>&1 >/dev/null" "$2"
-}
-#assert_stderr "echo foo" "bar"
-
-#http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
-export NL=$'\n'
-
-kscript --clear-cache
-
-# Fake idea binary... Maybe good idea to use it instead of real idea binary?
-#echo "#!/usr/bin/env bash" > "${PROJECT_DIR}/build/libs/idea"
-#echo "echo $*" >> "${PROJECT_DIR}/build/libs/idea"
 
 ########################################################################################################################
 SUITE="script input modes"
@@ -277,7 +231,6 @@ assert "source ${PROJECT_DIR}/test/resources/home_dir_include.sh" "42"
 
 ## prevent regression of #173
 assert "source ${PROJECT_DIR}/test/resources/compiler_opts_with_includes.sh" "hello42"
-
 
 kscript_nocall() { kotlin -classpath ${PROJECT_DIR}/build/libs/kscript.jar kscript.app.KscriptKt "$@";}
 export -f kscript_nocall

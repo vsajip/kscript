@@ -16,10 +16,10 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
     private val kotlinExtensions = listOf("kts", "kt")
     private val scripletName = "Scriplet"
 
-    //from input
-    //level Int.Max -   full resolution
-    //level 0       -   do not resolve includes in base file and any other
+    //level parameter - for how many levels should include be resolved
+    //level 0       -   do not resolve includes in base file and any other embedded
     //level 1 to n  -   resolve includes up to respective level (1 is a base script)
+    //level Int.Max -   full resolution (default)
     fun resolveFromInput(
         string: String, preambles: List<String> = emptyList(), maxResolutionLevel: Int = Int.MAX_VALUE
     ): Pair<Script, ResolvedScript> {
