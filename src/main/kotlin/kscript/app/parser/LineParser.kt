@@ -1,19 +1,19 @@
 package kscript.app.parser
 
 import kscript.app.model.*
-import kscript.app.model.Annotation
+import kscript.app.model.ScriptAnnotation
 
 object LineParser {
     private val sheBang = listOf(SheBang)
 
-    fun parseSheBang(line: String): List<Annotation> {
+    fun parseSheBang(line: String): List<ScriptAnnotation> {
         if (line.startsWith("#!/")) {
             return sheBang
         }
         return emptyList()
     }
 
-    fun parseInclude(line: String): List<Annotation> {
+    fun parseInclude(line: String): List<ScriptAnnotation> {
         val fileInclude = "@file:Include"
         val include = "//INCLUDE "
 
@@ -50,7 +50,7 @@ object LineParser {
         }
     }
 
-    fun parseDependency(line: String): List<Annotation> {
+    fun parseDependency(line: String): List<ScriptAnnotation> {
         val fileDependsOn = "@file:DependsOn"
         val fileDependsOnMaven = "@file:DependsOnMaven"
         val depends = "//DEPS "
@@ -73,7 +73,7 @@ object LineParser {
         }
     }
 
-    fun parseEntry(line: String): List<Annotation> {
+    fun parseEntry(line: String): List<ScriptAnnotation> {
         val fileEntry = "@file:EntryPoint"
         val entry = "//ENTRY "
 
@@ -93,7 +93,7 @@ object LineParser {
         }
     }
 
-    fun parseRepository(line: String): List<Annotation> {
+    fun parseRepository(line: String): List<ScriptAnnotation> {
         //Format:
         // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/")
         // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/", user="user", password="pass")
@@ -132,7 +132,7 @@ object LineParser {
         }
     }
 
-    fun parseKotlinOpts(line: String): List<Annotation> {
+    fun parseKotlinOpts(line: String): List<ScriptAnnotation> {
         val fileKotlinOpts = "@file:KotlinOpts"
         val kotlinOpts = "//KOTLIN_OPTS "
 
@@ -153,7 +153,7 @@ object LineParser {
         }
     }
 
-    fun parseCompilerOpts(line: String): List<Annotation> {
+    fun parseCompilerOpts(line: String): List<ScriptAnnotation> {
         val fileCompilerOpts = "@file:CompilerOpts"
         val compilerOpts = "//COMPILER_OPTS "
 
@@ -178,7 +178,7 @@ object LineParser {
         }
     }
 
-    fun parsePackage(line: String): List<Annotation> {
+    fun parsePackage(line: String): List<ScriptAnnotation> {
         val packagePrefix = "package "
 
         line.trim().let {
@@ -189,7 +189,7 @@ object LineParser {
         }
     }
 
-    fun parseImport(line: String): List<Annotation> {
+    fun parseImport(line: String): List<ScriptAnnotation> {
         val importPrefix = "import "
 
         line.trim().let {

@@ -37,7 +37,7 @@ object ProcessRunner {
             apply { environment()["KOTLIN_RUNNER"] = "" }.start()
 
 
-            // we need to gobble the streams to prevent that the internal pipes hit their respecitive buffer limits, which
+            // we need to gobble the streams to prevent that the internal pipes hit their respective buffer limits, which
             // would lock the sub-process execution (see see https://github.com/holgerbrandl/kscript/issues/55
             // https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki
             val stdoutGobbler = StreamGobbler(proc.inputStream, stdoutConsumer).apply { start() }
@@ -51,8 +51,8 @@ object ProcessRunner {
 
             return ProcessResult(cmd.joinToString(" "), exitVal, stdoutConsumer.toString(), stderrConsumer.toString())
 
-        } catch (t: Throwable) {
-            throw RuntimeException(t)
+        } catch (e: Exception) {
+            throw IllegalStateException(e)
         }
     }
 }

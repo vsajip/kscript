@@ -18,13 +18,13 @@ class AppDir(path: Path) {
         dependencyCachePath.toFile().createNewFile()
     }
 
-    val urlCache = UrlCache(urlCachePath)
+    val uriCache = UriCache(urlCachePath)
     val jarCache = JarCache(jarCachePath)
     val projectCache = ProjectCache(projectCachePath)
     val dependencyCache = DependencyCache(dependencyCachePath)
 
     fun clear() {
-        urlCache.clear()
+        uriCache.clear()
         jarCache.clear()
         projectCache.clear()
         Files.deleteIfExists(dependencyCachePath)

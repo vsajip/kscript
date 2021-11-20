@@ -10,4 +10,4 @@ data class ScriptNode(
     val sourceContextUri: URI,
     val scriptName: String,
     val sections: List<Section>,
-) : Annotation
+) : ScriptAnnotation

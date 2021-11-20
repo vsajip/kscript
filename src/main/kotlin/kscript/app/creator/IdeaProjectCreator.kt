@@ -23,7 +23,7 @@ class IdeaProjectCreator(private val config: Config, private val appDir: AppDir)
 
         val tmpProjectDir = appDir.projectCache.projectDir()
 
-        val scriptFile = appDir.urlCache.scriplet(script.resolvedCode, script.scriptType.extension).toFile()
+        val scriptFile = File("fixit")
 
         //Symlink script resource in
         File(tmpProjectDir, "src").run {

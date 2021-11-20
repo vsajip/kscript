@@ -1,3 +1,3 @@
 package kscript.app.model
 
-data class Section(val code: String, val annotations: List<Annotation>)
+data class Section(val code: String, val scriptAnnotations: List<ScriptAnnotation>)

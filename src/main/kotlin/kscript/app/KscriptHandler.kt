@@ -8,11 +8,9 @@ import kscript.app.model.Config
 import kscript.app.model.ScriptType
 import kscript.app.model.ScriptSource
 import kscript.app.parser.Parser
-import kscript.app.resolver.ClasspathResolver
-import kscript.app.resolver.DependencyResolver
-import kscript.app.resolver.KotlinCommandResolver
-import kscript.app.resolver.ScriptResolver
+import kscript.app.resolver.*
 import kscript.app.util.Logger
+import kscript.app.util.ScriptUtils.dropExtension
 import kscript.app.util.ShellUtils
 import kscript.app.util.ShellUtils.evalBash
 import org.docopt.DocOptWrapper
@@ -44,10 +42,11 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             add(config.customPreamble)
         }
 
-        val scriptResolver = ScriptResolver(Parser(), appDir, config)
+        val sectionResolver = SectionResolver(Parser(), appDir.uriCache, config.homeDir)
+        val scriptResolver = ScriptResolver(sectionResolver, appDir.uriCache)
 
         if (docopt.getBoolean("add-bootstrap-header")) {
-            val script= scriptResolver.resolveFromInput(
+            val script= scriptResolver.resolve(
                 docopt.getString("script"),
                 maxResolutionLevel = 0
             )
@@ -73,7 +72,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             return
         }
 
-        val script = scriptResolver.resolveFromInput(docopt.getString("script"), preambles)
+        val script = scriptResolver.resolve(docopt.getString("script"), preambles)
         val projectDir = appDir.projectCache.projectDir(script.resolvedCode)
 
         //  Create temporary dev environment
@@ -108,7 +107,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
         // For valid characters see https://stackoverflow.com/questions/4814040/allowed-characters-in-filename
-        val className = script.scriptName.replace("[^A-Za-z0-9]".toRegex(), "_").replaceFirstChar { it.titlecase() }
+        val className = script.scriptName.dropExtension().replace("[^A-Za-z0-9]".toRegex(), "_").replaceFirstChar { it.titlecase() }
             // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
             .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_$it" else it }
 
