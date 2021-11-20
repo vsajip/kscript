@@ -2,7 +2,7 @@ package kscript.app.resolver
 
 import kscript.app.model.*
 
-data class ResolutionContext(
+internal data class ResolutionContext(
     val maxResolutionLevel: Int,
 
     var code: MutableList<String> = mutableListOf(),

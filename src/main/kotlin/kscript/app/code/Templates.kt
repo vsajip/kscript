@@ -146,7 +146,9 @@ object Templates {
             <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
             <option name="ALTERNATIVE_JRE_PATH" />
             <option name="PASS_PARENT_ENVS" value="true" />
-            <option name="MAIN_CLASS_NAME" value="${scriptFile.name.substringBeforeLast(".").capitalize()}Kt" />
+            <option name="MAIN_CLASS_NAME" value="${
+                scriptFile.name.substringBeforeLast(".").replaceFirstChar { it.titlecase() }
+            }Kt" />
             <option name="WORKING_DIRECTORY" value="" />
             <method v="2">
                 <option name="Make" enabled="true" />

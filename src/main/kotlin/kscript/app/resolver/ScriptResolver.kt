@@ -4,7 +4,6 @@ import kscript.app.appdir.AppDir
 import kscript.app.model.*
 import kscript.app.model.Annotation
 import kscript.app.parser.Parser
-import kscript.app.util.isRegularFile
 import java.io.File
 import java.io.FileInputStream
 import java.net.HttpURLConnection
@@ -47,7 +46,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
 
             return createScript(
                 ScriptSource.HTTP,
-                resolveScriptType(resolvedUri),
+                resolveScriptType(resolvedUri) ?: resolveScriptType(scriptText),
                 resolvedUri,
                 resolvedUri.resolve("."),
                 getFileNameWithoutExtension(resolvedUri),
@@ -68,7 +67,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
 
                 return createScript(
                     ScriptSource.FILE,
-                    resolveScriptType(uri),
+                    resolveScriptType(uri) ?: resolveScriptType(scriptText),
                     uri,
                     includeContext,
                     file.nameWithoutExtension,
@@ -185,8 +184,8 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
                             throw IllegalStateException("References to local files from remote scripts are disallowed.")
                         }
 
-                        val scriptType = resolveScriptType(uri)
                         val newScriptText = readUri(uri)
+                        val scriptType = resolveScriptType(uri) ?: resolveScriptType(newScriptText)
                         val newIncludeContext = uri.resolve(".")
                         val newSections = resolveSections(
                             newScriptText,
@@ -262,8 +261,8 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
         return filename.substring(0, idx)
     }
 
-    private fun getFileName(path: URI): String? {
-        return getFileName(path.normalize().path)
+    private fun getFileName(uri: URI): String? {
+        return getFileName(uri.normalize().path)
     }
 
     private fun getFileName(path: String): String? {
@@ -301,7 +300,7 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
         return url
     }
 
-    private fun resolveScriptType(uri: URI): ScriptType {
+    private fun resolveScriptType(uri: URI): ScriptType? {
         val path = uri.path.lowercase()
 
         when {
@@ -309,12 +308,13 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
             path.endsWith(".kts") -> return ScriptType.KTS
         }
 
-        //Try to guess the type by reading the code...
-        val code = readUri(uri)
-        return resolveScriptType(code)
+        return null
     }
 
     private fun resolveScriptType(code: String): ScriptType {
         return if (code.contains("fun main")) ScriptType.KT else ScriptType.KTS
     }
+
+
+    private fun isRegularFile(uri: URI) = uri.scheme.startsWith("file")
 }

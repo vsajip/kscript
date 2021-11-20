@@ -4,11 +4,10 @@ import kscript.app.code.Templates
 import kscript.app.model.Config
 import kscript.app.util.Logger
 import kscript.app.util.Logger.errorMsg
+import kscript.app.util.ShellUtils.evalBash
+import kscript.app.util.ShellUtils.quit
 import kscript.app.util.VersionChecker
-import kscript.app.util.evalBash
-import kscript.app.util.quit
 import org.docopt.DocOptWrapper
-import kotlin.system.exitProcess
 
 
 /**

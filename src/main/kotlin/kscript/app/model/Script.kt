@@ -9,7 +9,7 @@ data class Script(
     val sourceContextUri: URI,
     val scriptName: String,
 
-    val code: String,
+    val resolvedCode: String,
 
     val packageName: Package?,
     val entryPoint: Entry?,

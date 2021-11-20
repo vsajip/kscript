@@ -5,7 +5,7 @@ import kscript.app.appdir.AppDir
 import kscript.app.code.Templates
 import kscript.app.model.Script
 import kscript.app.util.Logger.infoMsg
-import kscript.app.util.evalBash
+import kscript.app.util.ShellUtils.evalBash
 import java.io.File
 import java.lang.IllegalStateException
 import java.nio.file.Paths

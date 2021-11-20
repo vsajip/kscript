@@ -14,7 +14,7 @@ import kscript.app.resolver.KotlinCommandResolver
 import kscript.app.resolver.ScriptResolver
 import kscript.app.util.Logger
 import kscript.app.util.ShellUtils
-import kscript.app.util.evalBash
+import kscript.app.util.ShellUtils.evalBash
 import org.docopt.DocOptWrapper
 import java.io.File
 
@@ -74,7 +74,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         }
 
         val script = scriptResolver.resolveFromInput(docopt.getString("script"), preambles)
-        val projectDir = appDir.projectCache.projectDir(script.code)
+        val projectDir = appDir.projectCache.projectDir(script.resolvedCode)
 
         //  Create temporary dev environment
         if (docopt.getBoolean("idea")) {
@@ -114,7 +114,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
 
         val scriptFile = File(projectDir, className + script.scriptType.extension)
-        scriptFile.writeText(script.code)
+        scriptFile.writeText(script.resolvedCode)
 
         // Define the entrypoint for the scriptlet jar
         val packageName = if (script.packageName != null) script.packageName.value + "." else ""

@@ -1,6 +1,6 @@
 package org.docopt
 
-import kscript.app.util.quit
+import kscript.app.util.ShellUtils.quit
 import java.io.File
 
 /**

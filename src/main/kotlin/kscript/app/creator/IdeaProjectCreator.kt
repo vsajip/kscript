@@ -6,8 +6,8 @@ import kscript.app.model.Config
 import kscript.app.model.Script
 import kscript.app.util.Logger.errorMsg
 import kscript.app.util.Logger.infoMsg
+import kscript.app.util.ProcessRunner.runProcess
 import kscript.app.util.ShellUtils.isInPath
-import kscript.app.util.runProcess
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -23,7 +23,7 @@ class IdeaProjectCreator(private val config: Config, private val appDir: AppDir)
 
         val tmpProjectDir = appDir.projectCache.projectDir()
 
-        val scriptFile = appDir.urlCache.scriplet(script.code, script.scriptType.extension).toFile()
+        val scriptFile = appDir.urlCache.scriplet(script.resolvedCode, script.scriptType.extension).toFile()
 
         //Symlink script resource in
         File(tmpProjectDir, "src").run {

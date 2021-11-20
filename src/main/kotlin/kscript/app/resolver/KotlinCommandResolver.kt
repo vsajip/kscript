@@ -10,12 +10,12 @@ class KotlinCommandResolver(
     private val script: Script,
     private val classpathResolver: ClasspathResolver
 ) {
-    fun compile(compileOpts: Set<CompilerOpt>, outputJarPath: Path, filePaths: List<Path>): String {
+    fun compile(jarPath: Path, filePaths: List<Path>): String {
         val compilerOptsStr = resolveCompilerOpts(script.compilerOpts)
         val classpath = classpathResolver.resolve(script.dependencies)
         val files = filePaths.joinToString(" ") { it.absolute().toString() }
 
-        return "kotlinc $compilerOptsStr $classpath -d '${outputJarPath.absolute()}' $files"
+        return "kotlinc $compilerOptsStr $classpath -d '${jarPath.absolute()}' $files"
     }
 
     fun execute(jarPath: Path, execClassName: String, userArgs: List<String>): String {

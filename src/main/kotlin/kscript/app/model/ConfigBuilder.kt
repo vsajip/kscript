@@ -1,6 +1,6 @@
 package kscript.app.model
 
-import kscript.app.util.guessKotlinHome
+import kscript.app.util.ShellUtils.guessKotlinHome
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
