@@ -23,39 +23,38 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
     fun resolveFromInput(
         string: String, preambles: List<String> = emptyList(), maxResolutionLevel: Int = Int.MAX_VALUE
     ): Script {
-        val resolutionContext = ResolutionContext(maxResolutionLevel)
-
         //Is it stdin?
         if (string == "-" || string == "/dev/stdin") {
             // we need to keep track of the scripts dir or the working dir in case of stdin script to correctly resolve includes
-            val includeContext = File(".").toURI()
             val scriptText = prependPreambles(preambles, generateSequence { readLine() }.joinToString("\n"))
-            val sections = resolveSections(scriptText, includeContext, true, 0, resolutionContext)
-            val layeredView = LayeredView(
-                0, SourceType.STD_INPUT, resolveScriptType(scriptText), null, includeContext, scripletName, sections
+
+            return createScript(
+                ScriptSource.STD_INPUT,
+                resolveScriptType(scriptText),
+                null,
+                File(".").toURI(),
+                scripletName,
+                scriptText,
+                true,
+                maxResolutionLevel
             )
-            val flatView = createFlatView(resolutionContext)
-            return Script(layeredView, flatView)
         }
 
         //Is it a URL?
         if (isUrl(string)) {
-            val url = URL(string)
-            val resolvedUri = resolveRedirects(url).toURI()
-            val includeContext = resolvedUri.resolve(".")
+            val resolvedUri = resolveRedirects(URL(string)).toURI()
             val scriptText = prependPreambles(preambles, readUri(resolvedUri))
-            val sections = resolveSections(scriptText, includeContext, false, 0, resolutionContext)
-            val layeredView = LayeredView(
-                0,
-                SourceType.HTTP,
+
+            return createScript(
+                ScriptSource.HTTP,
                 resolveScriptType(resolvedUri),
                 resolvedUri,
-                includeContext,
+                resolvedUri.resolve("."),
                 getFileNameWithoutExtension(resolvedUri),
-                sections
+                scriptText,
+                false,
+                maxResolutionLevel
             )
-            val flatView = createFlatView(resolutionContext)
-            return Script(layeredView, flatView)
         }
 
         val file = File(string)
@@ -66,23 +65,32 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
             if (kotlinExtensions.contains(file.extension)) {
                 //Regular file
                 val scriptText = prependPreambles(preambles, readUri(uri))
-                val sections = resolveSections(scriptText, includeContext, true, 0, resolutionContext)
-                val layeredView = LayeredView(
-                    0, SourceType.FILE, resolveScriptType(uri), uri, includeContext, file.nameWithoutExtension, sections
-                )
-                val flatView = createFlatView(resolutionContext)
-                return Script(layeredView, flatView)
 
+                return createScript(
+                    ScriptSource.FILE,
+                    resolveScriptType(uri),
+                    uri,
+                    includeContext,
+                    file.nameWithoutExtension,
+                    scriptText,
+                    true,
+                    maxResolutionLevel
+                )
             } else {
                 //If script input is a process substitution file handle we can not use for content reading:
                 //FileInputStream(this).bufferedReader().use{ readText() } nor readText()
                 val scriptText = prependPreambles(preambles, FileInputStream(file).bufferedReader().readText())
-                val sections = resolveSections(scriptText, includeContext, true, 0, resolutionContext)
-                val layeredView = LayeredView(
-                    0, SourceType.OTHER_FILE, resolveScriptType(scriptText), uri, includeContext, scripletName, sections
+
+                return createScript(
+                    ScriptSource.OTHER_FILE,
+                    resolveScriptType(scriptText),
+                    uri,
+                    includeContext,
+                    scripletName,
+                    scriptText,
+                    true,
+                    maxResolutionLevel
                 )
-                val flatView = createFlatView(resolutionContext)
-                return Script(layeredView, flatView)
             }
         }
 
@@ -91,17 +99,34 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
         }
 
         //As a last resort we assume that input is a Kotlin program...
-        val includeContext = File(".").toURI()
         val scriptText = prependPreambles(preambles, string)
-        val sections = resolveSections(scriptText, includeContext, true, 0, resolutionContext)
-        val layeredView = LayeredView(
-            0, SourceType.PARAMETER, resolveScriptType(scriptText), null, includeContext, scripletName, sections
+        return createScript(
+            ScriptSource.PARAMETER,
+            resolveScriptType(scriptText),
+            null,
+            File(".").toURI(),
+            scripletName,
+            scriptText,
+            true,
+            maxResolutionLevel
         )
-        val flatView = createFlatView(resolutionContext)
-        return Script(layeredView, flatView)
     }
 
-    private fun createFlatView(resolutionContext: ResolutionContext): FlatView {
+    private fun createScript(
+        scriptSource: ScriptSource,
+        scriptType: ScriptType,
+        sourceUri: URI?,
+        sourceContextUri: URI,
+        scriptName: String,
+        scriptText: String,
+        allowLocalReferences: Boolean,
+        maxResolutionLevel: Int
+    ): Script {
+        val level = 0
+        val resolutionContext = ResolutionContext(maxResolutionLevel)
+        val sections = resolveSections(scriptText, sourceContextUri, allowLocalReferences, level, resolutionContext)
+        val scriptNode = ScriptNode(level, scriptSource, scriptType, sourceUri, sourceContextUri, scriptName, sections)
+
         val code = StringBuilder().apply {
             if (resolutionContext.packageName != null) {
                 append("package ${resolutionContext.packageName!!.value}\n\n")
@@ -116,17 +141,22 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
             }
         }.toString()
 
-
-        return FlatView(
+        return Script(
+            scriptSource,
+            scriptType,
+            sourceUri,
+            sourceContextUri,
+            scriptName,
             code,
             resolutionContext.packageName,
             resolutionContext.entry,
-            resolutionContext.layeredViews,
+            resolutionContext.scriptNodes,
             resolutionContext.includes,
             resolutionContext.dependencies,
             resolutionContext.repositories,
             resolutionContext.kotlinOpts,
-            resolutionContext.compilerOpts
+            resolutionContext.compilerOpts,
+            scriptNode
         )
     }
 
@@ -149,9 +179,9 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
                 when (annotation) {
                     is Include -> if (currentLevel < resolutionContext.maxResolutionLevel) {
                         val uri = resolveInclude(includeContext, annotation.value, config.homeDir)
-                        val sourceType = if (isRegularFile(uri)) SourceType.FILE else SourceType.HTTP
+                        val scriptSource = if (isRegularFile(uri)) ScriptSource.FILE else ScriptSource.HTTP
 
-                        if (sourceType == SourceType.FILE && !allowLocalReferences) {
+                        if (scriptSource == ScriptSource.FILE && !allowLocalReferences) {
                             throw IllegalStateException("References to local files from remote scripts are disallowed.")
                         }
 
@@ -161,13 +191,13 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
                         val newSections = resolveSections(
                             newScriptText,
                             newIncludeContext,
-                            allowLocalReferences && sourceType == SourceType.FILE,
+                            allowLocalReferences && scriptSource == ScriptSource.FILE,
                             currentLevel + 1,
                             resolutionContext
                         )
-                        val layeredView = LayeredView(
+                        val scriptNode = ScriptNode(
                             currentLevel + 1,
-                            sourceType,
+                            scriptSource,
                             scriptType,
                             uri,
                             newIncludeContext,
@@ -175,10 +205,10 @@ class ScriptResolver(private val parser: Parser, private val appDir: AppDir, pri
                             newSections
                         )
 
-                        resolutionContext.layeredViews.add(layeredView)
+                        resolutionContext.scriptNodes.add(scriptNode)
 
                         //Replace Include annotation with Script annotation
-                        resultingAnnotations += layeredView
+                        resultingAnnotations += scriptNode
                         continue
                     } else {
                         resolutionContext.includes.add(annotation)

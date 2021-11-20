@@ -6,7 +6,7 @@ import kscript.app.creator.IdeaProjectCreator
 import kscript.app.creator.PackageCreator
 import kscript.app.model.Config
 import kscript.app.model.ScriptType
-import kscript.app.model.SourceType
+import kscript.app.model.ScriptSource
 import kscript.app.parser.Parser
 import kscript.app.resolver.ClasspathResolver
 import kscript.app.resolver.DependencyResolver
@@ -47,16 +47,16 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         val scriptResolver = ScriptResolver(Parser(), appDir, config)
 
         if (docopt.getBoolean("add-bootstrap-header")) {
-            val (script, _) = scriptResolver.resolveFromInput(
+            val script= scriptResolver.resolveFromInput(
                 docopt.getString("script"),
                 maxResolutionLevel = 0
             )
 
-            if (script.sourceType != SourceType.FILE) {
+            if (script.scriptSource != ScriptSource.FILE) {
                 throw IllegalStateException("Can not add bootstrap header to resources, which are not regular Kotlin files.")
             }
 
-            val scriptLines = script.sections.map { it.code }.dropWhile {
+            val scriptLines = script.rootNode.sections.map { it.code }.dropWhile {
                 it.startsWith("#!/") && it != "#!/bin/bash"
             }
 
@@ -73,35 +73,34 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             return
         }
 
-        val (script, resolvedScript) = scriptResolver.resolveFromInput(docopt.getString("script"), preambles)
-        val projectDir = appDir.projectCache.projectDir(resolvedScript.code)
+        val script = scriptResolver.resolveFromInput(docopt.getString("script"), preambles)
+        val projectDir = appDir.projectCache.projectDir(script.code)
 
         //  Create temporary dev environment
         if (docopt.getBoolean("idea")) {
-            val scriptFile = appDir.urlCache.scriplet(resolvedScript.code, script.scriptType.extension).toFile()
             val ideaProjectCreator = IdeaProjectCreator(config, appDir)
-            println(ideaProjectCreator.createProject(scriptFile, resolvedScript, userArgs))
+            println(ideaProjectCreator.createProject(script, userArgs))
             return
         }
 
-        val dependencyResolver = DependencyResolver(resolvedScript.repositories)
+        val dependencyResolver = DependencyResolver(script.repositories)
         val classpathResolver = ClasspathResolver(config.classPathSeparator, appDir, dependencyResolver)
-        val kotlinCommandResolver = KotlinCommandResolver(config, resolvedScript, classpathResolver)
+        val kotlinCommandResolver = KotlinCommandResolver(config, script, classpathResolver)
 
-        val classpath = classpathResolver.resolve(resolvedScript.dependencies)
+        val classpath = classpathResolver.resolve(script.dependencies)
 
         val optionalCpArg = if (classpath.isNotEmpty()) "-classpath '${classpath}'" else ""
 
         //  Optionally enter interactive mode
         if (docopt.getBoolean("interactive")) {
             Logger.infoMsg("Creating REPL from ${script.scriptName}")
-            println("kotlinc ${resolvedScript.compilerOpts} ${resolvedScript.kotlinOpts} $optionalCpArg")
+            println("kotlinc ${script.compilerOpts} ${script.kotlinOpts} $optionalCpArg")
             return
         }
 
         // Even if we just need and support the //ENTRY directive in case of kt-class
         // files, we extract it here to fail if it was used in kts files.
-        val entryDirective = resolvedScript.entryPoint
+        val entryDirective = script.entryPoint
 
         if (entryDirective != null && script.scriptType == ScriptType.KTS) {
             throw IllegalStateException("@Entry directive is just supported for kt class files")
@@ -115,10 +114,10 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
 
         val scriptFile = File(projectDir, className + script.scriptType.extension)
-        scriptFile.writeText(resolvedScript.code)
+        scriptFile.writeText(script.code)
 
         // Define the entrypoint for the scriptlet jar
-        val packageName = if (resolvedScript.packageName != null) resolvedScript.packageName.value + "." else ""
+        val packageName = if (script.packageName != null) script.packageName.value + "." else ""
         val execClassName = if (script.scriptType == ScriptType.KTS) {
             "Main_${className}"
         } else {
@@ -158,7 +157,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             }
 
             val fileArguments = filesToCompile.joinToString(" ") { "'${it.absolutePath}'" }
-            val compilerOpts = resolvedScript.compilerOpts.joinToString(" ") { it.value }
+            val compilerOpts = script.compilerOpts.joinToString(" ") { it.value }
 
             val scriptCompileResult =
                 evalBash("kotlinc $compilerOpts $optionalCpArg -d '${jarFile.absolutePath}' $fileArguments")
@@ -179,7 +178,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
                 "k" + scriptFile.nameWithoutExtension
             }
 
-            PackageCreator(appDir).packageKscript(resolvedScript, jarFile, execClassName, binaryName)
+            PackageCreator(appDir).packageKscript(script, jarFile, execClassName, binaryName)
             return
         }
 
@@ -192,7 +191,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         if (classpath.isNotEmpty()) extClassPath += config.classPathSeparator + classpath
 
-        val kotlinOpts = resolvedScript.kotlinOpts.joinToString(" ") { it.value }
+        val kotlinOpts = script.kotlinOpts.joinToString(" ") { it.value }
 
         val kotlinCommandString = "kotlin $kotlinOpts -classpath \"$extClassPath\" $execClassName $joinedUserArgs"
 

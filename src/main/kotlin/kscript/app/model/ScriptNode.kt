@@ -2,9 +2,9 @@ package kscript.app.model
 
 import java.net.URI
 
-data class LayeredView(
+data class ScriptNode(
     val level: Int,
-    val sourceType: SourceType,
+    val scriptSource: ScriptSource,
     val scriptType: ScriptType,
     val sourceUri: URI?,
     val sourceContextUri: URI,

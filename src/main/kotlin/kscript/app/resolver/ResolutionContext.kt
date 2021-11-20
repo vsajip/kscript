@@ -1,4 +1,6 @@
-package kscript.app.model
+package kscript.app.resolver
+
+import kscript.app.model.*
 
 data class ResolutionContext(
     val maxResolutionLevel: Int,
@@ -11,7 +13,7 @@ data class ResolutionContext(
     var entryLevel: Int = 0,
     var entry: Entry? = null,
 
-    val layeredViews: MutableSet<LayeredView> = mutableSetOf(),
+    val scriptNodes: MutableSet<ScriptNode> = mutableSetOf(),
     val includes: MutableSet<Include> = mutableSetOf(),
     val dependencies: MutableSet<Dependency> = mutableSetOf(),
     val repositories: MutableSet<Repository> = mutableSetOf(),
