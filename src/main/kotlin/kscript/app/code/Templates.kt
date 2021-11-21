@@ -2,6 +2,7 @@ package kscript.app.code
 
 import kscript.app.model.Dependency
 import kscript.app.model.Repository
+import kscript.app.util.ScriptUtils.dropExtension
 import org.intellij.lang.annotations.Language
 import java.io.File
 
@@ -136,18 +137,20 @@ object Templates {
     """.trimIndent()
     }
 
-    fun runConfig(scriptFile: File, tmpProjectDir: File, userArgs: List<String>): String {
-        val body = if (scriptFile.extension == "kt") {
+    fun runConfig(rootNode: String, userArgs: List<String>): String {
+        val fileNameWithoutExtension = rootNode.dropExtension()
+
+        val runConfigurationBody = if (rootNode.endsWith(".kt")) {
             """
-        <configuration name="${scriptFile.name.substringBeforeLast(".")}" type="JetRunConfigurationType">
-            <module name="${tmpProjectDir.name}.main" />
+        <configuration name="$fileNameWithoutExtension" type="JetRunConfigurationType">
+            <module name="${rootNode}.main" />
             <option name="VM_PARAMETERS" value="" />
             <option name="PROGRAM_PARAMETERS" value="" />
             <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
             <option name="ALTERNATIVE_JRE_PATH" />
             <option name="PASS_PARENT_ENVS" value="true" />
             <option name="MAIN_CLASS_NAME" value="${
-                scriptFile.name.substringBeforeLast(".").replaceFirstChar { it.titlecase() }
+                fileNameWithoutExtension.replaceFirstChar { it.titlecase() }
             }Kt" />
             <option name="WORKING_DIRECTORY" value="" />
             <method v="2">
@@ -163,16 +166,17 @@ object Templates {
             <option name="PROJECT_INTERPRETER" value="false" />
             <option name="WORKING_DIRECTORY" value="" />
             <option name="PARENT_ENVS" value="true" />
-            <option name="SCRIPT_NAME" value="${'$'}PROJECT_DIR${'$'}/src/${scriptFile.name}" />
+            <option name="SCRIPT_NAME" value="${'$'}PROJECT_DIR${'$'}/src/${rootNode}" />
             <option name="PARAMETERS" value="${userArgs.joinToString(" ")}" />
             <module name="" />
             <method v="2" />
          </configuration>
          """.trimIndent()
         }
+
         return """
             <component name="ProjectRunConfigurationManager">
-            $body
+            $runConfigurationBody
             </component>
         """.trimIndent()
     }

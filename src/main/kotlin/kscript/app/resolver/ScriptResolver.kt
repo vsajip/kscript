@@ -132,12 +132,14 @@ class ScriptResolver(
         )
         val scriptNode = ScriptNode(level, scriptSource, scriptType, sourceUri, sourceContextUri, scriptName, sections)
 
+        val sortedImports = resolutionContext.imports.sortedBy { it.value }.toList()
+
         val code = StringBuilder().apply {
             if (resolutionContext.packageName != null) {
                 append("package ${resolutionContext.packageName!!.value}\n\n")
             }
 
-            resolutionContext.imports.forEach {
+            sortedImports.forEach {
                 append("import ${it.value}\n")
             }
 
@@ -155,12 +157,13 @@ class ScriptResolver(
             code,
             resolutionContext.packageName,
             resolutionContext.entry,
-            resolutionContext.scriptNodes,
+            sortedImports,
             resolutionContext.includes,
             resolutionContext.dependencies,
             resolutionContext.repositories,
             resolutionContext.kotlinOpts,
             resolutionContext.compilerOpts,
+            resolutionContext.scriptNodes,
             scriptNode
         )
     }

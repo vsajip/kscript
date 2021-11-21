@@ -13,14 +13,14 @@ data class Script(
 
     val packageName: Package?,
     val entryPoint: Entry?,
+    val imports: List<Import>,
 
-    val scriptNodes: Set<ScriptNode>,
     val includes: Set<Include>,
-
     val dependencies: Set<Dependency>,
     val repositories: Set<Repository>,
     val kotlinOpts: Set<KotlinOpt>,
     val compilerOpts: Set<CompilerOpt>,
 
+    val scriptNodes: Set<ScriptNode>,
     val rootNode: ScriptNode,
 )

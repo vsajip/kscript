@@ -44,43 +44,45 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
         allowLocalReferences: Boolean,
         currentLevel: Int,
         resolutionContext: ResolutionContext
-    ): ScriptAnnotation {
-        var resolvedScriptAnnotation = scriptAnnotation
+    ): List<ScriptAnnotation> {
+        val resolvedScriptAnnotation = mutableListOf(scriptAnnotation)
 
         when (scriptAnnotation) {
-            is Include -> if (currentLevel < resolutionContext.maxResolutionLevel) {
-                val uri = resolveInclude(includeContext, scriptAnnotation.value, homeDir)
-                val scriptSource = if (ScriptUtils.isRegularFile(uri)) ScriptSource.FILE else ScriptSource.HTTP
+            is Include -> {
+                if (currentLevel < resolutionContext.maxResolutionLevel) {
+                    val uri = resolveInclude(includeContext, scriptAnnotation.value, homeDir)
+                    val scriptSource = if (ScriptUtils.isRegularFile(uri)) ScriptSource.FILE else ScriptSource.HTTP
 
-                if (scriptSource == ScriptSource.FILE && !allowLocalReferences) {
-                    throw IllegalStateException("References to local files from remote scripts are disallowed.")
+                    if (scriptSource == ScriptSource.FILE && !allowLocalReferences) {
+                        throw IllegalStateException("References to local files from remote scripts are disallowed.")
+                    }
+
+                    val uriItem = uriCache.readUri(uri)
+
+                    val newSections = resolve(
+                        uriItem.content,
+                        uriItem.contextUri,
+                        allowLocalReferences && scriptSource == ScriptSource.FILE,
+                        currentLevel + 1,
+                        resolutionContext
+                    )
+
+                    val scriptNode = ScriptNode(
+                        currentLevel + 1,
+                        scriptSource,
+                        uriItem.scriptType,
+                        uri,
+                        uriItem.contextUri,
+                        ScriptUtils.extractFileName(uri).dropExtension(),
+                        newSections
+                    )
+
+                    resolutionContext.scriptNodes.add(scriptNode)
+
+                    //Add additional annotation
+                    resolvedScriptAnnotation += scriptNode
                 }
 
-                val uriItem = uriCache.readUri(uri)
-
-                val newSections = resolve(
-                    uriItem.content,
-                    uriItem.contextUri,
-                    allowLocalReferences && scriptSource == ScriptSource.FILE,
-                    currentLevel + 1,
-                    resolutionContext
-                )
-
-                val scriptNode = ScriptNode(
-                    currentLevel + 1,
-                    scriptSource,
-                    uriItem.scriptType,
-                    uri,
-                    uriItem.contextUri,
-                    ScriptUtils.extractFileName(uri).dropExtension(),
-                    newSections
-                )
-
-                resolutionContext.scriptNodes.add(scriptNode)
-
-                //Replace Include annotation with Script annotation
-                resolvedScriptAnnotation = scriptNode
-            } else {
                 resolutionContext.includes.add(scriptAnnotation)
             }
 

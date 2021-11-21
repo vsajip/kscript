@@ -1,38 +1,52 @@
 package kscript.app.creator
 
-import kscript.app.appdir.AppDir
+import kscript.app.appdir.FileItem
+import kscript.app.appdir.IdeaCache
+import kscript.app.appdir.ProjectItem
+import kscript.app.appdir.SymLinkItem
 import kscript.app.code.Templates
 import kscript.app.model.Config
 import kscript.app.model.Script
-import kscript.app.util.Logger.errorMsg
 import kscript.app.util.Logger.infoMsg
 import kscript.app.util.ProcessRunner.runProcess
-import kscript.app.util.ShellUtils.isInPath
-import java.io.File
-import java.io.IOException
-import java.nio.file.Files
+import kscript.app.util.ShellUtils
+import java.nio.file.Path
 
-class IdeaProjectCreator(private val config: Config, private val appDir: AppDir) {
-
+class IdeaProjectCreator(private val config: Config, private val ideaCache: IdeaCache) {
     fun createProject(script: Script, userArgs: List<String>): String {
-        if (!isInPath(config.intellijCommand)) {
+        if (!ShellUtils.isInPath(config.intellijCommand)) {
             throw IllegalStateException("Could not find '${config.intellijCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_IDEA_COMMAND' env property")
+        }
+
+        if (!ShellUtils.isInPath(config.gradleCommand)) {
+            throw IllegalStateException(
+                "Could not find '${config.gradleCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_GRADLE_COMMAND' env property"
+            )
+        }
+
+        var ideaPath = ideaCache.ideaPath(script.resolvedCode)
+        if ( ideaPath != null) {
+            return createCommand(ideaPath)
         }
 
         infoMsg("Setting up idea project...")
 
-        val tmpProjectDir = appDir.projectCache.projectDir()
+        val projectItems = mutableListOf<ProjectItem>()
+        for (scriptNode in script.scriptNodes) {
+            val sourceUri = scriptNode.sourceUri
+            val path = "src/${scriptNode.scriptName}"
 
-        val scriptFile = File("fixit")
-
-        //Symlink script resource in
-        File(tmpProjectDir, "src").run {
-            mkdir()
-            createSymLink(File(this, scriptFile.name), scriptFile)
+            if (sourceUri == null) {
+                projectItems.add(FileItem(path, scriptNode.sections.joinToString("\n") { it.code }))
+            } else {
+                projectItems.add(SymLinkItem(path, sourceUri))
+            }
         }
 
-        File(tmpProjectDir, ".idea/runConfigurations/Main.xml").writeText(
-            Templates.runConfig(scriptFile, tmpProjectDir, userArgs)
+        projectItems.add(
+            FileItem(
+                ".idea/runConfigurations/Main.xml", Templates.runConfig(script.rootNode.scriptName, userArgs)
+            )
         )
 
         val opts = script.compilerOpts.map { it.value }
@@ -46,35 +60,20 @@ class IdeaProjectCreator(private val config: Config, private val appDir: AppDir)
 
         val kotlinOptions = Templates.kotlinOptions(jvmTargetOption)
         val gradleScript = Templates.createGradleIdeaScript(
-            script.repositories,
-            script.dependencies,
-            kotlinOptions
+            script.repositories, script.dependencies, kotlinOptions
         )
 
-        File(tmpProjectDir, "build.gradle.kts").writeText(gradleScript)
+        projectItems.add(FileItem("build.gradle.kts", gradleScript))
 
-        val projectPath = tmpProjectDir.absolutePath
+        ideaPath = ideaCache.ideaDir(script.resolvedCode, projectItems)
 
         // Create gradle wrapper
-        if (!isInPath(config.gradleCommand)) {
-            throw IllegalStateException(
-                "Could not find '${config.gradleCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_GRADLE_COMMAND' env property"
-            )
-        }
+        runProcess("${config.gradleCommand} wrapper", wd = ideaPath.toFile())
 
-        runProcess("${config.gradleCommand} wrapper", wd = tmpProjectDir)
+        infoMsg("Project set up at $ideaPath")
 
-        infoMsg("Project set up at $projectPath")
-
-        return "${config.intellijCommand} \"$projectPath\""
+        return createCommand(ideaPath)
     }
 
-    private fun createSymLink(link: File, target: File) {
-        try {
-            Files.createSymbolicLink(link.toPath(), target.absoluteFile.toPath())
-        } catch (e: IOException) {
-            errorMsg("Failed to create symbolic link to script. Copying instead...")
-            target.copyTo(link)
-        }
-    }
+    private fun createCommand(ideaPath: Path) = "${config.intellijCommand} \"$ideaPath\""
 }

@@ -117,11 +117,11 @@ class LineParserTest {
         @JvmStatic
         fun staticDependencies(): Stream<Arguments> = Stream.of(
             Arguments.of(listOf("org.javamoney:moneta:pom:1.3")),
-//            Arguments.of(
-//                listOf(
-//                    "  org.javamoney:moneta:pom:1.3  ", "log4j:log4j:1.2.14", "com.offbytwo:docopt:0.6.0.20150202"
-//                )
-//            ),
+            Arguments.of(
+                listOf(
+                    "  org.javamoney:moneta:pom:1.3  ", "log4j:log4j:1.2.14", "com.offbytwo:docopt:0.6.0.20150202"
+                )
+            ),
             Arguments.of(listOf("de.mpicbg.scicomp.joblist:joblist-kotlin:1.1", "de.mpicbg.scicomp:kutils:0.7")),
             Arguments.of(listOf("something:dev-1.1.0-alpha3(T2):1.2.14", "de.mpicbg.scicomp:kutils:0.7"))
         )
@@ -145,10 +145,10 @@ class LineParserTest {
 
         @JvmStatic
         fun repositories(): Stream<Arguments> = Stream.of(
-//            Arguments.of(
-//                """@file:MavenRepository("imagej-releases", "$repositoryReleasesUrl" ) // crazy comment""",
-//                Repository("imagej-releases", repositoryReleasesUrl)
-//            ),
+            Arguments.of(
+                """@file:MavenRepository("imagej-releases", "$repositoryReleasesUrl" ) // crazy comment""",
+                Repository("imagej-releases", repositoryReleasesUrl)
+            ),
             Arguments.of(
                 """@file:MavenRepository("imagej-releases", "$repositoryReleasesUrl", user="user", password="pass") """,
                 Repository("imagej-releases", repositoryReleasesUrl, "user", "pass")
@@ -181,10 +181,10 @@ class LineParserTest {
 
         @JvmStatic
         fun kotlinOpts(): Stream<Arguments> = Stream.of(
-//            Arguments.of(
-//                "//KOTLIN_OPTS -foo 3 'some file.txt'",
-//                listOf(KotlinOpt("-foo"), KotlinOpt("3"), KotlinOpt("'some file.txt'"))
-//            ),
+            Arguments.of(
+                "//KOTLIN_OPTS -foo 3 'some file.txt'",
+                listOf(KotlinOpt("-foo"), KotlinOpt("3"), KotlinOpt("'some file.txt'"))
+            ),
             Arguments.of(
                 """@file:KotlinOpts("--bar")""", listOf(KotlinOpt("--bar"))
             ),

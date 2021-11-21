@@ -28,7 +28,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         // optionally clear up the jar cache
         if (docopt.getBoolean("clear-cache")) {
             Logger.info("Cleaning up cache...")
-            appDir.clear()
+            appDir.clearCaches()
             return
         }
 
@@ -77,7 +77,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         //  Create temporary dev environment
         if (docopt.getBoolean("idea")) {
-            val ideaProjectCreator = IdeaProjectCreator(config, appDir)
+            val ideaProjectCreator = IdeaProjectCreator(config, appDir.ideaCache)
             println(ideaProjectCreator.createProject(script, userArgs))
             return
         }
