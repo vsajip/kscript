@@ -13,7 +13,7 @@ object Templates {
         
         //usr/bin/env echo '
         /**** BOOTSTRAP kscript ****\'>/dev/null
-        command -v kscript >/dev/null 2>&1 || curl -L "https://git.io/fpF1K" | bash 1>&2
+        command -v kscript >/dev/null 2>&1 || source /dev/stdin <<< "${'$'}(curl -L https://git.io/fpF1K)"
         exec kscript $0 "$@"
         \*** IMPORTANT: Any code including imports and annotations must come after this line ***/
         
