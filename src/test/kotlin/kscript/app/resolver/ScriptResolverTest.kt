@@ -14,7 +14,6 @@ import java.io.File
 import java.nio.file.Paths
 import kotlin.io.path.createDirectories
 
-@Disabled
 class ScriptResolverTest {
     private val testHome = Paths.get("build/tmp/script_resolver_test")
     private val uriCache = UriCache(testHome.resolve("cache").createDirectories())
