@@ -1,13 +1,12 @@
 # Changes
 
-## 3.2
+## 3.2 
 
 Release TBD
 
 Major changes & enhancements
 * Improved for relative script inclusions (Thanks to PR by **aartiPI** [#330](https://github.com/holgerbrandl/kscript/pull/330))
 * Fixed bootstrap header support ([#324](https://github.com/holgerbrandl/kscript/issues/324))
-
 
 
 ## 3.1
