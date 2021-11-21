@@ -3,11 +3,13 @@
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_DIR=$(realpath "$SCRIPT_DIR/../")
 KSCRIPT_EXEC_DIR="$PROJECT_DIR/build/libs"
+KSCRIPT_TEST_DIR="$PROJECT_DIR/build/tmp/test"
 
 echo "Setting up environment..."
 echo "SCRIPT_DIR :        $SCRIPT_DIR"
 echo "PROJECT_DIR:        $PROJECT_DIR"
 echo "KSCRIPT_EXEC_DIR:   $KSCRIPT_EXEC_DIR"
+echo "KSCRIPT_TEST_DIR:   $KSCRIPT_TEST_DIR"
 echo
 
 if [[ "$PATH" != *"$KSCRIPT_EXEC_DIR"* ]]; then

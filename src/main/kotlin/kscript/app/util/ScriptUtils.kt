@@ -1,6 +1,6 @@
 package kscript.app.util
 
-import kscript.app.model.ScriptType
+import kscript.app.model.*
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
@@ -40,15 +40,6 @@ object ScriptUtils {
         return extractFileName(uri.normalize().path)
     }
 
-    private fun extractFileName(path: String): String {
-        val idx = path.lastIndexOf("/")
-        var filename = path
-        if (idx >= 0) {
-            filename = path.substring(idx + 1, path.length)
-        }
-        return filename
-    }
-
     fun prependPreambles(preambles: List<String>, string: String): String {
         return preambles.joinToString("\n") + string
     }
@@ -66,5 +57,49 @@ object ScriptUtils {
 
     fun resolveScriptType(code: String): ScriptType {
         return if (code.contains("fun main")) ScriptType.KT else ScriptType.KTS
+    }
+
+    private fun extractFileName(path: String): String {
+        val idx = path.lastIndexOf("/")
+        var filename = path
+        if (idx >= 0) {
+            filename = path.substring(idx + 1, path.length)
+        }
+        return filename
+    }
+
+    fun resolveCode(packageName: PackageName?, importNames: Set<ImportName>, scriptNode: ScriptNode): String {
+        val sortedImports = importNames.sortedBy { it.value }.toList()
+        val sb = StringBuilder()
+
+        if (packageName != null) {
+            sb.append("package ${packageName.value}\n\n")
+        }
+
+        sortedImports.forEach {
+            sb.append("import ${it.value}\n")
+        }
+
+        resolveSimpleCode(sb, scriptNode)
+
+        return sb.toString()
+    }
+
+    private fun resolveSimpleCode(sb: StringBuilder, scriptNode: ScriptNode) {
+        for (section in scriptNode.sections) {
+            val scriptNodes = section.scriptAnnotations.filterIsInstance<ScriptNode>()
+            if (scriptNodes.isNotEmpty()) {
+                val subNode = scriptNodes.single()
+                resolveSimpleCode(sb, subNode)
+                continue
+            }
+
+            val droppedAnnotations = section.scriptAnnotations.filter { it !is Code }
+            if (droppedAnnotations.isNotEmpty()) {
+                continue
+            }
+
+            sb.append(section.code).append('\n')
+        }
     }
 }

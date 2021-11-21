@@ -5,10 +5,8 @@ import kscript.app.model.*
 data class ResolutionContext(
     val maxResolutionLevel: Int,
 
-    var code: MutableList<String> = mutableListOf(),
-
     var packageLevel: Int = 0,
-    var packageName: Package? = null,
+    var packageName: PackageName? = null,
 
     var entryLevel: Int = 0,
     var entry: Entry? = null,
@@ -19,5 +17,5 @@ data class ResolutionContext(
     val repositories: MutableSet<Repository> = mutableSetOf(),
     val kotlinOpts: MutableSet<KotlinOpt> = mutableSetOf(),
     val compilerOpts: MutableSet<CompilerOpt> = mutableSetOf(),
-    val imports: MutableSet<Import> = mutableSetOf(),
+    val importNames: MutableSet<ImportName> = mutableSetOf(),
 )

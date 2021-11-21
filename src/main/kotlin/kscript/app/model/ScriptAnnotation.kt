@@ -5,9 +5,9 @@ interface ScriptAnnotation
 @JvmInline
 value class Include(val value: String) : ScriptAnnotation
 @JvmInline
-value class Package(val value: String) : ScriptAnnotation
+value class PackageName(val value: String) : ScriptAnnotation
 @JvmInline
-value class Import(val value: String) : ScriptAnnotation
+value class ImportName(val value: String) : ScriptAnnotation
 @JvmInline
 value class Dependency(val value: String) : ScriptAnnotation
 @JvmInline

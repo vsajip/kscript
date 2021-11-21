@@ -127,26 +127,10 @@ class ScriptResolver(
     ): Script {
         val level = 0
         val resolutionContext = ResolutionContext(maxResolutionLevel)
-        val sections = sectionResolver.resolve(
-            scriptText, sourceContextUri, allowLocalReferences, level, resolutionContext
-        )
+        val sections =
+            sectionResolver.resolve(scriptText, sourceContextUri, allowLocalReferences, level, resolutionContext)
         val scriptNode = ScriptNode(level, scriptSource, scriptType, sourceUri, sourceContextUri, scriptName, sections)
-
-        val sortedImports = resolutionContext.imports.sortedBy { it.value }.toList()
-
-        val code = StringBuilder().apply {
-            if (resolutionContext.packageName != null) {
-                append("package ${resolutionContext.packageName!!.value}\n\n")
-            }
-
-            sortedImports.forEach {
-                append("import ${it.value}\n")
-            }
-
-            resolutionContext.code.forEach {
-                append("$it\n")
-            }
-        }.toString()
+        val code = ScriptUtils.resolveCode(resolutionContext.packageName, resolutionContext.importNames, scriptNode)
 
         return Script(
             scriptSource,
@@ -157,7 +141,7 @@ class ScriptResolver(
             code,
             resolutionContext.packageName,
             resolutionContext.entry,
-            sortedImports,
+            resolutionContext.importNames,
             resolutionContext.includes,
             resolutionContext.dependencies,
             resolutionContext.repositories,

@@ -26,7 +26,7 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
 
             for (annotation in section.scriptAnnotations) {
                 resultingScriptAnnotations += resolveAnnotation(
-                    section.code, annotation, includeContext, allowLocalReferences, currentLevel, resolutionContext
+                    annotation, includeContext, allowLocalReferences, currentLevel, resolutionContext
                 )
             }
 
@@ -38,7 +38,6 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
 
 
     private fun resolveAnnotation(
-        code: String,
         scriptAnnotation: ScriptAnnotation,
         includeContext: URI,
         allowLocalReferences: Boolean,
@@ -86,7 +85,7 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
                 resolutionContext.includes.add(scriptAnnotation)
             }
 
-            is Package -> {
+            is PackageName -> {
                 if (resolutionContext.packageName == null || (resolutionContext.packageName != null && resolutionContext.packageLevel > currentLevel)) {
                     resolutionContext.packageName = scriptAnnotation
                     resolutionContext.packageLevel = currentLevel
@@ -100,13 +99,11 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
                 }
             }
 
-            is SheBang -> {}
-            is Import -> resolutionContext.imports.add(scriptAnnotation)
+            is ImportName -> resolutionContext.importNames.add(scriptAnnotation)
             is Dependency -> resolutionContext.dependencies.add(scriptAnnotation)
             is KotlinOpt -> resolutionContext.kotlinOpts.add(scriptAnnotation)
             is CompilerOpt -> resolutionContext.compilerOpts.add(scriptAnnotation)
             is Repository -> resolutionContext.repositories.add(scriptAnnotation)
-            is Code -> resolutionContext.code.add(code)
         }
 
         return resolvedScriptAnnotation

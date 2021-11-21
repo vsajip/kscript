@@ -183,7 +183,7 @@ object LineParser {
 
         line.trim().let {
             if (it.startsWith(packagePrefix)) {
-                return listOf(Package(it.substring(packagePrefix.length)))
+                return listOf(PackageName(it.substring(packagePrefix.length)))
             }
             return emptyList()
         }
@@ -194,7 +194,7 @@ object LineParser {
 
         line.trim().let {
             if (it.startsWith(importPrefix)) {
-                return listOf(Import(it.substring(importPrefix.length)))
+                return listOf(ImportName(it.substring(importPrefix.length)))
             }
             return emptyList()
         }

@@ -11,9 +11,9 @@ data class Script(
 
     val resolvedCode: String,
 
-    val packageName: Package?,
+    val packageName: PackageName?,
     val entryPoint: Entry?,
-    val imports: List<Import>,
+    val importNames: Set<ImportName>,
 
     val includes: Set<Include>,
     val dependencies: Set<Dependency>,
