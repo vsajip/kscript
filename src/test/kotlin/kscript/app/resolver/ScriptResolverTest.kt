@@ -8,7 +8,6 @@ import assertk.assertions.prop
 import kscript.app.appdir.UriCache
 import kscript.app.model.*
 import kscript.app.parser.Parser
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.nio.file.Paths
@@ -16,8 +15,9 @@ import kotlin.io.path.createDirectories
 
 class ScriptResolverTest {
     private val testHome = Paths.get("build/tmp/script_resolver_test")
+    private val config = Config.builder().apply { homeDir = testHome.resolve("home") }.build()
     private val uriCache = UriCache(testHome.resolve("cache").createDirectories())
-    private val sectionResolver = SectionResolver(Parser(), uriCache, testHome.resolve("home").createDirectories())
+    private val sectionResolver = SectionResolver(Parser(), uriCache, config)
     private val scriptResolver = ScriptResolver(sectionResolver, uriCache)
 
     @Test
@@ -117,8 +117,7 @@ class ScriptResolverTest {
             prop(Script::scriptType).isEqualTo(ScriptType.KTS)
             prop(Script::sourceUri).transform { it.toString() }
                 .endsWith("/test/resources/includes/dup_include/dup_include.kts")
-            prop(Script::sourceContextUri).transform { it.toString() }
-                .endsWith("/test/resources/includes/dup_include/")
+            prop(Script::sourceContextUri).transform { it.toString() }.endsWith("/test/resources/includes/dup_include/")
             prop(Script::scriptName).isEqualTo("dup_include.kts")
             prop(Script::packageName).isEqualTo(null)
             prop(Script::entryPoint).isEqualTo(null)

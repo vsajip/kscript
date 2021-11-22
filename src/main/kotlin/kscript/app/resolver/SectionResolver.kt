@@ -10,7 +10,7 @@ import java.net.URI
 import java.nio.file.Path
 
 
-class SectionResolver(private val parser: Parser, private val uriCache: UriCache, private val homeDir: Path) {
+class SectionResolver(private val parser: Parser, private val uriCache: UriCache, private val config: Config) {
     fun resolve(
         scriptText: String,
         includeContext: URI,
@@ -43,12 +43,13 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
         currentLevel: Int,
         resolutionContext: ResolutionContext
     ): List<ScriptAnnotation> {
-        val resolvedScriptAnnotation = mutableListOf(scriptAnnotation)
+        val resolvedScriptAnnotation = mutableListOf<ScriptAnnotation>()
+        var annotationToAdd = scriptAnnotation
 
         when (scriptAnnotation) {
             is Include -> {
                 if (currentLevel < resolutionContext.maxResolutionLevel) {
-                    val uri = resolveInclude(includeContext, scriptAnnotation.value, homeDir)
+                    val uri = resolveInclude(includeContext, scriptAnnotation.value, config.homeDir)
                     val scriptSource = if (ScriptUtils.isRegularFile(uri)) ScriptSource.FILE else ScriptSource.HTTP
 
                     if (scriptSource == ScriptSource.FILE && !allowLocalReferences) {
@@ -102,8 +103,21 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
             is Dependency -> resolutionContext.dependencies.add(scriptAnnotation)
             is KotlinOpt -> resolutionContext.kotlinOpts.add(scriptAnnotation)
             is CompilerOpt -> resolutionContext.compilerOpts.add(scriptAnnotation)
-            is Repository -> resolutionContext.repositories.add(scriptAnnotation)
+            is Repository -> {
+                annotationToAdd = Repository(
+                    scriptAnnotation.id,
+                    scriptAnnotation.url.replace("{{KSCRIPT_REPOSITORY_URL}}", config.repositoryUrlEnvVariable),
+                    scriptAnnotation.url.replace("{{KSCRIPT_REPOSITORY_USER}}", config.repositoryUserEnvVariable),
+                    scriptAnnotation.url.replace(
+                        "{{KSCRIPT_REPOSITORY_PASSWORD}}", config.repositoryPasswordEnvVariable
+                    )
+                )
+
+                resolutionContext.repositories.add(annotationToAdd)
+            }
         }
+
+        resolvedScriptAnnotation += annotationToAdd
 
         return resolvedScriptAnnotation
     }

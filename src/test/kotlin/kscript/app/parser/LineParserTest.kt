@@ -45,7 +45,7 @@ class LineParserTest {
             "    //DEPS $listWithoutQuotesStrangelyFormatted",
         )) {
             println("Case: '$line'")
-            assertThat(parseDependency(line)).containsExactlyInAnyOrder(*list.map { Dependency(it) }.toTypedArray())
+            assertThat(parseDependency(line)).containsExactlyInAnyOrder(*list.map { Dependency(it.trim()) }.toTypedArray())
         }
     }
 
@@ -181,11 +181,11 @@ class LineParserTest {
         @JvmStatic
         fun kotlinOpts(): Stream<Arguments> = Stream.of(
             Arguments.of(
-                "//KOTLIN_OPTS -foo 3 'some file.txt'",
+                "//KOTLIN_OPTS -foo, 3 ,'some file.txt'",
                 listOf(KotlinOpt("-foo"), KotlinOpt("3"), KotlinOpt("'some file.txt'"))
             ),
             Arguments.of(
-                """@file:KotlinOpts("--bar")""", listOf(KotlinOpt("--bar"))
+                """@file:KotlinOpts("--bar") // some other crazy comment""", listOf(KotlinOpt("--bar"))
             ),
         )
 

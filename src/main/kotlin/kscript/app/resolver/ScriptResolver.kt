@@ -1,10 +1,8 @@
 package kscript.app.resolver
 
 import kscript.app.appdir.UriCache
-import kscript.app.model.Script
-import kscript.app.model.ScriptNode
-import kscript.app.model.ScriptSource
-import kscript.app.model.ScriptType
+import kscript.app.model.*
+import kscript.app.parser.LineParser.extractValues
 import kscript.app.util.ScriptUtils
 import java.io.File
 import java.io.FileInputStream
@@ -12,7 +10,9 @@ import java.net.URI
 import java.net.URL
 
 class ScriptResolver(
-    private val sectionResolver: SectionResolver, private val uriCache: UriCache
+    private val sectionResolver: SectionResolver,
+    private val uriCache: UriCache,
+    private val kotlinOptsEnvVariable: String = ""
 ) {
     private val kotlinExtensions = listOf("kts", "kt")
     private val scripletName = "Scriplet"
@@ -129,8 +129,15 @@ class ScriptResolver(
         val resolutionContext = ResolutionContext(maxResolutionLevel)
         val sections =
             sectionResolver.resolve(scriptText, sourceContextUri, allowLocalReferences, level, resolutionContext)
+
         val scriptNode = ScriptNode(level, scriptSource, scriptType, sourceUri, sourceContextUri, scriptName, sections)
         val code = ScriptUtils.resolveCode(resolutionContext.packageName, resolutionContext.importNames, scriptNode)
+
+        if (kotlinOptsEnvVariable.isNotBlank()) {
+            extractValues(kotlinOptsEnvVariable).map { KotlinOpt(it) }.forEach {
+                resolutionContext.kotlinOpts.add(it)
+            }
+        }
 
         return Script(
             scriptSource,

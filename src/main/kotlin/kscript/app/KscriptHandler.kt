@@ -6,10 +6,13 @@ import kscript.app.creator.IdeaProjectCreator
 import kscript.app.creator.JarCreator
 import kscript.app.creator.PackageCreator
 import kscript.app.model.Config
-import kscript.app.model.ScriptType
 import kscript.app.model.ScriptSource
+import kscript.app.model.ScriptType
 import kscript.app.parser.Parser
-import kscript.app.resolver.*
+import kscript.app.resolver.CommandResolver
+import kscript.app.resolver.DependencyResolver
+import kscript.app.resolver.ScriptResolver
+import kscript.app.resolver.SectionResolver
 import kscript.app.util.Logger
 import kscript.app.util.Logger.infoMsg
 import kscript.app.util.ProcessRunner
@@ -43,13 +46,12 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             add(config.customPreamble)
         }
 
-        val sectionResolver = SectionResolver(Parser(), appDir.uriCache, config.homeDir)
-        val scriptResolver = ScriptResolver(sectionResolver, appDir.uriCache)
+        val sectionResolver = SectionResolver(Parser(), appDir.uriCache, config)
+        val scriptResolver = ScriptResolver(sectionResolver, appDir.uriCache, config.kotlinOptsEnvVariable)
 
         if (docopt.getBoolean("add-bootstrap-header")) {
-            val script= scriptResolver.resolve(
-                docopt.getString("script"),
-                maxResolutionLevel = 0
+            val script = scriptResolver.resolve(
+                docopt.getString("script"), maxResolutionLevel = 0
             )
 
             if (script.scriptSource != ScriptSource.FILE) {

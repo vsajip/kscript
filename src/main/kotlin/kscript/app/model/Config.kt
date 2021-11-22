@@ -11,7 +11,11 @@ data class Config(
     val kotlinHome: Path?,
     val classPathSeparator: String,
     val separatorChar: Char,
-    val homeDir: Path
+    val homeDir: Path,
+    val kotlinOptsEnvVariable: String,
+    val repositoryUrlEnvVariable: String,
+    val repositoryUserEnvVariable: String,
+    val repositoryPasswordEnvVariable: String,
 ) {
 
 
