@@ -1,43 +1,51 @@
 package kscript.app.resolver
 
-import kscript.app.model.*
+import kscript.app.creator.JarArtifact
+import kscript.app.model.CompilerOpt
+import kscript.app.model.Config
+import kscript.app.model.KotlinOpt
+import kscript.app.model.Script
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolute
+import kotlin.io.path.absolutePathString
 
-class KotlinCommandResolver(
-    private val config: Config,
-    private val script: Script,
-    private val classpathResolver: ClasspathResolver
-) {
-    fun compile(jarPath: Path, filePaths: List<Path>): String {
+class CommandResolver(private val config: Config, private val script: Script) {
+    fun compileKotlin(jarPath: Path, dependencies: Set<Path>, filePaths: Set<Path>): String {
         val compilerOptsStr = resolveCompilerOpts(script.compilerOpts)
-        val classpath = classpathResolver.resolve(script.dependencies)
+        val classpath = resolveClasspath(dependencies)
         val files = filePaths.joinToString(" ") { it.absolute().toString() }
 
         return "kotlinc $compilerOptsStr $classpath -d '${jarPath.absolute()}' $files"
     }
 
-    fun execute(jarPath: Path, execClassName: String, userArgs: List<String>): String {
+    fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>): String {
         val kotlinOptsStr = resolveKotlinOpts(script.kotlinOpts)
         val userArgsStr = resolveUserArgs(userArgs)
         val scriptRuntime =
             Paths.get("${config.kotlinHome}${config.separatorChar}lib${config.separatorChar}kotlin-script-runtime.jar")
-        val classpath = classpathResolver.resolve(script.dependencies, jarPath, scriptRuntime)
+        val classpath = resolveClasspath(dependencies + jarArtifact.path + scriptRuntime)
 
-        return "kotlin $kotlinOptsStr $classpath $execClassName $userArgsStr"
+        return "kotlin $kotlinOptsStr $classpath ${jarArtifact.execClassName} $userArgsStr"
     }
 
-    fun interactive(): String {
+    fun interactiveRepl(dependencies: Set<Path>): String {
         val compilerOptsStr = resolveCompilerOpts(script.compilerOpts)
         val kotlinOptsStr = resolveKotlinOpts(script.kotlinOpts)
-        val classpath = classpathResolver.resolve(script.dependencies)
+        val classpath = resolveClasspath(dependencies)
 
         return "kotlinc $compilerOptsStr $kotlinOptsStr $classpath"
+    }
+
+    fun executeIdea(projectPath: Path): String {
+        return "${config.intellijCommand} \"$projectPath\""
     }
 
     private fun resolveKotlinOpts(kotlinOpts: Set<KotlinOpt>) = kotlinOpts.joinToString(" ") { it.value }
     private fun resolveCompilerOpts(compilerOpts: Set<CompilerOpt>) = compilerOpts.joinToString(" ") { it.value }
     private fun resolveUserArgs(userArgs: List<String>) =
         userArgs.joinToString(" ") { "\"${it.replace("\"", "\\\"")}\"" }
+
+    private fun resolveClasspath(dependencies: Set<Path>) =
+        if (dependencies.isEmpty()) "" else "-classpath " + dependencies.joinToString(config.classPathSeparator) { it.absolutePathString() }
 }

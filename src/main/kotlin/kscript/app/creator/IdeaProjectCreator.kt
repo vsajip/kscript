@@ -1,37 +1,32 @@
 package kscript.app.creator
 
 import kscript.app.appdir.FileItem
-import kscript.app.appdir.IdeaCache
+import kscript.app.appdir.ProjectCache
 import kscript.app.appdir.ProjectItem
 import kscript.app.appdir.SymLinkItem
 import kscript.app.code.Templates
-import kscript.app.model.Config
 import kscript.app.model.Script
+import kscript.app.model.ScriptType
 import kscript.app.util.Logger.infoMsg
-import kscript.app.util.ProcessRunner.runProcess
+import kscript.app.util.ScriptUtils.dropExtension
 import kscript.app.util.ShellUtils
+import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.exists
 
-class IdeaProjectCreator(private val config: Config, private val ideaCache: IdeaCache) {
-    fun createProject(script: Script, userArgs: List<String>): String {
-        if (!ShellUtils.isInPath(config.intellijCommand)) {
-            throw IllegalStateException("Could not find '${config.intellijCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_IDEA_COMMAND' env property")
+class IdeaProjectCreator(private val projectCache: ProjectCache) {
+
+    fun create(script: Script, userArgs: List<String>): Path {
+        val projectPath = projectCache.findOrCreate(script)
+
+        if (hasIdeaFiles(projectPath)) {
+            return projectPath
         }
 
-        if (!ShellUtils.isInPath(config.gradleCommand)) {
-            throw IllegalStateException(
-                "Could not find '${config.gradleCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_GRADLE_COMMAND' env property"
-            )
-        }
-
-        var ideaPath = ideaCache.ideaPath(script.resolvedCode)
-        if ( ideaPath != null) {
-            return createCommand(ideaPath)
-        }
-
-        infoMsg("Setting up idea project...")
+        infoMsg("Setting up project...")
 
         val projectItems = mutableListOf<ProjectItem>()
+
         for (scriptNode in script.scriptNodes) {
             val sourceUri = scriptNode.sourceUri
             val path = "src/${scriptNode.scriptName}"
@@ -65,15 +60,12 @@ class IdeaProjectCreator(private val config: Config, private val ideaCache: Idea
 
         projectItems.add(FileItem("build.gradle.kts", gradleScript))
 
-        ideaPath = ideaCache.ideaDir(script.resolvedCode, projectItems)
+        infoMsg("Project set up at $projectPath")
 
-        // Create gradle wrapper
-        runProcess("${config.gradleCommand} wrapper", wd = ideaPath.toFile())
+        projectCache.addFiles(script, projectItems)
 
-        infoMsg("Project set up at $ideaPath")
-
-        return createCommand(ideaPath)
+        return projectPath
     }
 
-    private fun createCommand(ideaPath: Path) = "${config.intellijCommand} \"$ideaPath\""
+    private fun hasIdeaFiles(projectPath: Path) = projectPath.resolve("src").exists()
 }

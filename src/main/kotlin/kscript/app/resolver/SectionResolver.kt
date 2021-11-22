@@ -36,7 +36,6 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
         return resultingSections
     }
 
-
     private fun resolveAnnotation(
         scriptAnnotation: ScriptAnnotation,
         includeContext: URI,

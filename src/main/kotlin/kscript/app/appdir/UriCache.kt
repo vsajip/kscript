@@ -3,6 +3,7 @@ package kscript.app.appdir
 import kscript.app.model.ScriptType
 import kscript.app.util.ScriptUtils
 import org.apache.commons.codec.digest.DigestUtils.md5Hex
+import org.apache.commons.io.FileUtils
 import java.io.File
 import java.net.URI
 import java.nio.file.Path
@@ -55,6 +56,6 @@ class UriCache(private val path: Path) {
     }
 
     fun clear() {
-        path.toFile().listFiles()?.forEach { it.delete() }
+        FileUtils.cleanDirectory(path.toFile())
     }
 }

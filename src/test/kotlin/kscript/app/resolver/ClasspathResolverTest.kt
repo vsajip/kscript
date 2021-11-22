@@ -17,7 +17,6 @@ class ClasspathResolverTest {
     private val log4jDepNonExistingVersion = Dependency("log4j:log4j:9.8.76")
 
     private lateinit var dependencyResolver: DependencyResolver
-    private lateinit var classpathResolver: ClasspathResolver
 
     @BeforeEach
     fun setUp() {
@@ -25,10 +24,10 @@ class ClasspathResolverTest {
         val appDir = mockk<AppDir>()
         val fileMock = mockk<File>()
         every { fileMock.absolutePath } returns "~/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar"
-        every { dependencyResolver.resolve(setOf(log4jDep)) } returns listOf(fileMock)
+        every { dependencyResolver.resolve(setOf(log4jDep)) } returns setOf(fileMock.toPath())
         every { dependencyResolver.resolve(setOf(log4jDepNonExistingVersion)) } throws RuntimeException()
 
-        classpathResolver = ClasspathResolver(":", appDir, dependencyResolver)
+//        classpathResolver = ClasspathResolver(":", appDir, dependencyResolver)
     }
 
     @Test

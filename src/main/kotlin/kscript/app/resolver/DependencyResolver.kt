@@ -4,7 +4,7 @@ import kotlinx.coroutines.runBlocking
 import kscript.app.model.Dependency
 import kscript.app.model.Repository
 import kscript.app.util.Logger.infoMsg
-import java.io.File
+import java.nio.file.Path
 import kotlin.collections.set
 import kotlin.script.experimental.api.valueOr
 import kotlin.script.experimental.dependencies.CompoundDependenciesResolver
@@ -35,24 +35,20 @@ class DependencyResolver(private val customRepos: Set<Repository>) {
     private val resolver =
         CompoundDependenciesResolver(FileSystemDependenciesResolver(), MavenDependenciesResolver(), mvnResolver)
 
-    fun resolve(depIds: Set<Dependency>): List<File> {
+    fun resolve(depIds: Set<Dependency>): Set<Path> {
         val resolvedDependencies = runBlocking {
             depIds.map {
                 infoMsg("Resolving ${it.value}...")
                 resolver.resolve(it.value)
-            }.map {
-                it.valueOr {
-                    // Probably a wrapped Nullpointer from 'DefaultRepositorySystem.resolveDependencies()', this however is probably a connection problem.
-
-                    throw IllegalStateException(
-                        "Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators. If you suspect this is a bug, you can create an issue on https://github.com/holgerbrandl/kscript" + it.reports.joinToString(
-                            "\n"
-                        ) { it.exception?.toString() ?: it.message },
-                        it.reports.find { it.exception != null }?.exception
-                    )
-                }
             }
-        }.flatten()
+        }.map {
+            it.valueOr {
+                throw IllegalStateException("Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators. If you suspect this is a bug, you can create an issue on https://github.com/holgerbrandl/kscript" + it.reports.joinToString(
+                    "\n"
+                ) { it.exception?.toString() ?: it.message }, it.reports.find { it.exception != null }?.exception
+                )
+            }
+        }.flatten().map { it.toPath() }.toSet()
 
         return resolvedDependencies
     }

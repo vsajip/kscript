@@ -13,6 +13,8 @@ data class Config(
     val separatorChar: Char,
     val homeDir: Path
 ) {
+
+
     companion object {
         fun builder() = ConfigBuilder()
     }
