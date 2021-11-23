@@ -24,7 +24,7 @@ class ProjectCache(private val path: Path) {
                 "\n"
             ) + script.kotlinOpts.joinToString(
                 "\n"
-            ) + (script.packageName ?: "") + (script.entryPoint ?: "")
+            ) + (script.entryPoint ?: "")
         return DigestUtils.md5Hex(text)
     }
 }

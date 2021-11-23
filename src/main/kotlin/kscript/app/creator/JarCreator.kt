@@ -3,15 +3,12 @@ package kscript.app.creator
 import kscript.app.appdir.ProjectCache
 import kscript.app.model.Script
 import kscript.app.model.ScriptType
-import kscript.app.resolver.CommandResolver
 import kscript.app.resolver.Executor
-import kscript.app.util.Logger.infoMsg
 import kscript.app.util.ScriptUtils.dropExtension
 import kscript.app.util.ShellUtils
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
-import kotlin.io.path.exists
 
 data class JarArtifact(val path: Path, val execClassName: String)
 
@@ -25,7 +22,6 @@ class JarCreator(private val projectCache: ProjectCache, private val executor: E
                 // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
                 .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_$it" else it }
 
-
         // Define the entrypoint for the scriptlet jar
         val packageName = if (script.packageName != null) script.packageName.value + "." else ""
         val execClassName = if (script.scriptType == ScriptType.KTS) {
@@ -37,14 +33,14 @@ class JarCreator(private val projectCache: ProjectCache, private val executor: E
 
         val jarPath = projectCache.findOrCreate(script).resolve("jar-dir")
         val jarFile = jarPath.resolve("scriplet.jar")
+        val scriptFile = jarPath.resolve(className + script.scriptType.extension).toFile()
 
-        if (jarFile.exists()) {
+        if (scriptFile.exists()) {
             return JarArtifact(jarFile, execClassName)
         }
 
         jarPath.createDirectories()
 
-        val scriptFile = jarPath.resolve(className + script.scriptType.extension).toFile()
         scriptFile.writeText(script.resolvedCode)
 
         if (!ShellUtils.isInPath("kotlinc")) {

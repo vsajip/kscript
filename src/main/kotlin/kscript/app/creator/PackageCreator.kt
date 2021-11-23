@@ -1,6 +1,7 @@
 package kscript.app.creator
 
 import kscript.app.appdir.ProjectCache
+import kscript.app.code.GradleTemplates
 import kscript.app.code.Templates
 import kscript.app.model.Config
 import kscript.app.model.Script
@@ -32,8 +33,7 @@ class PackageCreator(private val projectCache: ProjectCache, private val config:
             .joinToString(", ") { '"' + it + '"' }
 
         // https://shekhargulati.com/2015/09/10/gradle-tip-using-gradle-plugin-from-local-maven-repository/
-
-        val gradleScript = Templates.createGradlePackageScript(
+        val gradleScript = GradleTemplates.createGradlePackageScript(
             script.repositories,
             script.dependencies,
             jarArtifact.path.toString(), // should be invariantSeparatorChars

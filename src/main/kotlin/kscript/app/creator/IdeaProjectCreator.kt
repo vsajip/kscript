@@ -2,6 +2,7 @@ package kscript.app.creator
 
 import kscript.app.appdir.ProjectCache
 import kscript.app.appdir.UriCache
+import kscript.app.code.GradleTemplates
 import kscript.app.code.Templates
 import kscript.app.model.Script
 import kscript.app.util.Logger
@@ -46,19 +47,7 @@ class IdeaProjectCreator(private val projectCache: ProjectCache, private val uri
             .toFile()
             .writeText(Templates.runConfig(script.rootNode.scriptName, userArgs))
 
-        val opts = script.compilerOpts.map { it.value }
-
-        var jvmTargetOption: String? = null
-        for (i in opts.indices) {
-            if (i > 0 && opts[i - 1] == "-jvm-target") {
-                jvmTargetOption = opts[i]
-            }
-        }
-
-        val kotlinOptions = Templates.kotlinOptions(jvmTargetOption)
-        val gradleScript = Templates.createGradleIdeaScript(
-            script.repositories, script.dependencies, kotlinOptions
-        )
+        val gradleScript = GradleTemplates.createGradleIdeaScript(script)
 
         projectPath.resolve("build.gradle.kts").toFile().writeText(gradleScript)
 
