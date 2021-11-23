@@ -128,16 +128,12 @@ class ScriptResolver(
         val level = 0
         val resolutionContext = ResolutionContext()
         val sections = sectionResolver.resolve(
-            scriptText,
-            sourceContextUri,
-            allowLocalReferences,
-            level,
-            maxResolutionLevel,
-            resolutionContext
+            scriptText, sourceContextUri, allowLocalReferences, level, maxResolutionLevel, resolutionContext
         )
 
         val scriptNode = ScriptNode(level, scriptSource, scriptType, sourceUri, sourceContextUri, scriptName, sections)
         resolutionContext.scriptNodes.add(scriptNode)
+        resolutionContext.packageName = resolutionContext.packageName ?: PackageName("kscript.scriplet")
 
         val code = ScriptUtils.resolveCode(resolutionContext.packageName, resolutionContext.importNames, scriptNode)
 
@@ -154,7 +150,7 @@ class ScriptResolver(
             sourceContextUri,
             scriptName,
             code,
-            resolutionContext.packageName,
+            resolutionContext.packageName!!,
             resolutionContext.entry,
             resolutionContext.importNames,
             resolutionContext.includes,

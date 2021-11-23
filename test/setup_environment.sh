@@ -50,3 +50,5 @@ assert_stderr(){
 
 #http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
 export NL=$'\n'
+
+alias cdk="cd $PROJECT_DIR"

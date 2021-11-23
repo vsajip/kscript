@@ -10,6 +10,10 @@ import java.nio.file.Path
 
 class Executor(private val commandResolver: CommandResolver, private val config: Config) {
     fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>) {
+        if (!ShellUtils.isInPath("kotlinc")) {
+            throw IllegalStateException("${"kotlinc"} is not in PATH")
+        }
+
         val command = commandResolver.compileKotlin(jar, dependencies, filePaths)
 
         devMsg("JAR compile command: $command")

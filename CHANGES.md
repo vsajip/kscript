@@ -3,6 +3,7 @@
   * Automatic compilation
   * idea - script to help to test idea use cases
   * Script setup_environment.sh can be used for local testing
+  * Some script tests moved to Unit Tests 
 * Improved Unit Tests
   * Several new Unit tests
   * Another Unit tests can be created much easier

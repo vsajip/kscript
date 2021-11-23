@@ -9,12 +9,13 @@ import kotlin.io.path.exists
 import kotlin.io.path.writeText
 
 object FileUtils {
-    fun createFile(path: Path, content: String) {
+    fun createFile(path: Path, content: String): Path {
         createDirsIfNeeded(path)
         path.writeText(content)
+        return path
     }
 
-    fun symLinkOrCopy(link: Path, target: Path) {
+    fun symLinkOrCopy(link: Path, target: Path): Path {
         createDirsIfNeeded(link)
 
         val isSymlinked = createSymLink(link, target)
@@ -23,6 +24,8 @@ object FileUtils {
             Logger.warnMsg("Failed to create symbolic link to script. Copying instead...")
             target.copyTo(link)
         }
+
+        return link
     }
 
     fun createDirsIfNeeded(path: Path) {

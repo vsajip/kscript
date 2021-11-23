@@ -24,7 +24,7 @@ class IdeaProjectCreator(private val projectCache: ProjectCache, private val uri
 
         for (scriptNode in script.scriptNodes) {
             val sourceUri = scriptNode.sourceUri
-            val path = projectPath.resolve("src/${scriptNode.scriptName}")
+            val path = projectPath.resolve("src/${scriptNode.scriptName}.${scriptNode.scriptType.extension}")
 
             if (sourceUri == null) {
                 infoMsg("Creating file: $path")

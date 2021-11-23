@@ -20,10 +20,12 @@ class ScriptResolverTest {
     private val sectionResolver = SectionResolver(Parser(), uriCache, config)
     private val scriptResolver = ScriptResolver(sectionResolver, uriCache)
 
+    private val defaultPackageName = PackageName("kscript.scriplet")
+
     @Test
     fun `Test includes consolidation`() {
         val input = "test/resources/consolidate_includes/template.kts"
-        val expected = File("test/resources/consolidate_includes/expected.kts").readText()
+        val expected = File("test/resources/consolidate_includes/expected.kts").readText().discardEmptyLines()
 
         val script = scriptResolver.resolve(input)
 
@@ -36,7 +38,7 @@ class ScriptResolverTest {
                 .endsWith("/test/resources/consolidate_includes/template.kts")
             prop(Script::sourceContextUri).transform { it.toString() }.endsWith("/test/resources/consolidate_includes/")
             prop(Script::scriptName).isEqualTo("template.kts")
-            prop(Script::packageName).isEqualTo(null)
+            prop(Script::packageName).isEqualTo(defaultPackageName)
             prop(Script::entryPoint).isEqualTo(null)
             prop(Script::importNames).isEqualTo(
                 setOf(
@@ -62,16 +64,18 @@ class ScriptResolverTest {
             prop(Script::kotlinOpts).isEmpty()
             prop(Script::compilerOpts).isEmpty()
 
-            prop(Script::resolvedCode).isEqualTo(expected)
+            prop(Script::resolvedCode).transform { it.discardEmptyLines() }.isEqualTo(expected)
         }
     }
 
     @Test
     fun `Test includes annotations`() {
         val input = "test/resources/includes/include_variations.kts"
-        val expected = File("test/resources/includes/expected_variations.kts").readText()
+        val expected = File("test/resources/includes/expected_variations.kts").readText().discardEmptyLines()
 
         val script = scriptResolver.resolve(input)
+
+        println("""'${script.resolvedCode}'""")
 
         assertThat(script).apply {
             prop(Script::scriptSource).isEqualTo(ScriptSource.FILE)
@@ -80,7 +84,7 @@ class ScriptResolverTest {
                 .endsWith("/test/resources/includes/include_variations.kts")
             prop(Script::sourceContextUri).transform { it.toString() }.endsWith("/test/resources/includes/")
             prop(Script::scriptName).isEqualTo("include_variations.kts")
-            prop(Script::packageName).isEqualTo(null)
+            prop(Script::packageName).isEqualTo(defaultPackageName)
             prop(Script::entryPoint).isEqualTo(null)
             prop(Script::importNames).isEmpty()
             prop(Script::includes).isEqualTo(
@@ -101,16 +105,19 @@ class ScriptResolverTest {
             prop(Script::kotlinOpts).isEmpty()
             prop(Script::compilerOpts).isEmpty()
 
-            prop(Script::resolvedCode).isEqualTo(expected)
+            prop(Script::resolvedCode).transform { it.discardEmptyLines() }.isEqualTo(expected)
         }
     }
 
     @Test
     fun `Test should not include dependency twice`() {
         val input = "test/resources/includes/dup_include/dup_include.kts"
-        val expected = File("test/resources/includes/dup_include/expected_dup_include.kts").readText()
+        val expected =
+            File("test/resources/includes/dup_include/expected_dup_include.kts").readText().discardEmptyLines()
 
         val script = scriptResolver.resolve(input)
+
+        println("""'${script.resolvedCode}'""")
 
         assertThat(script).apply {
             prop(Script::scriptSource).isEqualTo(ScriptSource.FILE)
@@ -119,7 +126,7 @@ class ScriptResolverTest {
                 .endsWith("/test/resources/includes/dup_include/dup_include.kts")
             prop(Script::sourceContextUri).transform { it.toString() }.endsWith("/test/resources/includes/dup_include/")
             prop(Script::scriptName).isEqualTo("dup_include.kts")
-            prop(Script::packageName).isEqualTo(null)
+            prop(Script::packageName).isEqualTo(defaultPackageName)
             prop(Script::entryPoint).isEqualTo(null)
             prop(Script::importNames).isEmpty()
             prop(Script::includes).isEqualTo(
@@ -130,7 +137,9 @@ class ScriptResolverTest {
             prop(Script::kotlinOpts).isEmpty()
             prop(Script::compilerOpts).isEmpty()
 
-            prop(Script::resolvedCode).isEqualTo(expected)
+            prop(Script::resolvedCode).transform { it.discardEmptyLines() }.isEqualTo(expected)
         }
     }
+
+    private fun String.discardEmptyLines(): String = this.lines().filterNot { it.isEmpty() }.joinToString("\n")
 }

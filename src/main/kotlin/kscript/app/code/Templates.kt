@@ -1,6 +1,7 @@
 package kscript.app.code
 
 import kscript.app.model.Dependency
+import kscript.app.model.PackageName
 import kscript.app.model.Repository
 import kscript.app.model.Script
 import kscript.app.util.ScriptUtils.dropExtension
@@ -26,6 +27,22 @@ object Templates {
         val lines = resolveArgFile(args)
         
         """.trimIndent()
+
+    fun wrapperForScript(packageName: PackageName, className: String) : String  {
+        val classReference = packageName.value + "." + className
+
+        return """
+            class Main_${className}{
+                companion object {
+                    @JvmStatic
+                    fun main(args: Array<String>) {
+                        val script = Main_${className}::class.java.classLoader.loadClass("$classReference")
+                        script.getDeclaredConstructor(Array<String>::class.java).newInstance(args);
+                    }
+                }
+            }
+            """.trimIndent()
+    }
 
     fun runConfig(rootNode: String, userArgs: List<String>): String {
         val fileNameWithoutExtension = rootNode.dropExtension()

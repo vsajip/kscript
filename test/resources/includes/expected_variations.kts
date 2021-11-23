@@ -1,3 +1,5 @@
+package kscript.scriplet
+
 // Let's resolve includes!
 
 fun include_1() = println("include_1")
@@ -22,4 +24,3 @@ url_included_1()
 url_included_2()
 
 println("wow, so many includes")
-

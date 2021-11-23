@@ -23,7 +23,7 @@ object GradleTemplates {
         return """
         plugins {
             id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
-            id("com.github.ngyewch.capsule")
+            id("com.github.ngyewch.capsule") version "0.1.4"
             application
         }
 
@@ -34,13 +34,12 @@ object GradleTemplates {
         }
         
         capsule {
-            archiveBaseName = "myjar"
-            archiveClassifier = "all"
-            embedConfiguration = configurations.getByName("runtimeClasspath")
-            manifestAttributes = ["Test-Attribute": "Test-Value"]
+            archiveBaseName.set("myjar")
+            archiveClassifier.set("all")
+            embedConfiguration.set(configurations.getByName("runtimeClasspath")) 
+            manifestAttributes.set(mapOf("Test-Attribute" to "Test-Value"))
             capsuleManifest {
-                applicationId = "myjar"
-            }
+            applicationId.set("myjar")
         }
 
         dependencies {
@@ -52,7 +51,8 @@ object GradleTemplates {
         sourceSets.getByName("test").java.srcDirs("src")
 
         $kotlinOptions
-    """.trimIndent()
+        }
+        """.trimIndent()
     }
 
     private fun createGradleRepositoryCredentials(repository: Repository): String {
@@ -69,9 +69,7 @@ object GradleTemplates {
     }
 
     private fun createGradleDependenciesSection(dependencies: Set<Dependency>) = dependencies.joinToString("\n") {
-        """
-        implementation("${it.value}"
-        """.trimIndent()
+        "implementation(\"${it.value}\")"
     }
 
     private fun createGradleRepositoriesSection(repositories: Set<Repository>) = repositories.joinToString("\n") {
