@@ -26,7 +26,6 @@ class PackageCreator(private val projectCache: ProjectCache, private val config:
 
         infoMsg("Packaging script '$appName' into standalone executable...")
 
-
         val tmpProjectDir = projectCache.findOrCreate(script).toFile()
 
         val jvmOptions = script.kotlinOpts.map { it.value }.filter { it.startsWith("-J") }.map { it.removePrefix("-J") }

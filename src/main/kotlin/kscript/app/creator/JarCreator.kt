@@ -4,6 +4,7 @@ import kscript.app.appdir.ProjectCache
 import kscript.app.model.Script
 import kscript.app.model.ScriptType
 import kscript.app.resolver.CommandResolver
+import kscript.app.resolver.Executor
 import kscript.app.util.Logger.infoMsg
 import kscript.app.util.ScriptUtils.dropExtension
 import kscript.app.util.ShellUtils
@@ -14,7 +15,7 @@ import kotlin.io.path.exists
 
 data class JarArtifact(val path: Path, val execClassName: String)
 
-class JarCreator(private val projectCache: ProjectCache, private val commandResolver: CommandResolver) {
+class JarCreator(private val projectCache: ProjectCache, private val executor: Executor) {
 
     fun create(script: Script, resolvedDependencies: Set<Path>): JarArtifact {
         // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
@@ -74,15 +75,7 @@ class JarCreator(private val projectCache: ProjectCache, private val commandReso
             filesToCompile.add(mainKotlin.toPath())
         }
 
-        val command = commandResolver.compileKotlin(jarFile, resolvedDependencies, filesToCompile)
-
-        infoMsg("Jar compile: $command")
-
-        val scriptCompileResult = ShellUtils.evalBash(command)
-
-        if (scriptCompileResult.exitCode != 0) {
-            throw IllegalStateException("compilation of '${scriptFile.name}' failed\n$scriptCompileResult.stderr")
-        }
+        executor.compileKotlin(jarFile, resolvedDependencies, filesToCompile)
 
         return JarArtifact(jarFile, execClassName)
     }

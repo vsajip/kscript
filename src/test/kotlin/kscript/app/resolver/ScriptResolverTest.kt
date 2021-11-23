@@ -66,7 +66,6 @@ class ScriptResolverTest {
         }
     }
 
-
     @Test
     fun `Test includes annotations`() {
         val input = "test/resources/includes/include_variations.kts"
@@ -107,7 +106,7 @@ class ScriptResolverTest {
     }
 
     @Test
-    fun `Test includes detection - should not include dependency twice`() {
+    fun `Test should not include dependency twice`() {
         val input = "test/resources/includes/dup_include/dup_include.kts"
         val expected = File("test/resources/includes/dup_include/expected_dup_include.kts").readText()
 

@@ -14,7 +14,7 @@ class AppDir(path: Path) {
     }
 
     val uriCache = UriCache(urlCachePath)
-    val projectCache = ProjectCache(projectCachePath, uriCache)
+    val projectCache = ProjectCache(projectCachePath)
 
     fun clearCaches() {
         uriCache.clear()
