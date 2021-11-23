@@ -5,6 +5,8 @@ PROJECT_DIR=$(realpath "$SCRIPT_DIR/../")
 
 echo "Starting KScript test suite..."
 
+kscript --clear-cache
+
 ########################################################################################################################
 SUITE="JUnit"
 echo

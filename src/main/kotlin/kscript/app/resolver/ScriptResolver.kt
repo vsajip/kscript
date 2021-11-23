@@ -137,6 +137,8 @@ class ScriptResolver(
         )
 
         val scriptNode = ScriptNode(level, scriptSource, scriptType, sourceUri, sourceContextUri, scriptName, sections)
+        resolutionContext.scriptNodes.add(scriptNode)
+
         val code = ScriptUtils.resolveCode(resolutionContext.packageName, resolutionContext.importNames, scriptNode)
 
         if (kotlinOptsEnvVariable.isNotBlank()) {

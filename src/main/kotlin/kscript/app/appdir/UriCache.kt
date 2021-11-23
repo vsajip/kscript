@@ -7,13 +7,16 @@ import org.apache.commons.io.FileUtils
 import java.io.File
 import java.net.URI
 import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.io.path.writeText
 
 data class UriItem(
     val content: String,
     val scriptType: ScriptType,
     val fileName: String,
     val uri: URI, //Real one from Web, not the cached file
-    val contextUri: URI //Real one from Web, not the cached file
+    val contextUri: URI, //Real one from Web, not the cached file
+    val path: Path //Path to local file
 )
 
 class UriCache(private val path: Path) {
@@ -31,7 +34,7 @@ class UriCache(private val path: Path) {
             val contextUri = URI.create(descriptor[3])
             val content = path.resolve("$hash.content").toUri().toURL().readText()
 
-            return UriItem(content, scriptType, fileName, cachedUri, contextUri)
+            return UriItem(content, scriptType, fileName, cachedUri, contextUri, path.resolve("$hash.content"))
         }
 
         if (uri.scheme == "file") {
@@ -39,7 +42,7 @@ class UriCache(private val path: Path) {
             val scriptType = ScriptUtils.resolveScriptType(uri) ?: ScriptUtils.resolveScriptType(content)
             val fileName = ScriptUtils.extractFileName(uri)
             val contextUri = uri.resolve(".")
-            return UriItem(content, scriptType, fileName, uri, contextUri)
+            return UriItem(content, scriptType, fileName, uri, contextUri, Paths.get(uri))
         }
 
         //Otherwise, resolve web file and cache it...
@@ -50,9 +53,9 @@ class UriCache(private val path: Path) {
         val contextUri = resolvedUri.resolve(".")
 
         descriptorFile.writeText("$scriptType $fileName $resolvedUri $contextUri")
-        path.resolve("$hash.content").toFile().writeText(content)
+        path.resolve("$hash.content").writeText(content)
 
-        return UriItem(content, scriptType, fileName, resolvedUri, contextUri)
+        return UriItem(content, scriptType, fileName, resolvedUri, contextUri, path.resolve("$hash.content"))
     }
 
     fun clear() {

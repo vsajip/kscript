@@ -34,10 +34,12 @@ class PackageCreator(private val projectCache: ProjectCache, private val config:
                 .joinToString(", ") { '"' + it + '"' }
 
         // https://shekhargulati.com/2015/09/10/gradle-tip-using-gradle-plugin-from-local-maven-repository/
-        val gradleScript = GradleTemplates.createGradlePackageScript(
-            script.repositories, script.dependencies, jarArtifact.path.toString(), // should be invariantSeparatorChars
-            jarArtifact.execClassName, appName, jvmOptions
-        )
+//        val gradleScript = GradleTemplates.createGradlePackageScript(
+//            script.repositories, script.dependencies, jarArtifact.path.toString(), // should be invariantSeparatorChars
+//            jarArtifact.execClassName, appName, jvmOptions
+//        )
+
+        val gradleScript = GradleTemplates.createGradleScript(script)
 
         val pckgedJar = File(Paths.get("").toAbsolutePath().toFile(), appName).absoluteFile
 
@@ -49,9 +51,9 @@ class PackageCreator(private val projectCache: ProjectCache, private val config:
             """
         )
 
-        File(tmpProjectDir, "build.gradle").writeText(gradleScript)
+        File(tmpProjectDir, "build.gradle.kts").writeText(gradleScript)
 
-        val packageResult = evalBash("cd '${tmpProjectDir}' && gradle simpleCapsule")
+        val packageResult = evalBash("cd '${tmpProjectDir}' && gradle capsule")
 
         with(packageResult) {
             if (exitCode != 0) {

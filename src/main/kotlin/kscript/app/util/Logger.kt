@@ -5,7 +5,7 @@ object Logger {
     var silentMode = false
 
     fun info(msg: String) = printer(msg)
-    fun infoMsg(message: String) = if (silentMode) printer(message, KSCRIPT_NAME) else ""
+    fun infoMsg(message: String) = if (!silentMode) printer(message, KSCRIPT_NAME) else ""
     fun devMsg(message: String) = if (devMode) printer(message, KSCRIPT_NAME, "DEV") else ""
     fun warnMsg(msg: String) = printer(msg, KSCRIPT_NAME, "WARN")
     fun errorMsg(msg: String) = printer(msg, KSCRIPT_NAME, "ERROR")
