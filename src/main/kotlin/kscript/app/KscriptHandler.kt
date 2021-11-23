@@ -105,7 +105,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         //  Optionally enter interactive mode
         if (docopt.getBoolean("interactive")) {
             infoMsg("Creating REPL from ${script.scriptName}")
-            val command = commandResolver.interactiveRepl(resolvedDependencies)
+            val command = commandResolver.interactiveKotlinRepl(resolvedDependencies)
             infoMsg("REPL command: $command")
             println(command)
             return

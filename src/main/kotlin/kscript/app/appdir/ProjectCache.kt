@@ -10,6 +10,7 @@ import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
 import kotlin.io.path.toPath
 
 interface ProjectItem {
@@ -23,8 +24,8 @@ class ProjectCache(private val path: Path, private val uriCache: UriCache) {
 
     fun findOrCreate(script: Script): Path {
         val hash = calculateHash(script)
-        val directory = File(path.toFile(), "project_$hash")
-        return if (directory.exists()) directory.toPath() else directory.toPath().createDirectories()
+        val directory = path.resolve("project_$hash")
+        return if (directory.exists()) directory else directory.createDirectories()
     }
 
     fun addFiles(script: Script, projectItems: List<ProjectItem>): Path {

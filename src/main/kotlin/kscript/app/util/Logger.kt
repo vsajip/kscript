@@ -12,7 +12,7 @@ object Logger {
     fun errorMsg(msg: String) = printer(msg, true, "kscript", "ERROR")
 
     fun errorMsg(exception: Exception) =
-        printer(exception.message ?: exception.javaClass.simpleName, true, "kscript", "ERROR")
+        printer(exception.stackTraceToString(), true, "kscript", "ERROR")
 
     private fun printer(message: String, shouldPrint: Boolean = true, vararg tags: String): String {
         var prefix = tags.joinToString(" ") { "[$it]" }

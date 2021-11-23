@@ -9,6 +9,7 @@ import kscript.app.util.ScriptUtils.dropExtension
 import kscript.app.util.ShellUtils
 import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 
 data class JarArtifact(val path: Path, val execClassName: String)
@@ -16,8 +17,6 @@ data class JarArtifact(val path: Path, val execClassName: String)
 class JarCreator(private val projectCache: ProjectCache, private val commandResolver: CommandResolver) {
 
     fun create(script: Script, resolvedDependencies: Set<Path>): JarArtifact {
-        val jarPath = projectCache.findOrCreate(script).resolve("jar-dir")
-
         // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
         // For valid characters see https://stackoverflow.com/questions/4814040/allowed-characters-in-filename
         val className =
@@ -25,9 +24,6 @@ class JarCreator(private val projectCache: ProjectCache, private val commandReso
                 // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
                 .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_$it" else it }
 
-
-        val scriptFile = jarPath.resolve("/" + className + script.scriptType.extension).toFile()
-        scriptFile.writeText(script.resolvedCode)
 
         // Define the entrypoint for the scriptlet jar
         val packageName = if (script.packageName != null) script.packageName.value + "." else ""
@@ -38,11 +34,17 @@ class JarCreator(private val projectCache: ProjectCache, private val commandReso
             """${packageName}${script.entryPoint?.value ?: "${className}Kt"}"""
         }
 
+        val jarPath = projectCache.findOrCreate(script).resolve("jar-dir")
         val jarFile = jarPath.resolve("scriplet.jar")
 
         if (jarFile.exists()) {
-            return JarArtifact(jarPath, execClassName)
+            return JarArtifact(jarFile, execClassName)
         }
+
+        jarPath.createDirectories()
+
+        val scriptFile = jarPath.resolve(className + script.scriptType.extension).toFile()
+        scriptFile.writeText(script.resolvedCode)
 
         if (!ShellUtils.isInPath("kotlinc")) {
             throw IllegalStateException("${"kotlinc"} is not in PATH")
@@ -72,7 +74,7 @@ class JarCreator(private val projectCache: ProjectCache, private val commandReso
             filesToCompile.add(mainKotlin.toPath())
         }
 
-        val command = commandResolver.compileKotlin(jarPath, resolvedDependencies, filesToCompile)
+        val command = commandResolver.compileKotlin(jarFile, resolvedDependencies, filesToCompile)
 
         infoMsg("Jar compile: $command")
 

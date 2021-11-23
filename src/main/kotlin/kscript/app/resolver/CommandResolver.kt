@@ -11,25 +11,33 @@ import kotlin.io.path.absolute
 import kotlin.io.path.absolutePathString
 
 class CommandResolver(private val config: Config, private val script: Script) {
-    fun compileKotlin(jarPath: Path, dependencies: Set<Path>, filePaths: Set<Path>): String {
+    fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>): String {
         val compilerOptsStr = resolveCompilerOpts(script.compilerOpts)
         val classpath = resolveClasspath(dependencies)
         val files = filePaths.joinToString(" ") { it.absolute().toString() }
 
-        return "kotlinc $compilerOptsStr $classpath -d '${jarPath.absolute()}' $files"
+        return "kotlinc $compilerOptsStr $classpath -d '${jar.absolute()}' $files"
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>): String {
         val kotlinOptsStr = resolveKotlinOpts(script.kotlinOpts)
         val userArgsStr = resolveUserArgs(userArgs)
         val scriptRuntime =
             Paths.get("${config.kotlinHome}${config.separatorChar}lib${config.separatorChar}kotlin-script-runtime.jar")
-        val classpath = resolveClasspath(dependencies + jarArtifact.path + scriptRuntime)
+
+        val dependenciesSet = buildSet<Path> {
+            addAll(dependencies)
+            add(jarArtifact.path)
+            add(scriptRuntime)
+        }
+
+        val classpath = resolveClasspath(dependenciesSet)
 
         return "kotlin $kotlinOptsStr $classpath ${jarArtifact.execClassName} $userArgsStr"
     }
 
-    fun interactiveRepl(dependencies: Set<Path>): String {
+    fun interactiveKotlinRepl(dependencies: Set<Path>): String {
         val compilerOptsStr = resolveCompilerOpts(script.compilerOpts)
         val kotlinOptsStr = resolveKotlinOpts(script.kotlinOpts)
         val classpath = resolveClasspath(dependencies)

@@ -15,7 +15,7 @@ class ScriptResolver(
     private val kotlinOptsEnvVariable: String = ""
 ) {
     private val kotlinExtensions = listOf("kts", "kt")
-    private val scripletName = "Scriplet"
+    private val scripletName = "scriplet"
 
     //level parameter - for how many levels should include be resolved
     //level 0       -   do not resolve includes in base file and any other embedded
