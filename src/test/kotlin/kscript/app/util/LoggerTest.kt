@@ -11,14 +11,14 @@ class LoggerTest {
 
     @Test
     fun `test error message for exception`() {
-        Logger.stackTrace = false
+        Logger.devMode = false
         Logger.silentMode = false
         assertThat(Logger.errorMsg(exception1)).isEqualTo("[kscript] [ERROR] Test message\n[kscript] [ERROR] Second line")
     }
 
     @Test
     fun `test stacktrace for exception`() {
-        Logger.stackTrace = true
+        Logger.devMode = true
         Logger.silentMode = false
         assertThat(Logger.errorMsg(exception2)).startsWith("""
             [kscript] [ERROR] This is some sophisticated exception message.

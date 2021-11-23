@@ -1,12 +1,10 @@
 package kscript.app.code
 
-import kscript.app.model.Dependency
-import kscript.app.model.Repository
-import kscript.app.model.Script
+import kscript.app.model.*
 
 object GradleTemplates {
     fun createGradleIdeaScript(script: Script): String {
-        val kotlinOptions = kotlinOptions(script)
+        val kotlinOptions = kotlinOptions(script.compilerOpts)
 
         val kotlinVersion = KotlinVersion.CURRENT
         val extendedDependencies = setOf(
@@ -114,8 +112,8 @@ object GradleTemplates {
         """.trimIndent()
     }
 
-    private fun kotlinOptions(script: Script): String {
-        val opts = script.compilerOpts.map { it.value }
+    private fun kotlinOptions(compilerOpts: Set<CompilerOpt>): String {
+        val opts = compilerOpts.map { it.value }
 
         var jvmTargetOption: String? = null
         for (i in opts.indices) {

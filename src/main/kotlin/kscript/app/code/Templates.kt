@@ -86,8 +86,8 @@ object Templates {
          -i --interactive        Create interactive shell with dependencies as declared in script
          -t --text               Enable stdin support API for more streamlined text processing
          --idea                  Open script in temporary Intellij session
-         -s --silent             Suppress status logging to stderr
-         --stacktrace            Enable logging of exception stack trace
+         -s --silent             Suppress status logging
+         -d --development        Enable logging of exception stack trace and additional log messages
          --package               Package script and dependencies into self-dependent binary
          --add-bootstrap-header  Prepend bash header that installs kscript if necessary
 

@@ -3,7 +3,6 @@ package kscript.app.creator
 import kscript.app.appdir.ProjectCache
 import kscript.app.model.Script
 import kscript.app.model.ScriptType
-import kscript.app.resolver.Executor
 import kscript.app.util.ScriptUtils.dropExtension
 import kscript.app.util.ShellUtils
 import java.io.File

@@ -2,26 +2,20 @@ package kscript.app
 
 import kscript.app.appdir.AppDir
 import kscript.app.code.Templates
-import kscript.app.creator.BootstrapCreator
-import kscript.app.creator.IdeaProjectCreator
-import kscript.app.creator.JarCreator
-import kscript.app.creator.PackageCreator
+import kscript.app.creator.*
 import kscript.app.model.Config
-import kscript.app.model.ScriptSource
 import kscript.app.model.ScriptType
 import kscript.app.parser.Parser
 import kscript.app.resolver.*
 import kscript.app.util.Logger
-import kscript.app.util.Logger.infoMsg
 import org.docopt.DocOptWrapper
-import java.io.File
 
 class KscriptHandler(private val config: Config, private val docopt: DocOptWrapper) {
 
     @OptIn(ExperimentalStdlibApi::class)
     fun handle(userArgs: List<String>) {
         Logger.silentMode = docopt.getBoolean("silent")
-        Logger.stackTrace = docopt.getBoolean("stacktrace")
+        Logger.devMode = docopt.getBoolean("development")
 
         // create kscript dir if it does not yet exist
         val appDir = AppDir(config.kscriptDir)

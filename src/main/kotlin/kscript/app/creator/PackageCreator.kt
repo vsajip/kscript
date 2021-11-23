@@ -2,7 +2,6 @@ package kscript.app.creator
 
 import kscript.app.appdir.ProjectCache
 import kscript.app.code.GradleTemplates
-import kscript.app.code.Templates
 import kscript.app.model.Config
 import kscript.app.model.Script
 import kscript.app.util.Logger.infoMsg
@@ -24,26 +23,23 @@ class PackageCreator(private val projectCache: ProjectCache, private val config:
 
         val appName = script.scriptName.dropExtension()
 
-
         infoMsg("Packaging script '$appName' into standalone executable...")
 
         val tmpProjectDir = projectCache.findOrCreate(script).toFile()
 
-        val jvmOptions = script.kotlinOpts.map { it.value }.filter { it.startsWith("-J") }.map { it.removePrefix("-J") }
-            .joinToString(", ") { '"' + it + '"' }
+        val jvmOptions =
+            script.kotlinOpts.map { it.value }
+                .filter { it.startsWith("-J") }
+                .map { it.removePrefix("-J") }
+                .joinToString(", ") { '"' + it + '"' }
 
         // https://shekhargulati.com/2015/09/10/gradle-tip-using-gradle-plugin-from-local-maven-repository/
         val gradleScript = GradleTemplates.createGradlePackageScript(
-            script.repositories,
-            script.dependencies,
-            jarArtifact.path.toString(), // should be invariantSeparatorChars
-            jarArtifact.execClassName,
-            appName,
-            jvmOptions
+            script.repositories, script.dependencies, jarArtifact.path.toString(), // should be invariantSeparatorChars
+            jarArtifact.execClassName, appName, jvmOptions
         )
 
         val pckgedJar = File(Paths.get("").toAbsolutePath().toFile(), appName).absoluteFile
-
 
         // create exec_header to allow for direction execution (see http://www.capsule.io/user-guide/#really-executable-capsules)
         // from https://github.com/puniverse/capsule/blob/master/capsule-util/src/main/resources/capsule/execheader.sh

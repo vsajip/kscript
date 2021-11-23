@@ -1,8 +1,9 @@
-package kscript.app.resolver
+package kscript.app.creator
 
-import kscript.app.creator.JarArtifact
 import kscript.app.model.Config
+import kscript.app.resolver.CommandResolver
 import kscript.app.util.Logger
+import kscript.app.util.Logger.devMsg
 import kscript.app.util.ProcessRunner
 import kscript.app.util.ShellUtils
 import java.nio.file.Path
@@ -11,7 +12,7 @@ class Executor(private val commandResolver: CommandResolver, private val config:
     fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>) {
         val command = commandResolver.compileKotlin(jar, dependencies, filePaths)
 
-        Logger.infoMsg("Jar compile: $command")
+        devMsg("JAR compile command: $command")
 
         val scriptCompileResult = ShellUtils.evalBash(command)
 
@@ -26,14 +27,14 @@ class Executor(private val commandResolver: CommandResolver, private val config:
         }
 
         val command = commandResolver.executeKotlin(jarArtifact, dependencies, userArgs)
-        Logger.infoMsg("Execute command: $command")
+        devMsg("Kotlin execute command: $command")
         println(command)
     }
 
     fun runInteractiveRepl(dependencies: Set<Path>) {
         Logger.infoMsg("Creating REPL")
         val command = commandResolver.interactiveKotlinRepl(dependencies)
-        Logger.infoMsg("REPL command: $command")
+        devMsg("REPL Kotlin command: $command")
         println(command)
     }
 
@@ -52,7 +53,7 @@ class Executor(private val commandResolver: CommandResolver, private val config:
         ProcessRunner.runProcess("${config.gradleCommand} wrapper", wd = projectPath.toFile())
 
         val command = commandResolver.executeIdea(projectPath)
-        Logger.infoMsg("Execute idea: $command")
+        devMsg("Idea execute command: $command")
         println(command)
     }
 }
