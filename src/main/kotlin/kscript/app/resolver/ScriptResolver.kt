@@ -126,9 +126,15 @@ class ScriptResolver(
         maxResolutionLevel: Int
     ): Script {
         val level = 0
-        val resolutionContext = ResolutionContext(maxResolutionLevel)
-        val sections =
-            sectionResolver.resolve(scriptText, sourceContextUri, allowLocalReferences, level, resolutionContext)
+        val resolutionContext = ResolutionContext()
+        val sections = sectionResolver.resolve(
+            scriptText,
+            sourceContextUri,
+            allowLocalReferences,
+            level,
+            maxResolutionLevel,
+            resolutionContext
+        )
 
         val scriptNode = ScriptNode(level, scriptSource, scriptType, sourceUri, sourceContextUri, scriptName, sections)
         val code = ScriptUtils.resolveCode(resolutionContext.packageName, resolutionContext.importNames, scriptNode)

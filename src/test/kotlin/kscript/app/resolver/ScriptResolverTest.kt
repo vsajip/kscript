@@ -8,13 +8,11 @@ import assertk.assertions.prop
 import kscript.app.appdir.UriCache
 import kscript.app.model.*
 import kscript.app.parser.Parser
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.nio.file.Paths
 import kotlin.io.path.createDirectories
 
-@Disabled
 class ScriptResolverTest {
     private val testHome = Paths.get("build/tmp/script_resolver_test")
     private val config = Config.builder().apply { homeDir = testHome.resolve("home") }.build()
@@ -29,6 +27,8 @@ class ScriptResolverTest {
 
         val script = scriptResolver.resolve(input)
 
+        println("""'${script.resolvedCode}'""")
+
         assertThat(script).apply {
             prop(Script::scriptSource).isEqualTo(ScriptSource.FILE)
             prop(Script::scriptType).isEqualTo(ScriptType.KTS)
@@ -39,7 +39,7 @@ class ScriptResolverTest {
             prop(Script::packageName).isEqualTo(null)
             prop(Script::entryPoint).isEqualTo(null)
             prop(Script::importNames).isEqualTo(
-                listOf(
+                setOf(
                     ImportName("java.io.BufferedReader"),
                     ImportName("java.io.File"),
                     ImportName("java.io.InputStream"),
@@ -83,22 +83,21 @@ class ScriptResolverTest {
             prop(Script::scriptName).isEqualTo("include_variations.kts")
             prop(Script::packageName).isEqualTo(null)
             prop(Script::entryPoint).isEqualTo(null)
-            prop(Script::importNames).isEqualTo(emptyList())
+            prop(Script::importNames).isEmpty()
             prop(Script::includes).isEqualTo(
                 setOf(
                     Include("rel_includes/include_1.kt"),
                     Include("./rel_includes//include_2.kt"),
                     Include("./include_3.kt"),
                     Include("include_4.kt"),
-                    Include("include_6.kt"),
                     Include("../include_7.kt"),
+                    Include("include_6.kt"),
+                    Include("rel_includes/include_5.kt"),
+                    Include("https://raw.githubusercontent.com/aartiPl/kscript/Including_scripts_by_relative_reference_-_fixes_%23303/test/resources/includes/rel_includes/include_by_url.kt"),
+                    Include("https://raw.githubusercontent.com/aartiPl/kscript/Including_scripts_by_relative_reference_-_fixes_%23303/test/resources/includes/include_by_url.kt"),
                 )
             )
-            prop(Script::dependencies).isEqualTo(
-                setOf(
-                    Dependency("com.eclipsesource.minimal-json:minimal-json:0.9.4"), Dependency("log4j:log4j:1.2.14")
-                )
-            )
+            prop(Script::dependencies).isEmpty()
             prop(Script::repositories).isEmpty()
             prop(Script::kotlinOpts).isEmpty()
             prop(Script::compilerOpts).isEmpty()

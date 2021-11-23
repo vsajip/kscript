@@ -1,6 +1,6 @@
 package kscript.app.model
 
-interface ScriptAnnotation
+sealed interface ScriptAnnotation
 
 @JvmInline
 value class Include(val value: String) : ScriptAnnotation

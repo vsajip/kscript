@@ -1,9 +1,10 @@
 package kscript.app.resolver
 
 import kscript.app.model.*
+import java.net.URI
 
 data class ResolutionContext(
-    val maxResolutionLevel: Int,
+    val uriRegistry: MutableSet<URI> = mutableSetOf(),
 
     var packageLevel: Int = 0,
     var packageName: PackageName? = null,

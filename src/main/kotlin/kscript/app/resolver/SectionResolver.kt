@@ -16,6 +16,7 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
         includeContext: URI,
         allowLocalReferences: Boolean,
         currentLevel: Int,
+        maxResolutionLevel: Int,
         resolutionContext: ResolutionContext
     ): List<Section> {
         val sections = parser.parse(scriptText)
@@ -26,7 +27,12 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
 
             for (annotation in section.scriptAnnotations) {
                 resultingScriptAnnotations += resolveAnnotation(
-                    annotation, includeContext, allowLocalReferences, currentLevel, resolutionContext
+                    annotation,
+                    includeContext,
+                    allowLocalReferences,
+                    currentLevel,
+                    maxResolutionLevel,
+                    resolutionContext
                 )
             }
 
@@ -41,15 +47,22 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
         includeContext: URI,
         allowLocalReferences: Boolean,
         currentLevel: Int,
+        maxResolutionLevel: Int,
         resolutionContext: ResolutionContext
     ): List<ScriptAnnotation> {
-        val resolvedScriptAnnotation = mutableListOf<ScriptAnnotation>()
-        var annotationToAdd = scriptAnnotation
+        val resolvedScriptAnnotations = mutableListOf<ScriptAnnotation>()
 
         when (scriptAnnotation) {
+            is SheBang -> resolvedScriptAnnotations += scriptAnnotation
+            is Code -> resolvedScriptAnnotations += scriptAnnotation
+            is ScriptNode -> resolvedScriptAnnotations += scriptAnnotation
+
             is Include -> {
-                if (currentLevel < resolutionContext.maxResolutionLevel) {
-                    val uri = resolveInclude(includeContext, scriptAnnotation.value, config.homeDir)
+                val uri = resolveInclude(includeContext, scriptAnnotation.value, config.homeDir)
+
+                if (currentLevel < maxResolutionLevel && !resolutionContext.uriRegistry.contains(uri)) {
+                    resolutionContext.uriRegistry.add(uri)
+
                     val scriptSource = if (ScriptUtils.isRegularFile(uri)) ScriptSource.FILE else ScriptSource.HTTP
 
                     if (scriptSource == ScriptSource.FILE && !allowLocalReferences) {
@@ -63,6 +76,7 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
                         uriItem.contextUri,
                         allowLocalReferences && scriptSource == ScriptSource.FILE,
                         currentLevel + 1,
+                        maxResolutionLevel,
                         resolutionContext
                     )
 
@@ -77,12 +91,11 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
                     )
 
                     resolutionContext.scriptNodes.add(scriptNode)
-
-                    //Add additional annotation
-                    resolvedScriptAnnotation += scriptNode
+                    resolvedScriptAnnotations += scriptNode
                 }
 
                 resolutionContext.includes.add(scriptAnnotation)
+                resolvedScriptAnnotations += scriptAnnotation
             }
 
             is PackageName -> {
@@ -90,6 +103,7 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
                     resolutionContext.packageName = scriptAnnotation
                     resolutionContext.packageLevel = currentLevel
                 }
+                resolvedScriptAnnotations += scriptAnnotation
             }
 
             is Entry -> {
@@ -97,29 +111,41 @@ class SectionResolver(private val parser: Parser, private val uriCache: UriCache
                     resolutionContext.entry = scriptAnnotation
                     resolutionContext.entryLevel = currentLevel
                 }
+                resolvedScriptAnnotations += scriptAnnotation
             }
 
-            is ImportName -> resolutionContext.importNames.add(scriptAnnotation)
-            is Dependency -> resolutionContext.dependencies.add(scriptAnnotation)
-            is KotlinOpt -> resolutionContext.kotlinOpts.add(scriptAnnotation)
-            is CompilerOpt -> resolutionContext.compilerOpts.add(scriptAnnotation)
+            is ImportName -> {
+                resolutionContext.importNames.add(scriptAnnotation)
+                resolvedScriptAnnotations += scriptAnnotation
+            }
+            is Dependency -> {
+                resolutionContext.dependencies.add(scriptAnnotation)
+                resolvedScriptAnnotations += scriptAnnotation
+            }
+            is KotlinOpt -> {
+                resolutionContext.kotlinOpts.add(scriptAnnotation)
+                resolvedScriptAnnotations += scriptAnnotation
+            }
+            is CompilerOpt -> {
+                resolutionContext.compilerOpts.add(scriptAnnotation)
+                resolvedScriptAnnotations += scriptAnnotation
+            }
             is Repository -> {
-                annotationToAdd = Repository(
+                val repository = Repository(
                     scriptAnnotation.id,
                     scriptAnnotation.url.replace("{{KSCRIPT_REPOSITORY_URL}}", config.repositoryUrlEnvVariable),
-                    scriptAnnotation.url.replace("{{KSCRIPT_REPOSITORY_USER}}", config.repositoryUserEnvVariable),
-                    scriptAnnotation.url.replace(
+                    scriptAnnotation.user.replace("{{KSCRIPT_REPOSITORY_USER}}", config.repositoryUserEnvVariable),
+                    scriptAnnotation.password.replace(
                         "{{KSCRIPT_REPOSITORY_PASSWORD}}", config.repositoryPasswordEnvVariable
                     )
                 )
 
-                resolutionContext.repositories.add(annotationToAdd)
+                resolutionContext.repositories.add(repository)
+                resolvedScriptAnnotations += repository
             }
         }
 
-        resolvedScriptAnnotation += annotationToAdd
-
-        return resolvedScriptAnnotation
+        return resolvedScriptAnnotations
     }
 
     private fun resolveInclude(includeContext: URI, include: String, homeDir: Path): URI {

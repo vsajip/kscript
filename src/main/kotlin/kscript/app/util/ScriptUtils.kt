@@ -85,12 +85,15 @@ object ScriptUtils {
         return sb.toString()
     }
 
-    private fun resolveSimpleCode(sb: StringBuilder, scriptNode: ScriptNode) {
+    private fun resolveSimpleCode(sb: StringBuilder, scriptNode: ScriptNode, lastLineIsEmpty: Boolean = false) {
+        var isLastLineEmpty = lastLineIsEmpty
+
         for (section in scriptNode.sections) {
             val scriptNodes = section.scriptAnnotations.filterIsInstance<ScriptNode>()
+
             if (scriptNodes.isNotEmpty()) {
                 val subNode = scriptNodes.single()
-                resolveSimpleCode(sb, subNode)
+                resolveSimpleCode(sb, subNode, isLastLineEmpty)
                 continue
             }
 
@@ -99,7 +102,11 @@ object ScriptUtils {
                 continue
             }
 
-            sb.append(section.code).append('\n')
+            if (section.code.isNotEmpty() || (!isLastLineEmpty && section.code.isEmpty())) {
+                sb.append(section.code).append('\n')
+            }
+
+            isLastLineEmpty = section.code.isEmpty()
         }
     }
 }
