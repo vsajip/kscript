@@ -5,11 +5,8 @@ import kscript.app.appdir.UriCache
 import kscript.app.code.GradleTemplates
 import kscript.app.code.Templates
 import kscript.app.model.Script
-import kscript.app.util.Logger
+import kscript.app.util.FileUtils
 import kscript.app.util.Logger.infoMsg
-import java.io.File
-import java.io.IOException
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
@@ -23,33 +20,27 @@ class IdeaProjectCreator(private val projectCache: ProjectCache, private val uri
             return projectPath
         }
 
-        infoMsg("Setting up project...")
+        infoMsg("Setting up idea project...")
 
         for (scriptNode in script.scriptNodes) {
             val sourceUri = scriptNode.sourceUri
-            val path = "src/${scriptNode.scriptName}"
+            val path = projectPath.resolve("src/${scriptNode.scriptName}")
 
             if (sourceUri == null) {
-                projectPath.resolve(path).toFile().writeText(scriptNode.sections.joinToString("\n") { it.code })
+                FileUtils.createFile(path, scriptNode.sections.joinToString("\n") { it.code })
             } else {
-                val file = projectPath.resolve(path).toFile()
-                val target = Paths.get(uriCache.readUri(sourceUri).uri).toFile()
-                val isSymlinked = createSymLink(file, target)
-
-                if (!isSymlinked) {
-                    Logger.warnMsg("Failed to create symbolic link to script. Copying instead...")
-                    target.copyTo(file)
-                }
+                FileUtils.symLinkOrCopy(path, Paths.get(uriCache.readUri(sourceUri).uri))
             }
         }
 
-        projectPath.resolve(".idea/runConfigurations/Main.xml")
-            .toFile()
-            .writeText(Templates.runConfig(script.rootNode.scriptName, userArgs))
+        FileUtils.createFile(
+            projectPath.resolve(".idea/runConfigurations/Main.xml"),
+            Templates.runConfig(script.rootNode.scriptName, userArgs)
+        )
 
-        val gradleScript = GradleTemplates.createGradleIdeaScript(script)
-
-        projectPath.resolve("build.gradle.kts").toFile().writeText(gradleScript)
+        FileUtils.createFile(
+            projectPath.resolve("build.gradle.kts"), GradleTemplates.createGradleIdeaScript(script)
+        )
 
         infoMsg("Project set up at $projectPath")
 
@@ -57,13 +48,4 @@ class IdeaProjectCreator(private val projectCache: ProjectCache, private val uri
     }
 
     private fun hasIdeaFiles(projectPath: Path) = projectPath.resolve("src").exists()
-
-    private fun createSymLink(link: File, target: File): Boolean {
-        return try {
-            Files.createSymbolicLink(link.toPath(), target.absoluteFile.toPath())
-            true
-        } catch (e: IOException) {
-            false
-        }
-    }
 }
