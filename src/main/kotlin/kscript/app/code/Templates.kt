@@ -209,6 +209,7 @@ object Templates {
          -t --text               Enable stdin support API for more streamlined text processing
          --idea                  Open script in temporary Intellij session
          -s --silent             Suppress status logging to stderr
+         --stacktrace            Enable logging of exception stack trace
          --package               Package script and dependencies into self-dependent binary
          --add-bootstrap-header  Prepend bash header that installs kscript if necessary
 

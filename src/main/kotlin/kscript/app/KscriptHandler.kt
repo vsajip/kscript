@@ -25,6 +25,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
     @OptIn(ExperimentalStdlibApi::class)
     fun handle(userArgs: List<String>) {
         Logger.silentMode = docopt.getBoolean("silent")
+        Logger.stackTrace = docopt.getBoolean("stacktrace")
 
         // create kscript dir if it does not yet exist
         val appDir = AppDir(config.kscriptDir)

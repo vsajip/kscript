@@ -1,6 +1,7 @@
 package kscript.app.util
 
 object Logger {
+    var stackTrace = false
     var silentMode = false
 
     fun info(msg: String) = printer(msg)
@@ -11,8 +12,15 @@ object Logger {
 
     fun errorMsg(msg: String) = printer(msg, true, "kscript", "ERROR")
 
-    fun errorMsg(exception: Exception) =
-        printer(exception.stackTraceToString(), true, "kscript", "ERROR")
+    fun errorMsg(exception: Exception): String {
+        var message = exception.message ?: exception.javaClass.simpleName
+
+        if (stackTrace) {
+            message += "\n\n" + exception.stackTraceToString()
+        }
+
+        return printer(message, true, "kscript", "ERROR")
+    }
 
     private fun printer(message: String, shouldPrint: Boolean = true, vararg tags: String): String {
         var prefix = tags.joinToString(" ") { "[$it]" }
