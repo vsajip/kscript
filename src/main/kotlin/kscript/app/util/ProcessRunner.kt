@@ -6,13 +6,14 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.function.Consumer
 
-
 data class ProcessResult(val command: String, val exitCode: Int, val stdout: String, val stderr: String) {
     override fun toString(): String {
         return """
-            Exit Code   : ${exitCode}Comand      : ${command}
-            Stdout      : ${stdout}
-            Stderr      : """.trimIndent() + "\n" + stderr
+                Command     : $command
+                Exit Code   : $exitCode   
+                Stdout      : $stdout
+                Stderr      : 
+                """.trimIndent() + "\n" + stderr
     }
 }
 
@@ -36,7 +37,6 @@ object ProcessRunner {
                 // see https://youtrack.jetbrains.com/issue/KT-20785
             apply { environment()["KOTLIN_RUNNER"] = "" }.start()
 
-
             // we need to gobble the streams to prevent that the internal pipes hit their respective buffer limits, which
             // would lock the sub-process execution (see see https://github.com/holgerbrandl/kscript/issues/55
             // https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki
@@ -50,7 +50,6 @@ object ProcessRunner {
             stdoutGobbler.join()
 
             return ProcessResult(cmd.joinToString(" "), exitVal, stdoutConsumer.toString(), stderrConsumer.toString())
-
         } catch (e: Exception) {
             throw IllegalStateException(e)
         }
