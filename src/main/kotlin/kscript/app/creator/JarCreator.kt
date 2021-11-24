@@ -30,7 +30,7 @@ class JarCreator(private val cache: Cache, private val executor: Executor) {
             """${script.packageName.value}.${script.entryPoint?.value ?: "${className}Kt"}"""
         }
 
-        val jarPath = cache.findOrCreateProject(script.digest).resolve("cache/jar")
+        val jarPath = cache.findOrCreateJar(script.digest)
         val jarFile = jarPath.resolve("scriplet.jar")
         val scriptFile = jarPath.resolve(className + script.scriptType.extension)
 

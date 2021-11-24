@@ -28,6 +28,11 @@ object Templates {
         
         """.trimIndent()
 
+    val executeHeader = """
+        #!/usr/bin/env bash
+        exec java -jar ${'$'}0 "${'$'}@"
+        """.trimIndent()
+
     fun wrapperForScript(packageName: PackageName, className: String) : String  {
         val classReference = packageName.value + "." + className
 

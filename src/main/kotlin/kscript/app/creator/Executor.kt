@@ -60,4 +60,18 @@ class Executor(private val commandResolver: CommandResolver, private val config:
         devMsg("Idea execute command: $command")
         println(command)
     }
+
+    fun createPackage(projectPath: Path) {
+        if (!ShellUtils.isInPath(config.gradleCommand)) {
+            throw IllegalStateException("gradle is required to package kscripts")
+        }
+
+        val command = commandResolver.createPackage(projectPath)
+        devMsg("Create package command: $command")
+
+        val result = ShellUtils.evalBash(command)
+        if (result.exitCode != 0) {
+            throw IllegalStateException("Packaging for path: '$projectPath' failed:$result")
+        }
+    }
 }

@@ -5,6 +5,7 @@ import kscript.app.code.GradleTemplates
 import kscript.app.code.Templates
 import kscript.app.model.Script
 import kscript.app.util.FileUtils
+import kscript.app.util.Logger.devMsg
 import kscript.app.util.Logger.infoMsg
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -12,24 +13,22 @@ import kotlin.io.path.exists
 class IdeaProjectCreator(private val cache: Cache) {
 
     fun create(script: Script, userArgs: List<String>): Path {
-        val projectPath = cache.findOrCreateProject(script.digest)
+        val projectPath = cache.findOrCreateIdea(script.digest)
 
         if (hasIdeaFiles(projectPath)) {
             return projectPath
         }
 
         infoMsg("Setting up idea project...")
-        infoMsg("Files: ${script.scriptNodes.size}")
 
         for (scriptNode in script.scriptNodes) {
             val sourceUri = scriptNode.sourceUri
-            val path = projectPath.resolve("src/${scriptNode.scriptName}.${scriptNode.scriptType.extension}")
+            val path = projectPath.resolve("src/${scriptNode.scriptName}")
 
             if (sourceUri == null) {
-                infoMsg("Creating file: $path")
                 FileUtils.createFile(path, scriptNode.sections.joinToString("\n") { it.code })
             } else {
-                infoMsg("Creating symlink: $path")
+                devMsg("link: $path, target: ${cache.readUri(sourceUri).path}")
                 FileUtils.symLinkOrCopy(path, cache.readUri(sourceUri).path)
             }
         }
@@ -40,7 +39,7 @@ class IdeaProjectCreator(private val cache: Cache) {
         )
 
         FileUtils.createFile(
-            projectPath.resolve("build.gradle.kts"), GradleTemplates.createGradleScript(script)
+            projectPath.resolve("build.gradle.kts"), GradleTemplates.createGradleIdeaScript(script)
         )
 
         infoMsg("Project set up at $projectPath")

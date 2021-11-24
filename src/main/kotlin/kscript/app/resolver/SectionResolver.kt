@@ -4,7 +4,6 @@ import kscript.app.appdir.Cache
 import kscript.app.model.*
 import kscript.app.parser.Parser
 import kscript.app.util.ScriptUtils
-import kscript.app.util.ScriptUtils.dropExtension
 import java.io.File
 import java.net.URI
 import java.nio.file.Path
@@ -85,7 +84,7 @@ class SectionResolver(private val parser: Parser, private val cache: Cache, priv
                         uriItem.scriptType,
                         uri,
                         uriItem.contextUri,
-                        ScriptUtils.extractFileName(uri).dropExtension(),
+                        ScriptUtils.extractFileName(uri),
                         newSections
                     )
 

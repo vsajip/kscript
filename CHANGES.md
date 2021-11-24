@@ -24,3 +24,5 @@ INCOMPATIBLE CHANGES:
 SUGGESTIONS:
 * I would drop old annotations based on comments or at least depreciate them
 * Caching should be further extended, so that there is a single cached project for different use-cases e.g. packaging, idea, jar creation...  
+* It's worthy to consider dropping ability to reference script by $HOME and by '/'. It won't scale for the web scripts.
+* There might be duplicate names when loading even different files from URI. Then when the idea project creates source dir it will fail: e.g. idea project from include_variations.kts

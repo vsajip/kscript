@@ -21,24 +21,37 @@ data class UriItem(
 )
 
 class Cache(private val path: Path) {
-    fun findOrCreateProject(projectDigest: String): Path {
-        val directory = path.resolve("project_$projectDigest")
+    fun findOrCreateIdea(digest: String): Path {
+        val directory = path.resolve("idea_$digest")
         return if (directory.exists()) directory else directory.createDirectories()
     }
 
-    fun findOrCreateJar(projectDigest: String): Path {
-        val directory = path.resolve("jar_$projectDigest")
+    fun findOrCreateJar(digest: String): Path {
+        val directory = path.resolve("jar_$digest")
+        return if (directory.exists()) directory else directory.createDirectories()
+    }
+
+    fun findOrCreatePackage(digest: String): Path {
+        val directory = path.resolve("package_$digest")
         return if (directory.exists()) directory else directory.createDirectories()
     }
 
     fun readUri(uri: URI): UriItem {
-        val hash = DigestUtils.md5Hex(uri.toString())
+        val digest = DigestUtils.md5Hex(uri.toString())
 
-        val directory = path.resolve("uri").createDirectories()
-        val descriptorFile = directory.resolve("uri_$hash.descriptor")
-        val contentFile = directory.resolve("uri_$hash.content")
+        if (uri.scheme == "file") {
+            val content = uri.toURL().readText()
+            val scriptType = ScriptUtils.resolveScriptType(uri) ?: ScriptUtils.resolveScriptType(content)
+            val fileName = ScriptUtils.extractFileName(uri)
+            val contextUri = uri.resolve(".")
+            return UriItem(content, scriptType, fileName, uri, contextUri, Paths.get(uri))
+        }
 
-        if (descriptorFile.exists()) {
+        val directory = path.resolve("uri_$digest").createDirectories()
+        val descriptorFile = directory.resolve("uri.descriptor")
+        val contentFile = directory.resolve("uri.content")
+
+        if (descriptorFile.exists() && contentFile.exists()) {
             //Cache hit
             val descriptor = descriptorFile.readText().split(" ")
             val scriptType = ScriptType.valueOf(descriptor[0])
@@ -47,15 +60,7 @@ class Cache(private val path: Path) {
             val contextUri = URI.create(descriptor[3])
             val content = contentFile.readText()
 
-            return UriItem(content, scriptType, fileName, cachedUri, contextUri, path.resolve("$hash.content"))
-        }
-
-        if (uri.scheme == "file") {
-            val content = uri.toURL().readText()
-            val scriptType = ScriptUtils.resolveScriptType(uri) ?: ScriptUtils.resolveScriptType(content)
-            val fileName = ScriptUtils.extractFileName(uri)
-            val contextUri = uri.resolve(".")
-            return UriItem(content, scriptType, fileName, uri, contextUri, Paths.get(uri))
+            return UriItem(content, scriptType, fileName, cachedUri, contextUri, contentFile)
         }
 
         //Otherwise, resolve web file and cache it...

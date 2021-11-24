@@ -73,7 +73,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         //if requested try to package the into a standalone binary
         if (docopt.getBoolean("package")) {
-            PackageCreator(appDir.cache, config).packageKscript(script, jar)
+            PackageCreator(appDir.cache, executor).packageKscript(script, jar)
             return
         }
 

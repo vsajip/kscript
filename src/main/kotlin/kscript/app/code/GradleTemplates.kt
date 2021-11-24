@@ -1,13 +1,14 @@
 package kscript.app.code
 
+import kscript.app.creator.JarArtifact
 import kscript.app.model.CompilerOpt
 import kscript.app.model.Dependency
 import kscript.app.model.Repository
 import kscript.app.model.Script
+import kscript.app.util.ScriptUtils.dropExtension
 
 object GradleTemplates {
-    //Capsule: https://github.com/ngyewch/gradle-capsule-plugin
-    fun createGradleScript(script: Script): String {
+    fun createGradleIdeaScript(script: Script): String {
         val kotlinOptions = kotlinOptions(script.compilerOpts)
 
         val kotlinVersion = KotlinVersion.CURRENT
@@ -16,9 +17,7 @@ object GradleTemplates {
             Dependency("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         ) + script.dependencies
 
-        // applicationClass '$wrapperClassName'
-        //
-        //            archiveName '$appName'
+       val capsuleApp = script.scriptName.dropExtension()
 
         return """
         plugins {
@@ -34,16 +33,16 @@ object GradleTemplates {
         }
         
         capsule {
-            archiveBaseName.set("myjar")
+            archiveBaseName.set("$capsuleApp")
             archiveClassifier.set("all")
             embedConfiguration.set(configurations.getByName("runtimeClasspath")) 
             manifestAttributes.set(mapOf("Test-Attribute" to "Test-Value"))
             capsuleManifest {
-            applicationId.set("myjar")
+                applicationId.set("$capsuleApp")
+            }
         }
 
         dependencies {
-            //implementation(files("filesPath"))
             ${createGradleDependenciesSection(extendedDependencies).prependIndent()}
         }
 
@@ -51,7 +50,44 @@ object GradleTemplates {
         sourceSets.getByName("test").java.srcDirs("src")
 
         $kotlinOptions
+        """.trimIndent()
+    }
+
+    //Capsule: https://github.com/ngyewch/gradle-capsule-plugin
+    fun createGradlePackageScript(script: Script, jarArtifact: JarArtifact): String {
+        val kotlinOptions = kotlinOptions(script.compilerOpts)
+
+        val kotlinVersion = KotlinVersion.CURRENT
+        val extendedDependencies = setOf(
+            Dependency("org.jetbrains.kotlin:kotlin-stdlib"),
+            Dependency("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
+        ) + script.dependencies
+
+        val capsuleApp = script.scriptName.dropExtension()
+
+        return """
+        plugins {
+            id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
+            id("com.github.ngyewch.capsule") version "0.1.4"
+            application
         }
+
+        repositories {
+            mavenLocal()
+            mavenCentral()
+            ${createGradleRepositoriesSection(script.repositories).prependIndent()}
+        }
+        
+        application {
+            mainClass.set("$capsuleApp")
+        }
+
+        dependencies {
+            implementation(files("${jarArtifact.path}"))
+            ${createGradleDependenciesSection(extendedDependencies).prependIndent()}
+        }
+
+        $kotlinOptions
         """.trimIndent()
     }
 

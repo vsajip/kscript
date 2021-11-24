@@ -49,6 +49,10 @@ class CommandResolver(private val config: Config, private val script: Script) {
         return "${config.intellijCommand} \"$projectPath\""
     }
 
+    fun createPackage(projectPath: Path): String {
+        return "cd '${projectPath}' && ${config.gradleCommand} packageFatCapsule"
+    }
+
     private fun resolveKotlinOpts(kotlinOpts: Set<KotlinOpt>) = kotlinOpts.joinToString(" ") { it.value }
     private fun resolveCompilerOpts(compilerOpts: Set<CompilerOpt>) = compilerOpts.joinToString(" ") { it.value }
     private fun resolveUserArgs(userArgs: List<String>) =
