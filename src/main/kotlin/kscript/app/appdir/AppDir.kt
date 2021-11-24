@@ -1,7 +1,6 @@
 package kscript.app.appdir
 
 import org.apache.commons.io.FileUtils
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 

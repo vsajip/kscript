@@ -17,10 +17,14 @@
   * Code divided in logical pieces and moved to packages 
   * Script resolution creates immutable objects
 
+* Build script
+  * Updated Gradle to version 7.3 and shadowJar to 6.1.0
+  * Fixes in build file
+
 * Performance
   * Much less IO operations - that should contribute to better performance
 
-* Updated Kotlin to 1.5.31, but only for compiler, not kotlin-scripting (It's far from optimal, but it is not possible to move fully to Kotlin 1.5 or even 1.6, because of the issues with resolution of artifacts in latest kotlin-scripting) and Gradle to 7.3
+* Updated Kotlin to 1.5.31, but only for compiler, not kotlin-scripting. It's far from optimal, but it is not possible to move fully to Kotlin 1.5 or even 1.6, because of the issues with resolution of artifacts in latest kotlin-scripting. I have put report here: https://youtrack.jetbrains.com/issue/KT-49511
 
 * Fixed a lot of IDE warnings in code
 
