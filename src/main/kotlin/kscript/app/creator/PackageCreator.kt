@@ -13,8 +13,6 @@ class PackageCreator(private val cache: Cache, private val executor: Executor) {
      * See https://github.com/puniverse/capsule
      */
     fun packageKscript(script: Script, jarArtifact: JarArtifact) {
-        val appName = "Scriplet"
-
         infoMsg("Packaging script '${script.scriptName}' into standalone executable...")
 
         val projectDir = cache.findOrCreatePackage(script.digest)
@@ -28,9 +26,6 @@ class PackageCreator(private val cache: Cache, private val executor: Executor) {
         )
 
         executor.createPackage(projectDir)
-
-        //pckgedJar.delete()
-        //File(tmpProjectDir, "build/libs/${appName}").copyTo(pckgedJar, true).setExecutable(true)
 
         projectDir.resolve("build/libs/appName").toFile().setExecutable(true)
 
