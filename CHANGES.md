@@ -42,3 +42,5 @@ SUGGESTIONS:
 SUGGESTIONS - MERGE:
 * Please do "Squash Merge" - there is a lot of changes and experiments in code - no reason to keep them in log
 * One test in ScriptResolverTest is @Disabled. It should be enabled and committed again after merge, so that references to URLs are correct
+* I would suggest to do release of kscript 4.0-beta for better tests of new implementation.
+* 
