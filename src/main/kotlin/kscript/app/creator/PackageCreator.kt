@@ -1,6 +1,6 @@
 package kscript.app.creator
 
-import kscript.app.appdir.ProjectCache
+import kscript.app.appdir.Cache
 import kscript.app.code.GradleTemplates
 import kscript.app.model.Config
 import kscript.app.model.Script
@@ -11,7 +11,7 @@ import kscript.app.util.ShellUtils.isInPath
 import java.io.File
 import java.nio.file.Paths
 
-class PackageCreator(private val projectCache: ProjectCache, private val config: Config) {
+class PackageCreator(private val cache: Cache, private val config: Config) {
     /**
      * Create and use a temporary gradle project to package the compiled script using capsule.
      * See https://github.com/puniverse/capsule
@@ -25,7 +25,7 @@ class PackageCreator(private val projectCache: ProjectCache, private val config:
 
         infoMsg("Packaging script '$appName' into standalone executable...")
 
-        val tmpProjectDir = projectCache.findOrCreate(script).toFile()
+        val tmpProjectDir = cache.findOrCreateProject(script.digest).toFile()
 
         val jvmOptions =
             script.kotlinOpts.map { it.value }

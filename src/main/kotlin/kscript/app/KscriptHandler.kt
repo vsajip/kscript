@@ -23,7 +23,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         // optionally clear up the jar cache
         if (docopt.getBoolean("clear-cache")) {
             Logger.info("Cleaning up cache...")
-            appDir.clearCaches()
+            appDir.clearCache()
             return
         }
 
@@ -37,8 +37,8 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             add(config.customPreamble)
         }
 
-        val sectionResolver = SectionResolver(Parser(), appDir.uriCache, config)
-        val scriptResolver = ScriptResolver(sectionResolver, appDir.uriCache, config.kotlinOptsEnvVariable)
+        val sectionResolver = SectionResolver(Parser(), appDir.cache, config)
+        val scriptResolver = ScriptResolver(sectionResolver, appDir.cache, config.kotlinOptsEnvVariable)
 
         if (docopt.getBoolean("add-bootstrap-header")) {
             val script = scriptResolver.resolve(docopt.getString("script"), maxResolutionLevel = 0)
@@ -52,7 +52,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         //  Create temporary dev environment
         if (docopt.getBoolean("idea")) {
-            val projectPath = IdeaProjectCreator(appDir.projectCache, appDir.uriCache).create(script, userArgs)
+            val projectPath = IdeaProjectCreator(appDir.cache).create(script, userArgs)
             executor.runIdea(projectPath)
             return
         }
@@ -69,11 +69,11 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             throw IllegalStateException("@Entry directive is just supported for kt class files")
         }
 
-        val jar = JarCreator(appDir.projectCache, executor).create(script, resolvedDependencies)
+        val jar = JarCreator(appDir.cache, executor).create(script, resolvedDependencies)
 
         //if requested try to package the into a standalone binary
         if (docopt.getBoolean("package")) {
-            PackageCreator(appDir.projectCache, config).packageKscript(script, jar)
+            PackageCreator(appDir.cache, config).packageKscript(script, jar)
             return
         }
 

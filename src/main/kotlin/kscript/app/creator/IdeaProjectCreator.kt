@@ -1,7 +1,6 @@
 package kscript.app.creator
 
-import kscript.app.appdir.ProjectCache
-import kscript.app.appdir.UriCache
+import kscript.app.appdir.Cache
 import kscript.app.code.GradleTemplates
 import kscript.app.code.Templates
 import kscript.app.model.Script
@@ -10,10 +9,10 @@ import kscript.app.util.Logger.infoMsg
 import java.nio.file.Path
 import kotlin.io.path.exists
 
-class IdeaProjectCreator(private val projectCache: ProjectCache, private val uriCache: UriCache) {
+class IdeaProjectCreator(private val cache: Cache) {
 
     fun create(script: Script, userArgs: List<String>): Path {
-        val projectPath = projectCache.findOrCreate(script)
+        val projectPath = cache.findOrCreateProject(script.digest)
 
         if (hasIdeaFiles(projectPath)) {
             return projectPath
@@ -31,7 +30,7 @@ class IdeaProjectCreator(private val projectCache: ProjectCache, private val uri
                 FileUtils.createFile(path, scriptNode.sections.joinToString("\n") { it.code })
             } else {
                 infoMsg("Creating symlink: $path")
-                FileUtils.symLinkOrCopy(path, uriCache.readUri(sourceUri).path)
+                FileUtils.symLinkOrCopy(path, cache.readUri(sourceUri).path)
             }
         }
 

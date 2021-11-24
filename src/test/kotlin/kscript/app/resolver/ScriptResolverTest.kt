@@ -5,7 +5,7 @@ import assertk.assertions.endsWith
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.prop
-import kscript.app.appdir.UriCache
+import kscript.app.appdir.Cache
 import kscript.app.model.*
 import kscript.app.parser.Parser
 import org.junit.jupiter.api.Test
@@ -16,9 +16,9 @@ import kotlin.io.path.createDirectories
 class ScriptResolverTest {
     private val testHome = Paths.get("build/tmp/script_resolver_test")
     private val config = Config.builder().apply { homeDir = testHome.resolve("home") }.build()
-    private val uriCache = UriCache(testHome.resolve("cache").createDirectories())
-    private val sectionResolver = SectionResolver(Parser(), uriCache, config)
-    private val scriptResolver = ScriptResolver(sectionResolver, uriCache)
+    private val cache = Cache(testHome.resolve("cache").createDirectories())
+    private val sectionResolver = SectionResolver(Parser(), cache, config)
+    private val scriptResolver = ScriptResolver(sectionResolver, cache)
 
     private val defaultPackageName = PackageName("kscript.scriplet")
 

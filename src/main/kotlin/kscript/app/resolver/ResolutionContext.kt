@@ -10,7 +10,7 @@ data class ResolutionContext(
     var packageName: PackageName? = null,
 
     var entryLevel: Int = 0,
-    var entry: Entry? = null,
+    var entryPoint: Entry? = null,
 
     val scriptNodes: MutableSet<ScriptNode> = mutableSetOf(),
     val includes: MutableSet<Include> = mutableSetOf(),

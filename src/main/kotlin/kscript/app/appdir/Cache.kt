@@ -2,12 +2,13 @@ package kscript.app.appdir
 
 import kscript.app.model.ScriptType
 import kscript.app.util.ScriptUtils
-import org.apache.commons.codec.digest.DigestUtils.md5Hex
-import org.apache.commons.io.FileUtils
-import java.io.File
+import org.apache.commons.codec.digest.DigestUtils
 import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
+import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
 data class UriItem(
@@ -19,11 +20,23 @@ data class UriItem(
     val path: Path //Path to local file
 )
 
-class UriCache(private val path: Path) {
-    fun readUri(uri: URI): UriItem {
-        val hash = md5Hex(uri.toString())
+class Cache(private val path: Path) {
+    fun findOrCreateProject(projectDigest: String): Path {
+        val directory = path.resolve("project_$projectDigest")
+        return if (directory.exists()) directory else directory.createDirectories()
+    }
 
-        val descriptorFile = File(path.resolve("$hash.descriptor").toUri())
+    fun findOrCreateJar(projectDigest: String): Path {
+        val directory = path.resolve("jar_$projectDigest")
+        return if (directory.exists()) directory else directory.createDirectories()
+    }
+
+    fun readUri(uri: URI): UriItem {
+        val hash = DigestUtils.md5Hex(uri.toString())
+
+        val directory = path.resolve("uri").createDirectories()
+        val descriptorFile = directory.resolve("uri_$hash.descriptor")
+        val contentFile = directory.resolve("uri_$hash.content")
 
         if (descriptorFile.exists()) {
             //Cache hit
@@ -32,7 +45,7 @@ class UriCache(private val path: Path) {
             val fileName = descriptor[1]
             val cachedUri = URI.create(descriptor[2])
             val contextUri = URI.create(descriptor[3])
-            val content = path.resolve("$hash.content").toUri().toURL().readText()
+            val content = contentFile.readText()
 
             return UriItem(content, scriptType, fileName, cachedUri, contextUri, path.resolve("$hash.content"))
         }
@@ -53,12 +66,8 @@ class UriCache(private val path: Path) {
         val contextUri = resolvedUri.resolve(".")
 
         descriptorFile.writeText("$scriptType $fileName $resolvedUri $contextUri")
-        path.resolve("$hash.content").writeText(content)
+        contentFile.writeText(content)
 
-        return UriItem(content, scriptType, fileName, resolvedUri, contextUri, path.resolve("$hash.content"))
-    }
-
-    fun clear() {
-        FileUtils.cleanDirectory(path.toFile())
+        return UriItem(content, scriptType, fileName, resolvedUri, contextUri, contentFile)
     }
 }

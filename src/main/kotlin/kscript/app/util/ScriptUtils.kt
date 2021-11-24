@@ -1,6 +1,8 @@
 package kscript.app.util
 
 import kscript.app.model.*
+import kscript.app.resolver.ResolutionContext
+import org.apache.commons.codec.digest.DigestUtils
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
@@ -108,5 +110,15 @@ object ScriptUtils {
 
             isLastLineEmpty = section.code.isEmpty()
         }
+    }
+
+    fun calculateHash(code: String, resolutionContext: ResolutionContext): String {
+        val text =
+            code + resolutionContext.repositories.joinToString("\n") + resolutionContext.dependencies.joinToString("\n") + resolutionContext.compilerOpts.joinToString(
+                "\n"
+            ) + resolutionContext.kotlinOpts.joinToString(
+                "\n"
+            ) + (resolutionContext.entryPoint ?: "")
+        return DigestUtils.md5Hex(text)
     }
 }

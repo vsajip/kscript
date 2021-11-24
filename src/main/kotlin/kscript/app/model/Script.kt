@@ -23,4 +23,6 @@ data class Script(
 
     val scriptNodes: Set<ScriptNode>,
     val rootNode: ScriptNode,
+
+    val digest: String
 )

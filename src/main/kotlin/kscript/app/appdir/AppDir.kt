@@ -3,21 +3,18 @@ package kscript.app.appdir
 import org.apache.commons.io.FileUtils
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.createDirectories
 
 class AppDir(path: Path) {
-    private val urlCachePath = path.resolve("url")
-    private val projectCachePath = path.resolve("project")
+    private val cachePath = path.resolve("cache")
 
     init {
-        Files.createDirectories(urlCachePath)
-        Files.createDirectories(projectCachePath)
+        cachePath.createDirectories()
     }
 
-    val uriCache = UriCache(urlCachePath)
-    val projectCache = ProjectCache(projectCachePath)
+    val cache = Cache(cachePath)
 
-    fun clearCaches() {
-        uriCache.clear()
-        projectCache.clear()
+    fun clearCache() {
+        FileUtils.cleanDirectory(cachePath.toFile())
     }
 }

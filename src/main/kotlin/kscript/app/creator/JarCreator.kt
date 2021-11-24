@@ -1,17 +1,16 @@
 package kscript.app.creator
 
-import kscript.app.appdir.ProjectCache
+import kscript.app.appdir.Cache
 import kscript.app.code.Templates
 import kscript.app.model.Script
 import kscript.app.model.ScriptType
 import kscript.app.util.FileUtils
 import java.nio.file.Path
-import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 
 data class JarArtifact(val path: Path, val execClassName: String)
 
-class JarCreator(private val projectCache: ProjectCache, private val executor: Executor) {
+class JarCreator(private val cache: Cache, private val executor: Executor) {
 
     fun create(script: Script, resolvedDependencies: Set<Path>): JarArtifact {
         // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
@@ -31,7 +30,7 @@ class JarCreator(private val projectCache: ProjectCache, private val executor: E
             """${script.packageName.value}.${script.entryPoint?.value ?: "${className}Kt"}"""
         }
 
-        val jarPath = projectCache.findOrCreate(script).resolve("cache/jar")
+        val jarPath = cache.findOrCreateProject(script.digest).resolve("cache/jar")
         val jarFile = jarPath.resolve("scriplet.jar")
         val scriptFile = jarPath.resolve(className + script.scriptType.extension)
 

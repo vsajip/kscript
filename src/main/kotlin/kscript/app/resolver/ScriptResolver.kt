@@ -1,6 +1,6 @@
 package kscript.app.resolver
 
-import kscript.app.appdir.UriCache
+import kscript.app.appdir.Cache
 import kscript.app.model.*
 import kscript.app.parser.LineParser.extractValues
 import kscript.app.util.ScriptUtils
@@ -11,7 +11,7 @@ import java.net.URL
 
 class ScriptResolver(
     private val sectionResolver: SectionResolver,
-    private val uriCache: UriCache,
+    private val cache: Cache,
     private val kotlinOptsEnvVariable: String = ""
 ) {
     private val kotlinExtensions = listOf("kts", "kt")
@@ -28,13 +28,14 @@ class ScriptResolver(
         if (string == "-" || string == "/dev/stdin") {
             // we need to keep track of the scripts dir or the working dir in case of stdin script to correctly resolve includes
             val scriptText = ScriptUtils.prependPreambles(preambles, generateSequence { readLine() }.joinToString("\n"))
+            val scriptType = ScriptUtils.resolveScriptType(scriptText)
 
             return createScript(
                 ScriptSource.STD_INPUT,
-                ScriptUtils.resolveScriptType(scriptText),
+                scriptType,
                 null,
                 File(".").toURI(),
-                scripletName,
+                scripletName + scriptType.extension,
                 scriptText,
                 true,
                 maxResolutionLevel
@@ -43,7 +44,7 @@ class ScriptResolver(
 
         //Is it a URL?
         if (ScriptUtils.isUrl(string)) {
-            val uriItem = uriCache.readUri(URL(string).toURI())
+            val uriItem = cache.readUri(URL(string).toURI())
             val scriptText = ScriptUtils.prependPreambles(preambles, uriItem.content)
 
             return createScript(
@@ -62,7 +63,7 @@ class ScriptResolver(
         if (file.canRead()) {
             if (kotlinExtensions.contains(file.extension)) {
                 //Regular file
-                val uriItem = uriCache.readUri(file.toURI())
+                val uriItem = cache.readUri(file.toURI())
                 val scriptText = ScriptUtils.prependPreambles(preambles, uriItem.content)
 
                 return createScript(
@@ -84,12 +85,13 @@ class ScriptResolver(
                 val scriptText =
                     ScriptUtils.prependPreambles(preambles, FileInputStream(file).bufferedReader().readText())
 
+                val scriptType = ScriptUtils.resolveScriptType(scriptText)
                 return createScript(
                     ScriptSource.OTHER_FILE,
-                    ScriptUtils.resolveScriptType(scriptText),
+                    scriptType,
                     uri,
                     includeContext,
-                    scripletName,
+                    scripletName + scriptType.extension,
                     scriptText,
                     true,
                     maxResolutionLevel
@@ -103,12 +105,13 @@ class ScriptResolver(
 
         //As a last resort we assume that input is a Kotlin program...
         val scriptText = ScriptUtils.prependPreambles(preambles, string)
+        val scriptType = ScriptUtils.resolveScriptType(scriptText)
+
         return createScript(
-            ScriptSource.PARAMETER,
-            ScriptUtils.resolveScriptType(scriptText),
+            ScriptSource.PARAMETER, scriptType,
             null,
             File(".").toURI(),
-            scripletName,
+            scripletName + scriptType.extension,
             scriptText,
             true,
             maxResolutionLevel
@@ -143,6 +146,8 @@ class ScriptResolver(
             }
         }
 
+        val digest = ScriptUtils.calculateHash(code, resolutionContext)
+
         return Script(
             scriptSource,
             scriptType,
@@ -151,7 +156,7 @@ class ScriptResolver(
             scriptName,
             code,
             resolutionContext.packageName!!,
-            resolutionContext.entry,
+            resolutionContext.entryPoint,
             resolutionContext.importNames,
             resolutionContext.includes,
             resolutionContext.dependencies,
@@ -159,7 +164,8 @@ class ScriptResolver(
             resolutionContext.kotlinOpts,
             resolutionContext.compilerOpts,
             resolutionContext.scriptNodes,
-            scriptNode
+            scriptNode,
+            digest
         )
     }
 }
