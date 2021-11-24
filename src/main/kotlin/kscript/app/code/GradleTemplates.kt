@@ -17,29 +17,15 @@ object GradleTemplates {
             Dependency("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         ) + script.dependencies
 
-       val capsuleApp = script.scriptName.dropExtension()
-
         return """
         plugins {
             id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
-            id("com.github.ngyewch.capsule") version "0.1.4"
-            application
         }
 
         repositories {
             mavenLocal()
             mavenCentral()
             ${createGradleRepositoriesSection(script.repositories).prependIndent()}
-        }
-        
-        capsule {
-            archiveBaseName.set("$capsuleApp")
-            archiveClassifier.set("all")
-            embedConfiguration.set(configurations.getByName("runtimeClasspath")) 
-            manifestAttributes.set(mapOf("Test-Attribute" to "Test-Value"))
-            capsuleManifest {
-                applicationId.set("$capsuleApp")
-            }
         }
 
         dependencies {
@@ -63,12 +49,12 @@ object GradleTemplates {
             Dependency("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         ) + script.dependencies
 
-        val capsuleApp = script.scriptName.dropExtension()
+        val capsuleApp = jarArtifact.execClassName
 
         return """
         plugins {
             id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
-            id("com.github.ngyewch.capsule") version "0.1.4"
+            id("it.gianluz.capsule") version "1.0.3"
             application
         }
 
@@ -78,12 +64,23 @@ object GradleTemplates {
             ${createGradleRepositoriesSection(script.repositories).prependIndent()}
         }
         
-        application {
-            mainClass.set("$capsuleApp")
-        }
+        tasks.create<us.kirchmeier.capsule.task.FatCapsule>("simpleCapsule") {
+            applicationClass("$capsuleApp")
+            archiveFileName.set("${script.scriptName.dropExtension()}")
 
+            // https://github.com/danthegoodman/gradle-capsule-plugin/blob/master/DOCUMENTATION.md#really-executable-capsules
+            reallyExecutable
+
+            capsuleManifest.apply {
+                applicationClass = "$capsuleApp"
+                application = "${script.scriptName.dropExtension()}"
+                applicationScript = "exec_header.sh"
+                jvmArgs = listOf()
+            }
+        }
+        
         dependencies {
-            implementation(files("${jarArtifact.path}"))
+            implementation(files("${jarArtifact.path.parent.resolve("scriplet.jar")}"))
             ${createGradleDependenciesSection(extendedDependencies).prependIndent()}
         }
 

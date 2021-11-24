@@ -3,6 +3,7 @@ package kscript.app.resolver
 import kotlinx.coroutines.runBlocking
 import kscript.app.model.Dependency
 import kscript.app.model.Repository
+import kscript.app.util.Logger.devMsg
 import kscript.app.util.Logger.infoMsg
 import java.nio.file.Path
 import kotlin.collections.set
@@ -39,7 +40,10 @@ class DependencyResolver(private val customRepos: Set<Repository>) {
         val resolvedDependencies = runBlocking {
             depIds.map {
                 infoMsg("Resolving ${it.value}...")
-                resolver.resolve(it.value)
+                val start = System.currentTimeMillis()
+                val resolved = resolver.resolve(it.value)
+                devMsg("Resolved in: ${System.currentTimeMillis() - start}")
+                resolved
             }
         }.map {
             it.valueOr {
