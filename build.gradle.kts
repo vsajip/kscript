@@ -2,6 +2,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
+val kotlinVersion: String = "1.5.31"
+
 plugins {
     kotlin("jvm") version "1.5.31"
     id("com.github.johnrengelman.shadow") version "6.1.0"
@@ -12,8 +14,6 @@ repositories {
 }
 
 group = "com.github.holgerbrandl.kscript.launcher"
-
-val kotlinVersion: String = "1.5.31"
 
 tasks.test {
     useJUnitPlatform()
@@ -41,20 +41,19 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
-    //WARN: resolving artifacts with kotlin-scripting in 1.5.31 doesn't work, so that's why 1.4.32
-    //Alternative is Maven Archeologist: https://github.com/square/maven-archeologist
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:1.4.32")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies:1.4.32")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven:1.4.32")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven:$kotlinVersion")
 
     implementation("commons-io:commons-io:2.11.0")
     implementation("commons-codec:commons-codec:1.15")
 
     implementation("org.slf4j:slf4j-nop:1.7.32")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.25")
     testImplementation("io.mockk:mockk:1.12.1")
 
