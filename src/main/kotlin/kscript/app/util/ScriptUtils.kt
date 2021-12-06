@@ -26,13 +26,15 @@ object ScriptUtils {
         return normalizedString.startsWith("http://") || normalizedString.startsWith("https://")
     }
 
+    fun isUrl(uri: URI) = uri.scheme.equals("http") || uri.scheme.equals("https")
+
     fun isRegularFile(uri: URI) = uri.scheme.startsWith("file")
 
     fun String.dropExtension(): String {
         val name = extractFileName(this)
 
         if (name.indexOf(".") > 0) {
-            return name.substring(0, name.lastIndexOf("."));
+            return name.substring(0, name.lastIndexOf("."))
         }
 
         return name

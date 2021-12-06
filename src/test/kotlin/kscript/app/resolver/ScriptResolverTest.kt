@@ -18,8 +18,9 @@ class ScriptResolverTest {
     private val testHome = Paths.get("build/tmp/script_resolver_test")
     private val config = Config.builder().apply { homeDir = testHome.resolve("home") }.build()
     private val cache = Cache(testHome.resolve("cache").createDirectories())
-    private val sectionResolver = SectionResolver(Parser(), cache, config)
-    private val scriptResolver = ScriptResolver(sectionResolver, cache)
+    private val contentResolver = ContentResolver(cache)
+    private val sectionResolver = SectionResolver(Parser(), contentResolver, config)
+    private val scriptResolver = ScriptResolver(sectionResolver, contentResolver)
 
     private val defaultPackageName = PackageName("kscript.scriplet")
 

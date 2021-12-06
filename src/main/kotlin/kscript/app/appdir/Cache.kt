@@ -2,25 +2,16 @@ package kscript.app.appdir
 
 import kscript.app.creator.JarArtifact
 import kscript.app.model.ScriptType
-import kscript.app.util.Logger.devMsg
-import kscript.app.util.ScriptUtils
+import kscript.app.model.Content
 import org.apache.commons.codec.digest.DigestUtils
 import java.net.URI
+import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
-
-data class UriItem(
-    val content: String,
-    val scriptType: ScriptType,
-    val fileName: String,
-    val uri: URI, //Real one from Web, not the cached file
-    val contextUri: URI, //Real one from Web, not the cached file
-    val path: Path //Path to local file
-)
 
 class Cache(private val path: Path) {
     fun getOrCreateIdeaProject(digest: String, creator: (Path) -> Path): Path {
@@ -46,47 +37,33 @@ class Cache(private val path: Path) {
         }
     }
 
-    fun getOrCreateUriItem(uri: URI): UriItem {
-        val digest = DigestUtils.md5Hex(uri.toString())
+    fun getOrCreateUriItem(url: URL, creator: (URL, Path) -> Content): Content {
+        val digest = DigestUtils.md5Hex(url.toString())
 
-        if (uri.scheme == "file") {
-            val content = uri.toURL().readText()
-            val scriptType = ScriptUtils.resolveScriptType(uri) ?: ScriptUtils.resolveScriptType(content)
-            val fileName = ScriptUtils.extractFileName(uri)
-            val contextUri = uri.resolve(".")
-            return UriItem(content, scriptType, fileName, uri, contextUri, Paths.get(uri))
-        }
-
-        val directory = path.resolve("uri_$digest").createDirectories()
-        val descriptorFile = directory.resolve("uri.descriptor")
-        val contentFile = directory.resolve("uri.content")
+        val directory = path.resolve("url_$digest")
+        val descriptorFile = directory.resolve("url.descriptor")
+        val contentFile = directory.resolve("url.content")
 
         if (descriptorFile.exists() && contentFile.exists()) {
             //Cache hit
             val descriptor = descriptorFile.readText().lines()
-
-            devMsg("Descriptor: $descriptor")
-
             val scriptType = ScriptType.valueOf(descriptor[0])
             val fileName = descriptor[1]
             val cachedUri = URI.create(descriptor[2])
             val contextUri = URI.create(descriptor[3])
             val content = contentFile.readText()
 
-            return UriItem(content, scriptType, fileName, cachedUri, contextUri, contentFile)
+            return Content(content, scriptType, fileName, cachedUri, contextUri, contentFile)
         }
 
-        //Otherwise, resolve web file and cache it...
-        val resolvedUri = ScriptUtils.resolveRedirects(uri.toURL()).toURI()
-        val content = resolvedUri.toURL().readText()
-        val scriptType = ScriptUtils.resolveScriptType(resolvedUri) ?: ScriptUtils.resolveScriptType(content)
-        val fileName = ScriptUtils.extractFileName(resolvedUri)
-        val contextUri = resolvedUri.resolve(".")
+        //Cache miss
+        val content = creator(url, contentFile)
 
-        descriptorFile.writeText("$scriptType\n$fileName\n$resolvedUri\n$contextUri")
-        contentFile.writeText(content)
+        directory.createDirectories()
+        descriptorFile.writeText("${content.scriptType}\n${content.fileName}\n${content.uri}\n${content.contextUri}")
+        contentFile.writeText(content.text)
 
-        return UriItem(content, scriptType, fileName, resolvedUri, contextUri, contentFile)
+        return content
     }
 
     private fun directoryCache(path: Path, creator: (Path) -> Path): Path {

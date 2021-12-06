@@ -1,6 +1,5 @@
 package kscript.app.resolver
 
-import kscript.app.appdir.Cache
 import kscript.app.model.*
 import kscript.app.parser.LineParser.extractValues
 import kscript.app.util.ScriptUtils
@@ -11,7 +10,7 @@ import java.net.URL
 
 class ScriptResolver(
     private val sectionResolver: SectionResolver,
-    private val cache: Cache,
+    private val contentResolver: ContentResolver,
     private val kotlinOptsEnvVariable: String = ""
 ) {
     private val kotlinExtensions = listOf("kts", "kt")
@@ -44,15 +43,15 @@ class ScriptResolver(
 
         //Is it a URL?
         if (ScriptUtils.isUrl(string)) {
-            val uriItem = cache.getOrCreateUriItem(URL(string).toURI())
-            val scriptText = ScriptUtils.prependPreambles(preambles, uriItem.content)
+            val content = contentResolver.resolve(URL(string))
+            val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
 
             return createScript(
                 ScriptSource.HTTP,
-                uriItem.scriptType,
-                uriItem.uri,
-                uriItem.contextUri,
-                uriItem.fileName,
+                content.scriptType,
+                content.uri,
+                content.contextUri,
+                content.fileName,
                 scriptText,
                 false,
                 maxResolutionLevel
@@ -63,15 +62,15 @@ class ScriptResolver(
         if (file.canRead()) {
             if (kotlinExtensions.contains(file.extension)) {
                 //Regular file
-                val uriItem = cache.getOrCreateUriItem(file.toURI())
-                val scriptText = ScriptUtils.prependPreambles(preambles, uriItem.content)
+                val content = contentResolver.resolve(file.toPath())
+                val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
 
                 return createScript(
                     ScriptSource.FILE,
-                    uriItem.scriptType,
-                    uriItem.uri,
-                    uriItem.contextUri,
-                    uriItem.fileName,
+                    content.scriptType,
+                    content.uri,
+                    content.contextUri,
+                    content.fileName,
                     scriptText,
                     true,
                     maxResolutionLevel
@@ -108,7 +107,8 @@ class ScriptResolver(
         val scriptType = ScriptUtils.resolveScriptType(scriptText)
 
         return createScript(
-            ScriptSource.PARAMETER, scriptType,
+            ScriptSource.PARAMETER,
+            scriptType,
             null,
             File(".").toURI(),
             scripletName + scriptType.extension,

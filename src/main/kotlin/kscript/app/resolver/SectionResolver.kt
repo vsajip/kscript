@@ -1,6 +1,5 @@
 package kscript.app.resolver
 
-import kscript.app.appdir.Cache
 import kscript.app.model.*
 import kscript.app.parser.Parser
 import kscript.app.util.ScriptUtils
@@ -8,7 +7,7 @@ import java.io.File
 import java.net.URI
 import java.nio.file.Path
 
-class SectionResolver(private val parser: Parser, private val cache: Cache, private val config: Config) {
+class SectionResolver(private val parser: Parser, private val contentResolver: ContentResolver, private val config: Config) {
     fun resolve(
         scriptText: String,
         includeContext: URI,
@@ -67,11 +66,11 @@ class SectionResolver(private val parser: Parser, private val cache: Cache, priv
                         throw IllegalStateException("References to local files from remote scripts are disallowed.")
                     }
 
-                    val uriItem = cache.getOrCreateUriItem(uri)
+                    val content = contentResolver.resolve(uri)
 
                     val newSections = resolve(
-                        uriItem.content,
-                        uriItem.contextUri,
+                        content.text,
+                        content.contextUri,
                         allowLocalReferences && scriptSource == ScriptSource.FILE,
                         currentLevel + 1,
                         maxResolutionLevel,
@@ -81,9 +80,9 @@ class SectionResolver(private val parser: Parser, private val cache: Cache, priv
                     val scriptNode = ScriptNode(
                         currentLevel + 1,
                         scriptSource,
-                        uriItem.scriptType,
+                        content.scriptType,
                         uri,
-                        uriItem.contextUri,
+                        content.contextUri,
                         ScriptUtils.extractFileName(uri),
                         newSections
                     )

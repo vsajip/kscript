@@ -6,10 +6,7 @@ import kscript.app.creator.*
 import kscript.app.model.Config
 import kscript.app.model.ScriptType
 import kscript.app.parser.Parser
-import kscript.app.resolver.CommandResolver
-import kscript.app.resolver.DependencyResolver
-import kscript.app.resolver.ScriptResolver
-import kscript.app.resolver.SectionResolver
+import kscript.app.resolver.*
 import kscript.app.util.Executor
 import kscript.app.util.Logger
 import kscript.app.util.Logger.infoMsg
@@ -43,8 +40,9 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             add(config.customPreamble)
         }
 
-        val sectionResolver = SectionResolver(Parser(), appDir.cache, config)
-        val scriptResolver = ScriptResolver(sectionResolver, appDir.cache, config.kotlinOptsEnvVariable)
+        val contentResolver = ContentResolver(appDir.cache)
+        val sectionResolver = SectionResolver(Parser(), contentResolver, config)
+        val scriptResolver = ScriptResolver(sectionResolver, contentResolver, config.kotlinOptsEnvVariable)
 
         if (docopt.getBoolean("add-bootstrap-header")) {
             val script = scriptResolver.resolve(docopt.getString("script"), maxResolutionLevel = 0)
@@ -59,7 +57,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         //  Create temporary dev environment
         if (docopt.getBoolean("idea")) {
             val path = appDir.cache.getOrCreateIdeaProject(script.digest) { basePath ->
-                val uriLocalPathProvider = { uri: URI -> appDir.cache.getOrCreateUriItem(uri).path }
+                val uriLocalPathProvider = { uri: URI -> contentResolver.resolve(uri).localPath }
                 IdeaProjectCreator().create(basePath, script, userArgs, uriLocalPathProvider)
             }
 
