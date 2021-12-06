@@ -44,7 +44,7 @@ class ScriptResolver(
 
         //Is it a URL?
         if (ScriptUtils.isUrl(string)) {
-            val uriItem = cache.readUri(URL(string).toURI())
+            val uriItem = cache.getOrCreateUriItem(URL(string).toURI())
             val scriptText = ScriptUtils.prependPreambles(preambles, uriItem.content)
 
             return createScript(
@@ -63,7 +63,7 @@ class ScriptResolver(
         if (file.canRead()) {
             if (kotlinExtensions.contains(file.extension)) {
                 //Regular file
-                val uriItem = cache.readUri(file.toURI())
+                val uriItem = cache.getOrCreateUriItem(file.toURI())
                 val scriptText = ScriptUtils.prependPreambles(preambles, uriItem.content)
 
                 return createScript(

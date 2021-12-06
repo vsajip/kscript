@@ -6,9 +6,15 @@ import kscript.app.creator.*
 import kscript.app.model.Config
 import kscript.app.model.ScriptType
 import kscript.app.parser.Parser
-import kscript.app.resolver.*
+import kscript.app.resolver.CommandResolver
+import kscript.app.resolver.DependencyResolver
+import kscript.app.resolver.ScriptResolver
+import kscript.app.resolver.SectionResolver
+import kscript.app.util.Executor
 import kscript.app.util.Logger
+import kscript.app.util.Logger.infoMsg
 import org.docopt.DocOptWrapper
+import java.net.URI
 
 class KscriptHandler(private val config: Config, private val docopt: DocOptWrapper) {
 
@@ -52,8 +58,13 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         //  Create temporary dev environment
         if (docopt.getBoolean("idea")) {
-            val projectPath = IdeaProjectCreator(appDir.cache).create(script, userArgs)
-            executor.runIdea(projectPath)
+            val path = appDir.cache.getOrCreateIdeaProject(script.digest) { basePath ->
+                val uriLocalPathProvider = { uri: URI -> appDir.cache.getOrCreateUriItem(uri).path }
+                IdeaProjectCreator().create(basePath, script, userArgs, uriLocalPathProvider)
+            }
+
+            infoMsg("Project set up at $path")
+            executor.runIdea(path)
             return
         }
 
@@ -69,11 +80,17 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             throw IllegalStateException("@Entry directive is just supported for kt class files")
         }
 
-        val jar = JarCreator(appDir.cache, executor).create(script, resolvedDependencies)
+        val jar = appDir.cache.getOrCreateJar(script.digest) { basePath ->
+            JarArtifactCreator(executor).create(basePath, script, resolvedDependencies)
+        }
 
         //if requested try to package the into a standalone binary
         if (docopt.getBoolean("package")) {
-            PackageCreator(appDir.cache, executor).packageKscript(script, jar)
+            val path = appDir.cache.getOrCreatePackage(script.digest) { basePath ->
+                PackageCreator(executor).packageKscript(basePath, script, jar)
+            }
+
+            infoMsg("Package created in: $path")
             return
         }
 

@@ -1,11 +1,9 @@
-package kscript.app.creator
+package kscript.app.util
 
+import kscript.app.creator.JarArtifact
 import kscript.app.model.Config
 import kscript.app.resolver.CommandResolver
-import kscript.app.util.Logger
 import kscript.app.util.Logger.devMsg
-import kscript.app.util.ProcessRunner
-import kscript.app.util.ShellUtils
 import java.nio.file.Path
 
 class Executor(private val commandResolver: CommandResolver, private val config: Config) {

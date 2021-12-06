@@ -67,7 +67,7 @@ class SectionResolver(private val parser: Parser, private val cache: Cache, priv
                         throw IllegalStateException("References to local files from remote scripts are disallowed.")
                     }
 
-                    val uriItem = cache.readUri(uri)
+                    val uriItem = cache.getOrCreateUriItem(uri)
 
                     val newSections = resolve(
                         uriItem.content,

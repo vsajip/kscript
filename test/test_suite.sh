@@ -186,20 +186,8 @@ assert "kscript ${PROJECT_DIR}/test/resources/kt_tests/default_entry_nopckg.kt" 
 
 assert "kscript ${PROJECT_DIR}/test/resources/kt_tests/default_entry_withpckg.kt" "main was called"
 
-
 ## also make sure that kts in package can be run via kscript
 assert "${PROJECT_DIR}/test/resources/script_in_pckg.kts" "I live in a package!"
-
-## can we resolve relative imports when using tmp-scripts  (see #95)
-assert "rm -f ${PROJECT_DIR}/test/package_example && kscript --package ${PROJECT_DIR}/test/resources/package_example.kts &>/dev/null && ${PROJECT_DIR}/test/package_example 1" "package_me_args_1_mem_5368709120"
-
-## https://unix.stackexchange.com/questions/17064/how-to-print-only-last-column
-assert 'rm -f kscriptlet* && cmd=$(kscript --package "println(args.size)" 2>&1 | tail -n1 | cut -f 5 -d " ") && $cmd three arg uments' "3"
-
-#assert "kscript --package test/resources/package_example.kts" "foo"
-#assert "./package_example 1" "package_me_args_1_mem_4772593664"da
-#assert "echo 1" "package_me_args_1_mem_4772593664"
-#assert_statement 'rm -f kscriptlet* && kscript --package "println(args.size)"' "foo" "bar" 0
 
 assert_end "$SUITE"
 
@@ -221,7 +209,6 @@ SUITE="misc"
 echo
 echo "Starting $SUITE tests:"
 
-
 ## prevent regressions of #98 (it fails to process empty or space-containing arguments)
 assert 'kscript "println(args.size)" foo bar' 2         ## regaular args
 assert 'kscript "println(args.size)" "" foo bar' 3      ## accept empty args
@@ -232,26 +219,14 @@ assert 'kscript "println(args[0])" "foo bar"' "foo bar" ## make sure quotes are 
 ## prevent regression of #181
 assert "echo \"println(123)\" > $KSCRIPT_TEST_DIR/123foo.kts; kscript $KSCRIPT_TEST_DIR/123foo.kts" "123"
 
-
 ## prevent regression of #185
 assert "source ${PROJECT_DIR}/test/resources/home_dir_include.sh" "42"
 
 ## prevent regression of #173
 assert "source ${PROJECT_DIR}/test/resources/compiler_opts_with_includes.sh" "hello42"
 
-kscript_nocall() { kotlin -classpath ${PROJECT_DIR}/build/libs/kscript.jar kscript.app.KscriptKt "$@";}
-export -f kscript_nocall
-
-## temp projects with include symlinks
-assert_raises "tmpDir=$(kscript_nocall --idea ${PROJECT_DIR}/test/resources/includes/include_variations.kts | cut -f2 -d ' ' | xargs echo); cd $tmpDir && gradle build" 0
-
 ## Ensure relative includes with in shebang mode
 assert_raises "${PROJECT_DIR}/test/resources/includes/shebang_mode_includes" 0
-
-## support diamond-shaped include schemes (see #133)
-assert_raises "tmpDir=$(kscript_nocall --idea ${PROJECT_DIR}/test/resources/includes/diamond.kts | cut -f2 -d ' ' | xargs echo); cd $tmpDir && gradle build" 0
-
-## todo re-enable interactive mode tests using kscript_nocall
 
 assert_end "$SUITE"
 
@@ -279,5 +254,41 @@ assert 'echo stdin | '$f' --foo bar' "stdin | script --foo bar"
 assert 'echo stdin | kscript '$f' --foo bar' "stdin | script --foo bar"
 
 rm $f
+
+assert_end "$SUITE"
+
+########################################################################################################################
+SUITE="packaging"
+echo
+echo "Starting $SUITE tests:"
+
+## can we resolve relative imports when using tmp-scripts  (see #95)
+assert "rm -f ${PROJECT_DIR}/test/package_example && kscript --package ${PROJECT_DIR}/test/resources/package_example.kts &>/dev/null && ${PROJECT_DIR}/test/package_example 1" "package_me_args_1_mem_5368709120"
+
+## https://unix.stackexchange.com/questions/17064/how-to-print-only-last-column
+assert 'rm -f kscriptlet* && cmd=$(kscript --package "println(args.size)" 2>&1 | tail -n1 | cut -f 5 -d " ") && $cmd three arg uments' "3"
+
+#assert "kscript --package test/resources/package_example.kts" "foo"
+#assert "./package_example 1" "package_me_args_1_mem_4772593664"da
+#assert "echo 1" "package_me_args_1_mem_4772593664"
+#assert_statement 'rm -f kscriptlet* && kscript --package "println(args.size)"' "foo" "bar" 0
+
+assert_end "$SUITE"
+
+########################################################################################################################
+SUITE="idea"
+echo
+echo "Starting $SUITE tests:"
+
+kscript_nocall() { kotlin -classpath ${PROJECT_DIR}/build/libs/kscript.jar kscript.app.KscriptKt "$@";}
+export -f kscript_nocall
+
+## temp projects with include symlinks
+assert_raises "tmpDir=$(kscript_nocall --idea ${PROJECT_DIR}/test/resources/includes/include_variations.kts | cut -f2 -d ' ' | xargs echo); cd $tmpDir && gradle build" 0
+
+## support diamond-shaped include schemes (see #133)
+assert_raises "tmpDir=$(kscript_nocall --idea ${PROJECT_DIR}/test/resources/includes/diamond.kts | cut -f2 -d ' ' | xargs echo); cd $tmpDir && gradle build" 0
+
+## todo re-enable interactive mode tests using kscript_nocall
 
 assert_end "$SUITE"

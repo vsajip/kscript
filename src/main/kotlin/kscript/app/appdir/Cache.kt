@@ -1,6 +1,8 @@
 package kscript.app.appdir
 
+import kscript.app.creator.JarArtifact
 import kscript.app.model.ScriptType
+import kscript.app.util.Logger.devMsg
 import kscript.app.util.ScriptUtils
 import org.apache.commons.codec.digest.DigestUtils
 import java.net.URI
@@ -21,22 +23,30 @@ data class UriItem(
 )
 
 class Cache(private val path: Path) {
-    fun findOrCreateIdea(digest: String): Path {
-        val directory = path.resolve("idea_$digest")
-        return if (directory.exists()) directory else directory.createDirectories()
+    fun getOrCreateIdeaProject(digest: String, creator: (Path) -> Path): Path {
+        return directoryCache(path.resolve("idea_$digest"), creator)
     }
 
-    fun findOrCreateJar(digest: String): Path {
+    fun getOrCreatePackage(digest: String, creator: (Path) -> Path): Path {
+        return directoryCache(path.resolve("package_$digest"), creator)
+    }
+
+    fun getOrCreateJar(digest: String, creator: (Path) -> JarArtifact): JarArtifact {
         val directory = path.resolve("jar_$digest")
-        return if (directory.exists()) directory else directory.createDirectories()
+        val cachedJarArtifact = directory.resolve("jarArtifact.descriptor")
+
+        return if (directory.exists()) {
+            val jarArtifactLines = cachedJarArtifact.readText().lines()
+            JarArtifact(Paths.get(jarArtifactLines[0]), jarArtifactLines[1])
+        } else {
+            directory.createDirectories()
+            val jarArtifact = creator(directory)
+            cachedJarArtifact.writeText("${jarArtifact.path}\n${jarArtifact.execClassName}")
+            jarArtifact
+        }
     }
 
-    fun findOrCreatePackage(digest: String): Path {
-        val directory = path.resolve("package_$digest")
-        return if (directory.exists()) directory else directory.createDirectories()
-    }
-
-    fun readUri(uri: URI): UriItem {
+    fun getOrCreateUriItem(uri: URI): UriItem {
         val digest = DigestUtils.md5Hex(uri.toString())
 
         if (uri.scheme == "file") {
@@ -53,7 +63,10 @@ class Cache(private val path: Path) {
 
         if (descriptorFile.exists() && contentFile.exists()) {
             //Cache hit
-            val descriptor = descriptorFile.readText().split(" ")
+            val descriptor = descriptorFile.readText().lines()
+
+            devMsg("Descriptor: $descriptor")
+
             val scriptType = ScriptType.valueOf(descriptor[0])
             val fileName = descriptor[1]
             val cachedUri = URI.create(descriptor[2])
@@ -70,9 +83,18 @@ class Cache(private val path: Path) {
         val fileName = ScriptUtils.extractFileName(resolvedUri)
         val contextUri = resolvedUri.resolve(".")
 
-        descriptorFile.writeText("$scriptType $fileName $resolvedUri $contextUri")
+        descriptorFile.writeText("$scriptType\n$fileName\n$resolvedUri\n$contextUri")
         contentFile.writeText(content)
 
         return UriItem(content, scriptType, fileName, resolvedUri, contextUri, contentFile)
+    }
+
+    private fun directoryCache(path: Path, creator: (Path) -> Path): Path {
+        return if (path.exists()) {
+            path
+        } else {
+            path.createDirectories()
+            creator(path)
+        }
     }
 }
