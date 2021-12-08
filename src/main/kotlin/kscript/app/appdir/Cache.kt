@@ -1,8 +1,8 @@
 package kscript.app.appdir
 
 import kscript.app.creator.JarArtifact
-import kscript.app.model.ScriptType
 import kscript.app.model.Content
+import kscript.app.model.ScriptType
 import org.apache.commons.codec.digest.DigestUtils
 import java.net.URI
 import java.net.URL
@@ -64,6 +64,26 @@ class Cache(private val path: Path) {
         contentFile.writeText(content.text)
 
         return content
+    }
+
+    fun getOrCreateDependencies(digest: String, creator: () -> Set<Path>): Set<Path> {
+        val directory = path.resolve("dependencies_$digest")
+        val contentFile = directory.resolve("dependencies.content")
+
+        if (directory.exists()) {
+            val dependencies = contentFile.readText().lines().map { Paths.get(it) }.toSet()
+
+            //Recheck cached paths - if there are missing artifacts skip the cached values
+            if (dependencies.all { it.exists() }) {
+                return dependencies
+            }
+        }
+
+        val dependencies = creator()
+        directory.createDirectories()
+        contentFile.writeText(dependencies.joinToString("\n") { it.toString() })
+
+        return dependencies
     }
 
     private fun directoryCache(path: Path, creator: (Path) -> Path): Path {
