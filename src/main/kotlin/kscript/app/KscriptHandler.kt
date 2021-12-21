@@ -15,7 +15,6 @@ import java.net.URI
 
 class KscriptHandler(private val config: Config, private val docopt: DocOptWrapper) {
 
-    @OptIn(ExperimentalStdlibApi::class)
     fun handle(userArgs: List<String>) {
         Logger.silentMode = docopt.getBoolean("silent")
         Logger.devMode = docopt.getBoolean("development")

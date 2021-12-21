@@ -19,7 +19,6 @@ class CommandResolver(private val config: Config, private val script: Script) {
         return "kotlinc $compilerOptsStr $classpath -d '${jar.absolute()}' $files"
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>): String {
         val kotlinOptsStr = resolveKotlinOpts(script.kotlinOpts)
         val userArgsStr = resolveUserArgs(userArgs)
