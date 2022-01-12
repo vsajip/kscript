@@ -8,6 +8,7 @@ import assertk.assertions.isInstanceOf
 import kscript.app.model.Dependency
 import kscript.app.model.Repository
 import org.apache.commons.io.FileUtils
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -42,6 +43,16 @@ class DependencyResolverTest {
         assertThat { dependencyResolver.resolve(setOf(Dependency("log4j:log4j:9.8.76"))) }.isFailure().isInstanceOf(
             IllegalStateException::class.java
         )
+    }
+
+    @Test
+    // prevent regressions on https://github.com/holgerbrandl/kscript/issues/337
+    fun `It should resolve a pom dependency into jars`() {
+        val resolve = dependencyResolver.resolve(setOf(Dependency("org.javamoney:moneta:pom:1.3")))
+        apply {
+            assertEquals(6, resolve.size)
+            assertThat(resolve.none{ it.fileName.endsWith(".pom")})
+        }
     }
 
     private fun calculateArtifactPath(dependency: Dependency, cleanupFirst: Boolean = false): Path {
