@@ -13,6 +13,7 @@ import kscript.app.util.Logger.infoMsg
 import org.docopt.DocOptWrapper
 import java.net.URI
 
+
 class KscriptHandler(private val config: Config, private val docopt: DocOptWrapper) {
 
     fun handle(userArgs: List<String>) {
@@ -40,6 +41,8 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         }
 
         val contentResolver = ContentResolver(appDir.cache)
+        // see https://github.com/holgerbrandl/kscript/issues/127
+//        val fileResolver = FileSystemDependenciesResolver()
         val sectionResolver = SectionResolver(Parser(), contentResolver, config)
         val scriptResolver = ScriptResolver(sectionResolver, contentResolver, config.kotlinOptsEnvVariable)
 
