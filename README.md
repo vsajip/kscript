@@ -483,6 +483,10 @@ On the other hand this doesn't embed dependencies within the script("fat jar"), 
 FAQ
 ---
 
+### How to edit kscript in VS Code?
+
+See https://magnusgunnarsson.se/offentlig/kscript-in-visual-studio-code-vsc/ for a walkthrough and the required editor configuration.
+
 ### Why is `kscript` not calling the main method in my `.kts` script?
 
 There is [no need](https://kotlinlang.org/docs/tutorials/command-line.html#using-the-command-line-to-run-scripts) for a `main` method in a Kotlin script. Kotlin `*.kts` scripts can be more simplistic compared to more common kotlin `*.kt` source files. The former work without a `main` method by directly running the provided code from top to bottom. E.g.
