@@ -16,10 +16,10 @@ import org.docopt.DocOptWrapper
  * For details and license see https://github.com/holgerbrandl/kscript
  *
  * @author Holger Brandl
- * @author Marcin Kuszczak (rewrite)
+ * @author Marcin Kuszczak
  */
 
-const val KSCRIPT_VERSION = "3.1.0"
+const val KSCRIPT_VERSION = "3.99.0"
 
 fun main(args: Array<String>) {
     try {
