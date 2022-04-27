@@ -1,9 +1,13 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
+val kotlinVersion: String = "1.6.20"
 
 plugins {
-    kotlin("jvm") version "1.4.32"
+    kotlin("jvm") version "1.6.20"
     application
-    id("com.github.johnrengelman.shadow") version "5.2.0"
+    id("com.github.johnrengelman.shadow") version "6.1.0"
 }
 
 repositories {
@@ -12,23 +16,49 @@ repositories {
 
 group = "com.github.holgerbrandl.kscript.launcher"
 
-//val kotlinVersion: String by rootProject.extra
-val kotlinVersion: String ="1.4.32"
+tasks.test {
+    useJUnitPlatform()
+
+    testLogging {
+        events(TestLogEvent.FAILED); exceptionFormat = TestExceptionFormat.FULL
+    }
+}
+
+tasks.withType<Test> {
+    addTestListener(object : TestListener {
+        override fun beforeSuite(suite: TestDescriptor) { logger.quiet("\nTest class: ${suite.displayName}") }
+        override fun beforeTest(testDescriptor: TestDescriptor) {}
+        override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
+            logger.quiet("${String.format( "%-60s - %-10s", testDescriptor.name, result.resultType )} ")
+        }
+
+        override fun afterSuite(suite: TestDescriptor, result: TestResult) {}
+    })
+}
+
 val launcherClassName: String ="kscript.app.KscriptKt"
 
 dependencies {
-    compile("com.offbytwo:docopt:0.6.0.20150202")
+    implementation("com.offbytwo:docopt:0.6.0.20150202")
 
     implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC3")
+
     implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven:$kotlinVersion")
 
-    compile("org.slf4j:slf4j-nop:1.7.30")
+    implementation("commons-io:commons-io:2.11.0")
+    implementation("commons-codec:commons-codec:1.15")
 
-    testImplementation("junit:junit:4.12")
-    testImplementation( "io.kotlintest:kotlintest:2.0.7")
+    implementation("org.slf4j:slf4j-nop:1.7.32")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
+    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.25")
+    testImplementation("io.mockk:mockk:1.12.1")
+
     testImplementation(kotlin("script-runtime"))
 }
 

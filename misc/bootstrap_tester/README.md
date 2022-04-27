@@ -23,5 +23,4 @@ Within the container run
 ```bash
 cd /apps
 bash bs_test.kts
-
 ```
