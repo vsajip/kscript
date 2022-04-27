@@ -273,6 +273,10 @@ assert 'rm -f kscriptlet* && cmd=$(kscript --package "println(args.size)" 2>&1 |
 #assert "echo 1" "package_me_args_1_mem_4772593664"
 #assert_statement 'rm -f kscriptlet* && kscript --package "println(args.size)"' "foo" "bar" 0
 
+# ensure that the jar file is executable
+assert_raises "java -jar build/lib/kscript.jar" 0
+
+
 assert_end "$SUITE"
 
 ########################################################################################################################

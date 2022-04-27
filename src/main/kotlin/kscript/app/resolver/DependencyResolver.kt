@@ -7,6 +7,7 @@ import kscript.app.util.Logger.devMsg
 import kscript.app.util.Logger.infoMsg
 import java.nio.file.Path
 import kotlin.collections.set
+import kotlin.io.path.extension
 import kotlin.script.experimental.api.valueOr
 import kotlin.script.experimental.dependencies.CompoundDependenciesResolver
 import kotlin.script.experimental.dependencies.FileSystemDependenciesResolver
@@ -52,7 +53,11 @@ class DependencyResolver(private val customRepos: Set<Repository>) {
                 ) { it.exception?.toString() ?: it.message }, it.reports.find { it.exception != null }?.exception
                 )
             }
-        }.flatten().map { it.toPath() }.toSet()
+        }.flatten().map {
+            it.toPath()
+        }.filter {
+            it.extension == "jar"
+        }.toSet()
 
         return resolvedDependencies
     }
