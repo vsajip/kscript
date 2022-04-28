@@ -9,6 +9,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolute
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.div
 
 class CommandResolver(private val config: Config, private val script: Script) {
     fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>): String {
@@ -16,7 +17,9 @@ class CommandResolver(private val config: Config, private val script: Script) {
         val classpath = resolveClasspath(dependencies)
         val files = filePaths.joinToString(" ") { it.absolute().toString() }
 
-        return "kotlinc $compilerOptsStr $classpath -d '${jar.absolute()}' $files"
+        val kotlinc = if (config.kotlinHome != null) (config.kotlinHome / "bin" / "kotlinc").toString() else "kotlinc"
+
+        return "$kotlinc $compilerOptsStr $classpath -d '${jar.absolute()}' $files"
     }
 
     fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>): String {
@@ -33,7 +36,9 @@ class CommandResolver(private val config: Config, private val script: Script) {
 
         val classpath = resolveClasspath(dependenciesSet)
 
-        return "kotlin $kotlinOptsStr $classpath ${jarArtifact.execClassName} $userArgsStr"
+        val kotlin = if (config.kotlinHome != null) (config.kotlinHome / "bin" / "kotlin").toString() else "kotlin"
+
+        return "$kotlin $kotlinOptsStr $classpath ${jarArtifact.execClassName} $userArgsStr"
     }
 
     fun interactiveKotlinRepl(dependencies: Set<Path>): String {
@@ -41,7 +46,9 @@ class CommandResolver(private val config: Config, private val script: Script) {
         val kotlinOptsStr = resolveKotlinOpts(script.kotlinOpts)
         val classpath = resolveClasspath(dependencies)
 
-        return "kotlinc $compilerOptsStr $kotlinOptsStr $classpath"
+        val kotlinc = if (config.kotlinHome != null) (config.kotlinHome / "bin" / "kotlinc").toString() else "kotlinc"
+
+        return "$kotlinc $compilerOptsStr $kotlinOptsStr $classpath"
     }
 
     fun executeIdea(projectPath: Path): String {

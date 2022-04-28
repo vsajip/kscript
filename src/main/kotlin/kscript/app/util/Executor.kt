@@ -5,10 +5,11 @@ import kscript.app.model.Config
 import kscript.app.resolver.CommandResolver
 import kscript.app.util.Logger.devMsg
 import java.nio.file.Path
+import kotlin.io.path.div
 
 class Executor(private val commandResolver: CommandResolver, private val config: Config) {
     fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>) {
-        if (!ShellUtils.isInPath("kotlinc")) {
+        if (config.kotlinHome == null && !ShellUtils.isInPath("kotlinc")) {
             throw IllegalStateException("${"kotlinc"} is not in PATH")
         }
 
@@ -24,8 +25,8 @@ class Executor(private val commandResolver: CommandResolver, private val config:
     }
 
     fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>) {
-        if (config.kotlinHome == null) {
-            throw IllegalStateException("KOTLIN_HOME is not set and could not be inferred from context")
+        if (config.kotlinHome == null && !ShellUtils.isInPath("kotlin") ) {
+            throw IllegalStateException("KOTLIN_HOME is not set and could not be inferred from context, and kotlin is not in PATH")
         }
 
         val command = commandResolver.executeKotlin(jarArtifact, dependencies, userArgs)
