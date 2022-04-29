@@ -20,7 +20,7 @@ class Executor(private val commandResolver: CommandResolver, private val config:
         val scriptCompileResult = ShellUtils.evalBash(command)
 
         if (scriptCompileResult.exitCode != 0) {
-            throw IllegalStateException("compilation of scriplet failed\n$scriptCompileResult.stderr")
+            throw IllegalStateException("Compilation of scriplet failed:\n$scriptCompileResult")
         }
     }
 

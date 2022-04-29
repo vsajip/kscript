@@ -4,12 +4,16 @@
 
 Rewrite by https://github.com/aartiPl 
 
+Functionality:
+ * Recursive inclusion of dependant scripts without hardcoded limits
+
 Improved test_suite.sh
  * Automatic setting up of test environment (assert.sh, test directories)
  * Automatic compilation
  * idea - script to help to test idea use cases
  * Script setup_environment.sh can be used for local testing
  * Some script tests moved to Unit Tests
+ * Ability to start test suites by name 
 
 Improved Unit Tests
 * Several new Unit tests
@@ -22,7 +26,6 @@ Modularisation of source code
 * Removed duplication
 * Code divided in logical pieces and moved to packages
 * Script resolution creates immutable objects
-            
 
 Build script
 * Updated Gradle to version 7.3 and shadowJar to 6.1.0
@@ -41,12 +44,10 @@ INCOMPATIBLE CHANGES:
 * In annotations the only allowed delimiter is coma "," (to allow options with arguments, separated by space)
 * Resolution of env variables is more restrictive - only vars expected by kscript can be resolved (for security - it's not good to include arbitrary strings from user env into the script)
 * Reworked caching mechanism
-* Dropped cache for resolution of artifacts - I can not observe change in resolution time. In fact .m2 repository is already kind of cache, so it should not be needed to add another one.
-
 
 ## 3.2 
 
-Release TBD
+Not released - incorporated in 4.0
 
 Major changes & enhancements
 * Improved for relative script inclusions (Thanks to PR by **aartiPI** [#330](https://github.com/holgerbrandl/kscript/pull/330))
