@@ -4,6 +4,7 @@ import kscript.app.util.ShellUtils.guessKotlinHome
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.absolute
 
 class ConfigBuilder internal constructor() {
     var selfName: String = System.getenv("CUSTOM_KSCRIPT_NAME") ?: "kscript"
@@ -11,7 +12,7 @@ class ConfigBuilder internal constructor() {
     var customPreamble: String = System.getenv("CUSTOM_KSCRIPT_PREAMBLE") ?: ""
     var intellijCommand: String = System.getenv("KSCRIPT_IDEA_COMMAND") ?: "idea"
     var gradleCommand: String = System.getenv("KSCRIPT_GRADLE_COMMAND") ?: "gradle"
-    var kotlinHome: Path? = (System.getenv("KOTLIN_HOME") ?: guessKotlinHome())?.let { Paths.get(it) }
+    var kotlinHome: Path? = (System.getenv("KOTLIN_HOME") ?: guessKotlinHome())?.let { Paths.get(it).absolute() }
     var classPathSeparator: String = if (System.getProperty("os.name").lowercase().contains("windows")) ";" else ":"
     var separatorChar: Char = File.separatorChar
     var homeDir: Path = Paths.get(System.getProperty("user.home")!!)

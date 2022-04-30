@@ -51,6 +51,18 @@ assert_stderr(){
     assert "( $1 ) 2>&1 >/dev/null" "$2"
 }
 
+# $1 - suite name; $2 - requested suites
+start_suite() {
+  if [[ "${2}" =~ "${1}" ]] || [[ "${2}" == "ALL" ]]; then
+    echo
+    echo "Starting '$1' tests:"
+    return 0
+  fi
+
+  echo "Skipping '$1' tests..."
+  return 1
+}
+
 #http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
 export NL=$'\n'
 

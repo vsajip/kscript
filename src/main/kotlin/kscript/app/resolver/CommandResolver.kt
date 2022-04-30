@@ -7,7 +7,6 @@ import kscript.app.model.KotlinOpt
 import kscript.app.model.Script
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.io.path.absolute
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 
@@ -15,11 +14,12 @@ class CommandResolver(private val config: Config, private val script: Script) {
     fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>): String {
         val compilerOptsStr = resolveCompilerOpts(script.compilerOpts)
         val classpath = resolveClasspath(dependencies)
-        val files = filePaths.joinToString(" ") { it.absolute().toString() }
+        val files = filePaths.joinToString(" ") { "'${it.absolutePathString()}'" }
 
-        val kotlinc = if (config.kotlinHome != null) (config.kotlinHome / "bin" / "kotlinc").toString() else "kotlinc"
+        val kotlinc =
+            if (config.kotlinHome != null) (config.kotlinHome / "bin" / "kotlinc").absolutePathString() else "kotlinc"
 
-        return "$kotlinc $compilerOptsStr $classpath -d '${jar.absolute()}' $files"
+        return "'$kotlinc' $compilerOptsStr $classpath -d '${jar.absolutePathString()}' $files"
     }
 
     fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>): String {
@@ -64,6 +64,6 @@ class CommandResolver(private val config: Config, private val script: Script) {
     private fun resolveUserArgs(userArgs: List<String>) =
         userArgs.joinToString(" ") { "\"${it.replace("\"", "\\\"")}\"" }
 
-    private fun resolveClasspath(dependencies: Set<Path>) =
-        if (dependencies.isEmpty()) "" else "-classpath " + dependencies.joinToString(config.classPathSeparator) { it.absolutePathString() }
+    private fun resolveClasspath(dependencies: Set<Path>) = if (dependencies.isEmpty()) ""
+    else "-classpath " + dependencies.joinToString(config.classPathSeparator) { "'${it.absolutePathString()}'" }
 }

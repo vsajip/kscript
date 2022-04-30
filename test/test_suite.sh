@@ -1,50 +1,52 @@
 #!/usr/bin/env bash
 
-# Provide suite names which you want to execute as a parameter or nothing if you want to execute all
+# Provide suite names which you want to execute as a parameter
+# Example:
+# no parameters or 'ALL' - execute all test suites
+# '-' (dash) - just compile - no suites executed
+# 'junit' - execute just unit tests
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_DIR=$(realpath "$SCRIPT_DIR/../")
 
-echo "Starting KScript test suite..."
-
-REQUESTED_SUITES=${1:-ALL}
-echo "Requested test suites: $REQUESTED_SUITES"
-
-# $1 - suite name; $2 - requested suites
-start_suite() {
-  if [[ "${2}" =~ "${1}" ]] || [[ "${2}" == "ALL" ]]; then
-    echo
-    echo "Starting $1 tests:"
-    return 0
-  fi
-
-  echo "Skipping $1 tests..."
-  return 1
-}
+REQUESTED_SUITES="${@:-ALL}"
+echo "Starting KScript test suites: $REQUESTED_SUITES"
+echo
 
 kscript --clear-cache
+echo
 
 ########################################################################################################################
-SUITE="JUnit"
-echo
-echo "Starting $SUITE test suite... Compiling... Please wait..."
+echo "Compiling KScript... Please wait..."
 
 cd $PROJECT_DIR
-./gradlew clean build
-status=$?
+./gradlew clean assemble
+EXIT_CODE="$?"
 cd -
 
-if [[ "$status" -ne "0" ]]; then
+if [[ "$EXIT_CODE" -ne "0" ]]; then
   echo
-  echo "KScript build terminated with invalid exit code $status..."
+  echo "KScript build terminated with invalid exit code $EXIT_CODE..."
   exit 1
 fi
-
-echo "$SUITE test suite successfully accomplished."
 
 ########################################################################################################################
 
 source "$SCRIPT_DIR/setup_environment.sh"
+echo
+
+########################################################################################################################
+SUITE="junit"
+if start_suite $SUITE $REQUESTED_SUITES; then
+  cd $PROJECT_DIR
+  ./gradlew test
+  EXIT_CODE="$?"
+  cd -
+
+  assert "echo $EXIT_CODE" "0"
+
+  assert_end "$SUITE"
+fi
 
 ########################################################################################################################
 SUITE="script_input_modes"
