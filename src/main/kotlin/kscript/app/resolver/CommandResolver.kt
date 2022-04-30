@@ -36,7 +36,7 @@ class CommandResolver(private val config: Config, private val script: Script) {
 
         val classpath = resolveClasspath(dependenciesSet)
 
-        val kotlin = if (config.kotlinHome != null) (config.kotlinHome / "bin" / "kotlin").toString() else "kotlin"
+        val kotlin = if (config.kotlinHome != null) (config.kotlinHome / "bin" / "kotlin").absolutePathString() else "kotlin"
 
         return "$kotlin $kotlinOptsStr $classpath ${jarArtifact.execClassName} $userArgsStr"
     }
@@ -46,7 +46,7 @@ class CommandResolver(private val config: Config, private val script: Script) {
         val kotlinOptsStr = resolveKotlinOpts(script.kotlinOpts)
         val classpath = resolveClasspath(dependencies)
 
-        val kotlinc = if (config.kotlinHome != null) (config.kotlinHome / "bin" / "kotlinc").toString() else "kotlinc"
+        val kotlinc = if (config.kotlinHome != null) (config.kotlinHome / "bin" / "kotlinc").absolutePathString() else "kotlinc"
 
         return "$kotlinc $compilerOptsStr $kotlinOptsStr $classpath"
     }

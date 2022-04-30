@@ -9,6 +9,7 @@ import kscript.app.parser.Parser
 import kscript.app.resolver.*
 import kscript.app.util.Executor
 import kscript.app.util.Logger
+import kscript.app.util.Logger.devMsg
 import kscript.app.util.Logger.infoMsg
 import org.docopt.DocOptWrapper
 import java.net.URI
@@ -19,6 +20,9 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
     fun handle(userArgs: List<String>) {
         Logger.silentMode = docopt.getBoolean("silent")
         Logger.devMode = docopt.getBoolean("development")
+
+        devMsg("KScript configuration:")
+        devMsg(config.toString())
 
         // create kscript dir if it does not yet exist
         val appDir = AppDir(config.kscriptDir)

@@ -10,7 +10,7 @@ object ShellUtils {
 
     fun isInPath(tool: String) = evalBash("which $tool").stdout.trim().isNotBlank()
 
-    /** see discussion on https://github.com/holgerbrandl/kscript/issues/15*/
+    // see discussion on https://github.com/holgerbrandl/kscript/issues/15
     fun guessKotlinHome(): String? {
         val kotlinHome = evalBash("KOTLIN_RUNNER=1 JAVACMD=echo kotlinc").stdout.run {
             "kotlin.home=([^\\s]*)".toRegex().find(this)?.groups?.get(1)?.value
