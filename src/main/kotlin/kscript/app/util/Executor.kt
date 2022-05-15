@@ -5,11 +5,10 @@ import kscript.app.model.Config
 import kscript.app.resolver.CommandResolver
 import kscript.app.util.Logger.devMsg
 import java.nio.file.Path
-import kotlin.io.path.div
 
 class Executor(private val commandResolver: CommandResolver, private val config: Config) {
     fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>) {
-        if (config.kotlinHome == null && !ShellUtils.isInPath("kotlinc")) {
+        if (config.kotlinHome == null && !ShellUtils.isInPath(config.osType, "kotlinc")) {
             throw IllegalStateException("${"kotlinc"} is not in PATH")
         }
 
@@ -17,7 +16,7 @@ class Executor(private val commandResolver: CommandResolver, private val config:
 
         devMsg("JAR compile command: $command")
 
-        val scriptCompileResult = ShellUtils.evalBash(command)
+        val scriptCompileResult = ShellUtils.evalBash(config.osType, command)
 
         if (scriptCompileResult.exitCode != 0) {
             throw IllegalStateException("Compilation of scriplet failed:\n$scriptCompileResult")
@@ -25,7 +24,7 @@ class Executor(private val commandResolver: CommandResolver, private val config:
     }
 
     fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>) {
-        if (config.kotlinHome == null && !ShellUtils.isInPath("kotlin") ) {
+        if (config.kotlinHome == null && !ShellUtils.isInPath(config.osType, "kotlin") ) {
             throw IllegalStateException("KOTLIN_HOME is not set and could not be inferred from context, and kotlin is not in PATH")
         }
 
@@ -42,11 +41,11 @@ class Executor(private val commandResolver: CommandResolver, private val config:
     }
 
     fun runIdea(projectPath: Path) {
-        if (!ShellUtils.isInPath(config.intellijCommand)) {
+        if (!ShellUtils.isInPath(config.osType, config.intellijCommand)) {
             throw IllegalStateException("Could not find '${config.intellijCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_IDEA_COMMAND' env property")
         }
 
-        if (!ShellUtils.isInPath(config.gradleCommand)) {
+        if (!ShellUtils.isInPath(config.osType, config.gradleCommand)) {
             throw IllegalStateException(
                 "Could not find '${config.gradleCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_GRADLE_COMMAND' env property"
             )
@@ -61,14 +60,14 @@ class Executor(private val commandResolver: CommandResolver, private val config:
     }
 
     fun createPackage(projectPath: Path) {
-        if (!ShellUtils.isInPath(config.gradleCommand)) {
+        if (!ShellUtils.isInPath(config.osType, config.gradleCommand)) {
             throw IllegalStateException("gradle is required to package kscripts")
         }
 
         val command = commandResolver.createPackage(projectPath)
         devMsg("Create package command: $command")
 
-        val result = ShellUtils.evalBash(command)
+        val result = ShellUtils.evalBash(config.osType, command)
         if (result.exitCode != 0) {
             throw IllegalStateException("Packaging for path: '$projectPath' failed:$result")
         }

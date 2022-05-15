@@ -1,5 +1,21 @@
 # Changes
 
+## 4.1.0 - TO BE RELEASED
+
+Breaking changes
+
+* Renamed env variables (cleanup): 
+  CUSTOM_KSCRIPT_PREAMBLE -> KSCRIPT_PREAMBLE
+  KSCRIPT_IDEA_COMMAND -> KSCRIPT_COMMAND_IDEA
+  KSCRIPT_GRADLE_COMMAND -> KSCRIPT_COMMAND_GRADLE
+
+Major Enhancements
+
+* Initial Windows support
+* Fix for resolution of dependencies
+
+Minor Enhancements
+
 ## 4.0.0
 
 Rewrite by https://github.com/aartiPl

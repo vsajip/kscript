@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-
-
 absolute_path() {
     # if the given path to the kscript launcher is absolute (i.e. it is either starting with / or a
     # 'letter:/' when using gitbash on windows) it is returned unchanged, otherwise we construct an absolute path
@@ -19,18 +17,33 @@ resolve_symlink() (
     fi
 )
 
+ABS_KSCRIPT_PATH=$(resolve_symlink $(absolute_path $0))
 
-abs_kscript_path=$(resolve_symlink $(absolute_path $0))
-
-## resolve application jar path from script location and convert to windows path when using cygwin
-jarPath=$(dirname $abs_kscript_path)/kscript.jar
-if [[ $(uname) == CYGWIN* ]]; then jarPath=$(cygpath -w ${jarPath}); fi
+JAR_PATH=$(dirname "$ABS_KSCRIPT_PATH")/kscript.jar
 
 ## prefer KOTLIN_HOME instead of PATH to resolve `kotlin` location (see #145)
-if [[ -z "$KOTLIN_HOME" ]]; then KOTLIN_EXEC="kotlin"; else KOTLIN_EXEC="$KOTLIN_HOME/bin/kotlin"; fi
+if [[ -z "$KOTLIN_HOME" ]]; then
+  KOTLIN_BIN=""
+
+  # see discussion on https://github.com/holgerbrandl/kscript/issues/15
+  REGEXP="-Dkotlin\.home=([^ ]*)"
+  GUESS_KOTLIN_HOME=$(KOTLIN_RUNNER=1 JAVACMD=echo kotlinc)
+
+  if [[ $GUESS_KOTLIN_HOME =~ $REGEXP ]]; then
+    KOTLIN_BIN="${BASH_REMATCH[1]}/bin/"
+  fi
+else
+  KOTLIN_BIN="$KOTLIN_HOME/bin/"
+fi
+
+# OSTYPE can be: linux-gnu, freebsd, darwin, cygwin, msys
+if [[ "$OSTYPE" == "cygwin" || "$OSTYPE" == "msys" ]]; then
+  JAR_PATH=$(cygpath -w "${JAR_PATH}")
+  true
+fi
 
 ## expose the name of the script being run to the script itself
 export KSCRIPT_FILE="$1"
 
 ## run it using command substitution to have just the user process once kscript is done
-eval "exec $(${KOTLIN_EXEC} -classpath ${jarPath} kscript.app.KscriptKt "$@")"
+eval "exec $("${KOTLIN_BIN}kotlin" -classpath "${JAR_PATH}" kscript.app.KscriptKt "$OSTYPE" "$@")"

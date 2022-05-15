@@ -16,7 +16,8 @@ import kotlin.io.path.createDirectories
 
 class ScriptResolverTest {
     private val testHome = Paths.get("build/tmp/script_resolver_test")
-    private val config = Config.builder().apply { homeDir = testHome.resolve("home") }.build()
+    private val config =
+        Config.builder().apply { osType = OsType.LINUX.osName; homeDir = testHome.resolve("home") }.build()
     private val cache = Cache(testHome.resolve("cache").createDirectories())
     private val contentResolver = ContentResolver(cache)
     private val sectionResolver = SectionResolver(Parser(), contentResolver, config)

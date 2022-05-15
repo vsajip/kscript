@@ -75,6 +75,7 @@ val shadowJar by tasks.getting(ShadowJar::class) {
     doLast {
         copy {
             from(File(projectDir, "src/kscript"))
+            from(File(projectDir, "src/kscript.bat"))
             into(archiveFile.get().asFile.parentFile)
         }
     }

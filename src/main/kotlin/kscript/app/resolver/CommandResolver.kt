@@ -5,6 +5,7 @@ import kscript.app.model.CompilerOpt
 import kscript.app.model.Config
 import kscript.app.model.KotlinOpt
 import kscript.app.model.Script
+import kscript.app.util.FileUtils.nativeToShellPath
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
@@ -12,10 +13,11 @@ import kotlin.io.path.div
 
 class CommandResolver(private val config: Config, private val script: Script) {
     //Syntax for different OS-es:
-    //LINUX:    kotlin  -classpath "/home/vagrant/workspace/Kod/Repos/kscript/test:/home/vagrant/.kscript/cache/jar_2ccd53e06b0355d3573a4ae8698398fe/scriplet.jar:/usr/local/sdkman/candidates/kotlin/1.6.21/lib/kotlin-script-runtime.jar" Main_Scriplet
-    //GIT-BASH: kotlin  -classpath "C:\Users\Admin;C:\Users\Admin\.kscript\cache\jar_2ccd53e06b0355d3573a4ae8698398fe\scriplet.jar;C:\Users\Admin\.sdkman\candidates\kotlin\current\lib\kotlin-script-runtime.jar" Main_Scriplet
-    //CYGWIN:   kotlin  -classpath "C:\Users\Admin;C:\Users\Admin\.kscript\cache\jar_2ccd53e06b0355d3573a4ae8698398fe\scriplet.jar;C:\Users\Admin\.sdkman\candidates\kotlin\current\lib\kotlin-script-runtime.jar" Main_Scriplet
-    //WINDOWS:  kotlin  -classpath "C:\Users\Admin;C:\Users\Admin\.kscript\cache\jar_2ccd53e06b0355d3573a4ae8698398fe\scriplet.jar;C:\Users\Admin\.sdkman\candidates\kotlin\current\lib\kotlin-script-runtime.jar" Main_Scriplet
+    //LINUX:    /usr/local/sdkman/..../kotlin  -classpath "/home/vagrant/workspace/Kod/Repos/kscript/test:/home/vagrant/.kscript/cache/jar_2ccd53e06b0355d3573a4ae8698398fe/scriplet.jar:/usr/local/sdkman/candidates/kotlin/1.6.21/lib/kotlin-script-runtime.jar" Main_Scriplet
+    //GIT-BASH: /c/Users/Admin/.sdkman/candidates/kotlin/current/bin/kotlin  -classpath "C:\Users\Admin;C:\Users\Admin\.kscript\cache\jar_2ccd53e06b0355d3573a4ae8698398fe\scriplet.jar;C:\Users\Admin\.sdkman\candidates\kotlin\current\lib\kotlin-script-runtime.jar" Main_Scriplet
+    //CYGWIN:   /home/Admin/.sdkman/candidates/kotlin/current/bin/kotlin  -classpath "C:\Users\Admin;C:\Users\Admin\.kscript\cache\jar_2ccd53e06b0355d3573a4ae8698398fe\scriplet.jar;C:\Users\Admin\.sdkman\candidates\kotlin\current\lib\kotlin-script-runtime.jar" Main_Scriplet
+    //WINDOWS:  C:\Users\Admin\.sdkman\candidates\kotlin\current\bin\kotlin  -classpath "C:\Users\Admin;C:\Users\Admin\.kscript\cache\jar_2ccd53e06b0355d3573a4ae8698398fe\scriplet.jar;C:\Users\Admin\.sdkman\candidates\kotlin\current\lib\kotlin-script-runtime.jar" Main_Scriplet
+    //MACOS:
 
     //Path conversion (Cygwin/mingw): cygpath -u "c:\Users\Admin"; /cygdrive/c/ - Cygwin; /c/ - Mingw
     //uname --> CYGWIN_NT-10.0 or MINGW64_NT-10.0-19043
@@ -34,7 +36,7 @@ class CommandResolver(private val config: Config, private val script: Script) {
         val kotlinOptsStr = resolveKotlinOpts(script.kotlinOpts)
         val userArgsStr = resolveUserArgs(userArgs)
         val scriptRuntime =
-            Paths.get("${config.kotlinHome}${config.separatorChar}lib${config.separatorChar}kotlin-script-runtime.jar")
+            Paths.get("${config.kotlinHome}${config.hostPathSeparatorChar}lib${config.hostPathSeparatorChar}kotlin-script-runtime.jar")
 
         val dependenciesSet = buildSet<Path> {
             addAll(dependencies)
@@ -72,9 +74,13 @@ class CommandResolver(private val config: Config, private val script: Script) {
     private fun resolveUserArgs(userArgs: List<String>) =
         userArgs.joinToString(" ") { "\"${it.replace("\"", "\\\"")}\"" }
 
-    private fun resolveClasspath(dependencies: Set<Path>) = if (dependencies.isEmpty()) ""
-    else "-classpath \"" + dependencies.joinToString(config.classPathSeparator) { it.absolutePathString() } + "\""
+    private fun resolveClasspath(dependencies: Set<Path>) =
+        if (dependencies.isEmpty()) "" else "-classpath \"" + dependencies.joinToString(config.classPathSeparator.toString()) {
+            it.absolutePathString()
+        } + "\""
 
-    private fun resolveKotlinBinary(binary: String) =
-        if (config.kotlinHome != null) (config.kotlinHome / "bin" / binary).absolutePathString() else binary
+    private fun resolveKotlinBinary(binary: String) = if (config.kotlinHome != null) nativeToShellPath(
+        config.osType,
+        (config.kotlinHome / "bin" / binary)
+    ) else binary
 }
