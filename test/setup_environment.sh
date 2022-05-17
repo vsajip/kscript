@@ -54,9 +54,9 @@ assert_stderr(){
 # $1 - suite name; $2... - requested suites
 start_suite() {
   PARAM_SUITE="$1"
-  PARAM_REQUESTED_SUITES="${@:2}"
+  PARAM_REQUESTED_SUITES=" ${@:2} "
 
-  if [[ "${PARAM_REQUESTED_SUITES}" =~ "${PARAM_SUITE}" ]] || [[ "${PARAM_REQUESTED_SUITES}" == "ALL" ]]; then
+  if [[ "${PARAM_REQUESTED_SUITES}" =~ " ${PARAM_SUITE} " ]] || [[ "${PARAM_REQUESTED_SUITES}" =~ " ALL " ]] && [[ ! "${PARAM_REQUESTED_SUITES}" =~ " ^${PARAM_SUITE} " ]]; then
     echo
     echo "Starting '$PARAM_SUITE' tests:"
 
