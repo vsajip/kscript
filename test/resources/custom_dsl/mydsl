@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export KSCRIPT_PREAMBLE='
+export CUSTOM_KSCRIPT_PREAMBLE='
 // declare dependencies
 @file:DependsOn("com.github.holgerbrandl:kutils:0.12")
 

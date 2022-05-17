@@ -19,6 +19,17 @@ class CommandResolver(private val config: Config, private val script: Script) {
     //WINDOWS:  C:\Users\Admin\.sdkman\candidates\kotlin\current\bin\kotlin  -classpath "C:\Users\Admin;C:\Users\Admin\.kscript\cache\jar_2ccd53e06b0355d3573a4ae8698398fe\scriplet.jar;C:\Users\Admin\.sdkman\candidates\kotlin\current\lib\kotlin-script-runtime.jar" Main_Scriplet
     //MACOS:
 
+
+    //<command_path>kotlinc -classpath "p1:p2"
+    //OS Conversion matrix
+    //              command_path    command_quoting     classpath_path  classpath_separator     classpath_quoting       files_path      files_quoting   main_class_quoting
+    //LINUX         native          no                  native          :                       "                       ?
+    //GIT-BASH      shell           no                  native          ;                       "                       ?
+    //CYGWIN        shell           no                  native          ;                       "
+    //WINDOWS       native          no                  native          ;                       "
+    //MACOS         ?               ?                   ?               ?                       ?
+
+
     //Path conversion (Cygwin/mingw): cygpath -u "c:\Users\Admin"; /cygdrive/c/ - Cygwin; /c/ - Mingw
     //uname --> CYGWIN_NT-10.0 or MINGW64_NT-10.0-19043
     //How to find if mingw/cyg/win (second part): https://stackoverflow.com/questions/40877323/quickly-find-if-java-was-launched-from-windows-cmd-or-cygwin-terminal
@@ -26,10 +37,10 @@ class CommandResolver(private val config: Config, private val script: Script) {
     fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>): String {
         val compilerOptsStr = resolveCompilerOpts(script.compilerOpts)
         val classpath = resolveClasspath(dependencies)
-        val files = filePaths.joinToString(" ") { "'${it.absolutePathString()}'" }
+        val files = filePaths.joinToString(" ") { "\"${it.absolutePathString()}\"" }
         val kotlinc = resolveKotlinBinary("kotlinc")
 
-        return "'$kotlinc' $compilerOptsStr $classpath -d '${jar.absolutePathString()}' $files"
+        return "$kotlinc $compilerOptsStr $classpath -d \"${jar.absolutePathString()}\" $files"
     }
 
     fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>): String {

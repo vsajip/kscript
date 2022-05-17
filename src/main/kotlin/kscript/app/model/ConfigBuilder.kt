@@ -24,18 +24,18 @@ class ConfigBuilder internal constructor() {
     var repositoryPasswordEnvVariable: String? = null
 
     fun build(): Config {
-        //Java resolved env variables paths are always in native format; All paths should be stored in Config as native.
+        //Java resolved env variables paths are always in native format; All paths should be stored in Config as native,
+        //and then converted as needed to shell format.
 
-        //TODO: can it be read from: System.getProperty("os.name"); what about cygwin and msys?
         val osType = OsType.findOrThrow(requireNotNull(osType))
         val classPathSeparator = classPathSeparator ?: if (osType.isWindowsLike() || osType.isUnixHostedOnWindows()) ';' else ':'
         val hostPathSeparatorChar = hostPathSeparatorChar ?: File.separatorChar
         val shellPathSeparatorChar = shellPathSeparatorChar ?: if (osType.isUnixHostedOnWindows()) '/' else hostPathSeparatorChar
         val selfName = selfName ?: System.getenv("KSCRIPT_NAME") ?: "kscript"
         val kscriptDir = kscriptDir ?: Paths.get(System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript"))
-        val customPreamble = customPreamble ?: System.getenv("KSCRIPT_PREAMBLE") ?: ""
-        val intellijCommand = intellijCommand ?: System.getenv("KSCRIPT_COMMAND_IDEA") ?: "idea"
-        val gradleCommand = gradleCommand ?: System.getenv("KSCRIPT_COMMAND_GRADLE") ?: "gradle"
+        val customPreamble = customPreamble ?: System.getenv("CUSTOM_KSCRIPT_PREAMBLE") ?: ""
+        val intellijCommand = intellijCommand ?: System.getenv("KSCRIPT_IDEA_COMMAND") ?: "idea"
+        val gradleCommand = gradleCommand ?: System.getenv("KSCRIPT_GRADLE_COMMAND") ?: "gradle"
         val kotlinHome = kotlinHome ?: (System.getenv("KOTLIN_HOME") ?: ShellUtils.guessKotlinHome(osType))?.let { Paths.get(it).absolute() }
         val homeDir = homeDir ?: Paths.get(System.getProperty("user.home")!!)
         val kotlinOptsEnvVariable = kotlinOptsEnvVariable ?: System.getenv("KSCRIPT_KOTLIN_OPTS") ?: ""
