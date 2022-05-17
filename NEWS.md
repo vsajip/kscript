@@ -12,7 +12,9 @@ Breaking changes
 Major Enhancements
 
 * Initial Windows support
-* Fix for resolution of dependencies
+* Fix for dependency resolution
+* Fix creation of Gradle files and their indentation
+* Fix for handling potentially duplicated file names 
 
 Minor Enhancements
 

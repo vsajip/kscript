@@ -42,12 +42,12 @@ class Executor(private val commandResolver: CommandResolver, private val config:
 
     fun runIdea(projectPath: Path) {
         if (!ShellUtils.isInPath(config.osType, config.intellijCommand)) {
-            throw IllegalStateException("Could not find '${config.intellijCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_IDEA_COMMAND' env property")
+            throw IllegalStateException("Could not find '${config.intellijCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_COMMAND_IDEA' env property")
         }
 
         if (!ShellUtils.isInPath(config.osType, config.gradleCommand)) {
             throw IllegalStateException(
-                "Could not find '${config.gradleCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_GRADLE_COMMAND' env property"
+                "Could not find '${config.gradleCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_COMMAND_GRADLE' env property"
             )
         }
 
@@ -61,7 +61,7 @@ class Executor(private val commandResolver: CommandResolver, private val config:
 
     fun createPackage(projectPath: Path) {
         if (!ShellUtils.isInPath(config.osType, config.gradleCommand)) {
-            throw IllegalStateException("gradle is required to package kscripts")
+            throw IllegalStateException("gradle is required to package scripts")
         }
 
         val command = commandResolver.createPackage(projectPath)

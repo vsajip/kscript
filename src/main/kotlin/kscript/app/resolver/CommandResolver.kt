@@ -22,12 +22,12 @@ class CommandResolver(private val config: Config, private val script: Script) {
 
     //<command_path>kotlinc -classpath "p1:p2"
     //OS Conversion matrix
-    //              command_path    command_quoting     classpath_path  classpath_separator     classpath_quoting       files_path      files_quoting   main_class_quoting
-    //LINUX         native          no                  native          :                       "                       ?
-    //GIT-BASH      shell           no                  native          ;                       "                       ?
-    //CYGWIN        shell           no                  native          ;                       "
-    //WINDOWS       native          no                  native          ;                       "
-    //MACOS         ?               ?                   ?               ?                       ?
+    //              command_path    command_quoting     classpath_path  classpath_separator     classpath_quoting       files_path      files_quoting   main_class_quoting   @arg_file
+    //LINUX         native          no                  native          :                       "                       ?                                                    no
+    //GIT-BASH      shell           no                  native          ;                       "                       ?                                                    no
+    //CYGWIN        shell           no                  native          ;                       "                                                                            no
+    //WINDOWS       native          no                  native          ;                       "                                                                            yes
+    //MACOS         ?               ?                   ?               ?                       ?                                                                            no
 
 
     //Path conversion (Cygwin/mingw): cygpath -u "c:\Users\Admin"; /cygdrive/c/ - Cygwin; /c/ - Mingw

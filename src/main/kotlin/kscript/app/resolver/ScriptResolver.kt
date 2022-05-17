@@ -34,7 +34,7 @@ class ScriptResolver(
                 scriptType,
                 null,
                 File(".").toURI(),
-                scripletName + scriptType.extension,
+                scripletName,
                 scriptText,
                 true,
                 maxResolutionLevel
@@ -90,7 +90,7 @@ class ScriptResolver(
                     scriptType,
                     uri,
                     includeContext,
-                    scripletName + scriptType.extension,
+                    scripletName,
                     scriptText,
                     true,
                     maxResolutionLevel
@@ -111,7 +111,7 @@ class ScriptResolver(
             scriptType,
             null,
             File(".").toURI(),
-            scripletName + scriptType.extension,
+            scripletName,
             scriptText,
             true,
             maxResolutionLevel

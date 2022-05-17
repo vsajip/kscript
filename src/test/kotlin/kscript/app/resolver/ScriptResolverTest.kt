@@ -40,7 +40,7 @@ class ScriptResolverTest {
             prop(Script::sourceUri).transform { it.toString() }
                 .endsWith("/test/resources/consolidate_includes/template.kts")
             prop(Script::sourceContextUri).transform { it.toString() }.endsWith("/test/resources/consolidate_includes/")
-            prop(Script::scriptName).isEqualTo("template.kts")
+            prop(Script::scriptName).isEqualTo("template")
             prop(Script::packageName).isEqualTo(defaultPackageName)
             prop(Script::entryPoint).isEqualTo(null)
             prop(Script::importNames).isEqualTo(
@@ -72,7 +72,6 @@ class ScriptResolverTest {
     }
 
     @Test
-    @Disabled
     fun `Test includes annotations`() {
         val input = "test/resources/includes/include_variations.kts"
         val expected = File("test/resources/includes/expected_variations.kts").readText().discardEmptyLines()
@@ -87,7 +86,7 @@ class ScriptResolverTest {
             prop(Script::sourceUri).transform { it.toString() }
                 .endsWith("/test/resources/includes/include_variations.kts")
             prop(Script::sourceContextUri).transform { it.toString() }.endsWith("/test/resources/includes/")
-            prop(Script::scriptName).isEqualTo("include_variations.kts")
+            prop(Script::scriptName).isEqualTo("include_variations")
             prop(Script::packageName).isEqualTo(defaultPackageName)
             prop(Script::entryPoint).isEqualTo(null)
             prop(Script::importNames).isEmpty()
@@ -129,7 +128,7 @@ class ScriptResolverTest {
             prop(Script::sourceUri).transform { it.toString() }
                 .endsWith("/test/resources/includes/dup_include/dup_include.kts")
             prop(Script::sourceContextUri).transform { it.toString() }.endsWith("/test/resources/includes/dup_include/")
-            prop(Script::scriptName).isEqualTo("dup_include.kts")
+            prop(Script::scriptName).isEqualTo("dup_include")
             prop(Script::packageName).isEqualTo(defaultPackageName)
             prop(Script::entryPoint).isEqualTo(null)
             prop(Script::importNames).isEmpty()

@@ -64,11 +64,18 @@ object ScriptUtils {
     }
 
     private fun extractFileName(path: String): String {
-        val idx = path.lastIndexOf("/")
         var filename = path
+
+        val idx = path.lastIndexOf("/")
         if (idx >= 0) {
             filename = path.substring(idx + 1, path.length)
         }
+
+        val idxOfDot = filename.lastIndexOf('.')
+        if (idxOfDot > 0) {
+            filename = filename.substring(0, idxOfDot)
+        }
+
         return filename
     }
 
