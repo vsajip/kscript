@@ -33,9 +33,9 @@ class ConfigBuilder internal constructor() {
         val shellPathSeparatorChar = shellPathSeparatorChar ?: if (osType.isUnixHostedOnWindows()) '/' else hostPathSeparatorChar
         val selfName = selfName ?: System.getenv("KSCRIPT_NAME") ?: "kscript"
         val kscriptDir = kscriptDir ?: Paths.get(System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript"))
-        val customPreamble = customPreamble ?: System.getenv("CUSTOM_KSCRIPT_PREAMBLE") ?: ""
-        val intellijCommand = intellijCommand ?: System.getenv("KSCRIPT_IDEA_COMMAND") ?: "idea"
-        val gradleCommand = gradleCommand ?: System.getenv("KSCRIPT_GRADLE_COMMAND") ?: "gradle"
+        val customPreamble = customPreamble ?: System.getenv("KSCRIPT_PREAMBLE") ?: ""
+        val intellijCommand = intellijCommand ?: System.getenv("KSCRIPT_COMMAND_IDEA") ?: "idea"
+        val gradleCommand = gradleCommand ?: System.getenv("KSCRIPT_COMMAND_GRADLE") ?: "gradle"
         val kotlinHome = kotlinHome ?: (System.getenv("KOTLIN_HOME") ?: ShellUtils.guessKotlinHome(osType))?.let { Paths.get(it).absolute() }
         val homeDir = homeDir ?: Paths.get(System.getProperty("user.home")!!)
         val kotlinOptsEnvVariable = kotlinOptsEnvVariable ?: System.getenv("KSCRIPT_KOTLIN_OPTS") ?: ""

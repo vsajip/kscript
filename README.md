@@ -316,7 +316,7 @@ Which can be now used using the `//INCLUDE` directive with
 
 //INCLUDE utils.kt
 
-val robustMean = listOf(1.3, 42.3, 7.).median()
+val robustMean = listOf(1.3, 42.3, 7.0).median()
 println(robustMean)
 ```
 
@@ -503,7 +503,7 @@ This will open [IntelliJ IDEA](https://www.jetbrains.com/idea/) with a minimalis
 
 This assumes that you have the Intellij IDEA command line launcher `idea` in your `PATH`. It can be created in IntelliJ
 under `Tools -> Create Command-line Launcher` or you can set the command used to launch your intellij
-as `KSCRIPT_IDEA_COMMAND` env property
+as `KSCRIPT_COMMAND_IDEA` env property
 
 Deploy scripts as standalone binaries
 --------------------------------------
