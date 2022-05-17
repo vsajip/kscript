@@ -47,47 +47,39 @@ object Templates {
     }
 
     fun runConfig(rootNode: String, userArgs: List<String>): String {
-        val fileNameWithoutExtension = rootNode.dropExtension()
+        val fileWithoutExtension = rootNode.dropExtension()
 
         val runConfigurationBody = if (rootNode.endsWith(".kt")) {
-            """
-        <configuration name="$fileNameWithoutExtension" type="JetRunConfigurationType">
-            <module name="${rootNode}.main" />
-            <option name="VM_PARAMETERS" value="" />
-            <option name="PROGRAM_PARAMETERS" value="" />
-            <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-            <option name="ALTERNATIVE_JRE_PATH" />
-            <option name="PASS_PARENT_ENVS" value="true" />
-            <option name="MAIN_CLASS_NAME" value="${
-                fileNameWithoutExtension.replaceFirstChar { it.titlecase() }
-            }Kt" />
-            <option name="WORKING_DIRECTORY" value="" />
-            <method v="2">
-                <option name="Make" enabled="true" />
-            </method>
-            </configuration>
-            """.trimIndent()
+            """|<configuration name="$fileWithoutExtension" type="JetRunConfigurationType">
+               |    <module name="${rootNode}.main" />
+               |    <option name="VM_PARAMETERS" value="" />
+               |    <option name="PROGRAM_PARAMETERS" value="" />
+               |    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+               |    <option name="ALTERNATIVE_JRE_PATH" />
+               |    <option name="PASS_PARENT_ENVS" value="true" />
+               |    <option name="MAIN_CLASS_NAME" value="${fileWithoutExtension.replaceFirstChar { it.titlecase() }}Kt" />
+               |    <option name="WORKING_DIRECTORY" value="" />
+               |    <method v="2">
+               |        <option name="Make" enabled="true" />
+               |    </method>
+               |</configuration>""".trimMargin()
         } else {
-            """  
-        <configuration default="false" name="Main" type="BashConfigurationType" factoryName="Bash">
-            <option name="INTERPRETER_OPTIONS" value="" />
-            <option name="INTERPRETER_PATH" value="kscript" />
-            <option name="PROJECT_INTERPRETER" value="false" />
-            <option name="WORKING_DIRECTORY" value="" />
-            <option name="PARENT_ENVS" value="true" />
-            <option name="SCRIPT_NAME" value="${'$'}PROJECT_DIR${'$'}/src/${rootNode}" />
-            <option name="PARAMETERS" value="${userArgs.joinToString(" ")}" />
-            <module name="" />
-            <method v="2" />
-         </configuration>
-         """.trimIndent()
+            """|<configuration default="false" name="Main" type="BashConfigurationType" factoryName="Bash">
+               |    <option name="INTERPRETER_OPTIONS" value="" />
+               |    <option name="INTERPRETER_PATH" value="kscript" />
+               |    <option name="PROJECT_INTERPRETER" value="false" />
+               |    <option name="WORKING_DIRECTORY" value="" />
+               |    <option name="PARENT_ENVS" value="true" />
+               |    <option name="SCRIPT_NAME" value="${'$'}PROJECT_DIR${'$'}/src/${rootNode}" />
+               |    <option name="PARAMETERS" value="${userArgs.joinToString(" ")}" />
+               |    <module name="" />
+               |    <method v="2" />
+               |</configuration>""".trimMargin()
         }
 
-        return """
-            <component name="ProjectRunConfigurationManager">
-            $runConfigurationBody
-            </component>
-        """.trimIndent()
+        return """|<component name="ProjectRunConfigurationManager">
+                  |    $runConfigurationBody
+                  |</component>""".trimMargin()
     }
 
     fun usageOptions(selfName: String, version: String) = """
