@@ -9,8 +9,6 @@ import kscript.app.util.ScriptUtils.dropExtension
 
 object GradleTemplates {
     fun createGradleIdeaScript(script: Script): String {
-        val kotlinOptions = kotlinOptions(script.compilerOpts)
-
         val kotlinVersion = KotlinVersion.CURRENT
         val extendedDependencies = setOf(
             Dependency("org.jetbrains.kotlin:kotlin-stdlib"),
@@ -18,30 +16,30 @@ object GradleTemplates {
         ) + script.dependencies
 
         return """
-        plugins {
-            id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
-        }
-
-        repositories {
-            mavenLocal()
-            mavenCentral()
-            ${createGradleRepositoriesSection(script.repositories).prependIndent()}
-        }
-
-        dependencies {
-            ${createGradleDependenciesSection(extendedDependencies).prependIndent()}
-        }
-
-        sourceSets.getByName("main").java.srcDirs("src")
-        sourceSets.getByName("test").java.srcDirs("src")
-
-        $kotlinOptions
-        """.trimIndent()
+            |plugins {
+            |    id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
+            |}
+            |
+            |repositories {
+            |    mavenLocal()
+            |    mavenCentral()
+            |${createGradleRepositoriesSection(script.repositories).prependIndent()}
+            |}
+            |
+            |dependencies {
+            |${createGradleDependenciesSection(extendedDependencies).prependIndent()}
+            |}
+            |
+            |sourceSets.getByName("main").java.srcDirs("src")
+            |sourceSets.getByName("test").java.srcDirs("src")
+            |
+            |${createCompilerOptionsSection(script.compilerOpts)}
+            |""".trimMargin()
     }
 
     //Capsule: https://github.com/ngyewch/gradle-capsule-plugin
     fun createGradlePackageScript(script: Script, jarArtifact: JarArtifact): String {
-        val kotlinOptions = kotlinOptions(script.compilerOpts)
+        val kotlinOptions = createCompilerOptionsSection(script.compilerOpts)
 
         val kotlinVersion = KotlinVersion.CURRENT
         val extendedDependencies = setOf(
@@ -90,12 +88,10 @@ object GradleTemplates {
 
     private fun createGradleRepositoryCredentials(repository: Repository): String {
         if (repository.user.isNotBlank() && repository.password.isNotBlank()) {
-            return """
-                credentials {
-                    username = "${repository.user}"
-                    password = "${repository.password}"
-                }
-            """.trimIndent()
+            return """|credentials {
+                      |    username = "${repository.user}"
+                      |    password = "${repository.password}"
+                      |}""".trimMargin()
         }
 
         return ""
@@ -106,36 +102,37 @@ object GradleTemplates {
     }
 
     private fun createGradleRepositoriesSection(repositories: Set<Repository>) = repositories.joinToString("\n") {
-        """ 
-        maven {
-            url "${it.url}"
-            ${createGradleRepositoryCredentials(it).prependIndent()}
-        }
-        """.trimIndent()
+        """|maven {
+           |    url = uri("${it.url}")
+           |${createGradleRepositoryCredentials(it).prependIndent()}
+           |}
+        """.trimMargin()
     }
 
-    private fun kotlinOptions(compilerOpts: Set<CompilerOpt>): String {
-        val opts = compilerOpts.map { it.value }
-
-        var jvmTargetOption: String? = null
-        for (i in opts.indices) {
-            if (i > 0 && opts[i - 1] == "-jvm-target") {
-                jvmTargetOption = opts[i]
-            }
+    private fun createCompilerOptionsSection(compilerOpts: Set<CompilerOpt>): String {
+        if (compilerOpts.isEmpty()) {
+            return ""
         }
 
-        val kotlinOpts = if (jvmTargetOption != null) {
-            """
-            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-                kotlinOptions { 
-                    jvmTarget = "$jvmTargetOption"
+        var jvmTarget = ""
+        val freeCompilerArgs = mutableListOf<String>()
+
+        for (opt in compilerOpts) {
+            when {
+                opt.value.startsWith("-jvm-target") -> {
+                    jvmTarget = "jvmTarget = \"" + opt.value.drop(11).trim() + "\""
+                }
+                else -> {
+                    freeCompilerArgs.add(opt.value)
                 }
             }
-            """.trimIndent()
-        } else {
-            ""
         }
 
-        return kotlinOpts
+        return """|tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+                  |    kotlinOptions {
+                  |        $jvmTarget
+                  |        freeCompilerArgs = listOf(${freeCompilerArgs.joinToString(", ") { "\"$it\"" }})
+                  |    }
+                  |}""".trimMargin()
     }
 }
