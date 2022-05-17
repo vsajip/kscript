@@ -43,4 +43,4 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: |
           export KSCRIPT_HOME="$GITHUB_WORKSPACE"
-          ./test/test_suite.sh
+          ./test/linux_suite.sh
