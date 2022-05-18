@@ -21,38 +21,41 @@ fi
 
 echo  "KScript path for testing: $(which kscript)"
 
-if [[ ! -f "$KSCRIPT_EXEC_DIR/assert.sh" ]]; then
-  echo "Installing assert.sh"
-  curl --silent --show-error -L -o "$KSCRIPT_EXEC_DIR/assert.sh" https://raw.githubusercontent.com/lehmannro/assert.sh/master/assert.sh
-  chmod u+x "$KSCRIPT_EXEC_DIR/assert.sh"
-fi
+copy_executables() {
+  if [[ ! -f "$KSCRIPT_EXEC_DIR/assert.sh" ]]; then
+    curl --silent --show-error -L -o "$KSCRIPT_EXEC_DIR/assert.sh" https://raw.githubusercontent.com/lehmannro/assert.sh/master/assert.sh
+    chmod u+x "$KSCRIPT_EXEC_DIR/assert.sh"
+  fi
 
-export DEBUG="--verbose"
-. assert.sh
+  export DEBUG="--verbose"
+  . assert.sh
 
-# Fake idea binary just printing passed arguments...
-if [[ ! -f "$KSCRIPT_EXEC_DIR/idea" ]]; then
-  echo "#!/usr/bin/env bash" > "${KSCRIPT_EXEC_DIR}/idea"
-  echo "echo \$*" >> "${KSCRIPT_EXEC_DIR}/idea"
-  chmod +x "${KSCRIPT_EXEC_DIR}/idea"
-fi
+  # Fake idea binary just printing passed arguments...
+  if [[ ! -f "$KSCRIPT_EXEC_DIR/idea" ]]; then
+    echo "#!/usr/bin/env bash" > "${KSCRIPT_EXEC_DIR}/idea"
+    echo "echo \$*" >> "${KSCRIPT_EXEC_DIR}/idea"
+    chmod +x "${KSCRIPT_EXEC_DIR}/idea"
+  fi
 
-if [[ ! -f "$KSCRIPT_EXEC_DIR/mydsl" ]]; then
-  cp -R ${PROJECT_DIR}/test/resources/custom_dsl/* $KSCRIPT_EXEC_DIR
-fi
+  if [[ ! -f "$KSCRIPT_EXEC_DIR/mydsl" ]]; then
+    cp -R ${PROJECT_DIR}/test/resources/custom_dsl/* $KSCRIPT_EXEC_DIR
+  fi
+}
+
+copy_executables
 
 ## define test helper, see https://github.com/lehmannro/assert.sh/issues/24
 assert_statement(){
-    # usage cmd exp_stout exp_stder exp_exit_code
-    assert "$1" "$2"
-    assert "( $1 ) 2>&1 >/dev/null" "$3"
-    assert_raises "$1" "$4"
+  # usage cmd exp_stout exp_stder exp_exit_code
+  assert "$1" "$2"
+  assert "( $1 ) 2>&1 >/dev/null" "$3"
+  assert_raises "$1" "$4"
 }
 #assert_statment "echo foo; echo bar  >&2; exit 1" "foo" "bar" 1
 
 
 assert_stderr(){
-    assert "( $1 ) 2>&1 >/dev/null" "$2"
+  assert "( $1 ) 2>&1 >/dev/null" "$2"
 }
 
 # $1 - suite name; $2... - requested suites

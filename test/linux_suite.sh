@@ -12,8 +12,8 @@ REQUESTED_SUITES="${@:-ALL}"
 echo "Starting KScript test suites: $REQUESTED_SUITES"
 echo
 
-kscript --clear-cache
-echo
+# Clearing kscript app directory
+rm -rf ~/.kscript
 
 ########################################################################################################################
 

@@ -52,7 +52,7 @@ kotlin scripting interpreter.
 Installation
 ------------
 
-To use `kscript` just Kotlin and Maven are required.
+To use `kscript` just Kotlin is required.
 To [install Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html) we
 recommend [sdkman](http://sdkman.io/install):
 
@@ -104,9 +104,8 @@ instance [bind mounts](https://docs.docker.com/storage/bind-mounts/).
 
 #### Installation without `sdkman`
 
-If you have Kotlin and Maven already and you would like to install the latest `kscript` release without using `sdkman`
-you can do so by unzipping the [latest ](https://github.com/holgerbrandl/kscript/releases/latest) binary release. Don't
-forget to update your `$PATH` accordingly.
+If you have Kotlin already and you would like to install the latest `kscript` release without using `sdkman`
+you can do so by unzipping the [latest ](https://github.com/holgerbrandl/kscript/releases/latest) binary release. Don't forget to update your `$PATH` accordingly.
 
 #### Installation with Homebrew
 

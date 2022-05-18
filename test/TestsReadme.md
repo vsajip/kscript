@@ -12,23 +12,55 @@ curl -s "https://get.sdkman.io" | bash
 
 ```bash
 sdk install java 11.0.2-open
-sdk install kotlin 1.5.31
-sdk install gradle 7.2
+sdk install kotlin 1.6.21
+sdk install gradle 7.4.1
 ```
 
 #### 3. Clone repository
 Put the cloned repository into $DIR directory.
 
-
-#### 4. Run test suite
-To run the tests, just run the [`test_suite.sh`](test_suite.sh)
+#### 4. Configure your working environment [optional]
+You can configure your working environment by sourcing setup environment script:
 
 ```bash
 cd $DIR/test
-./test_suite.sh
+source setup_environment.sh
 ```
 
-#### 5. Check if all tests passed...
+Sourcing this script allows to use some useful for development commands:
+```bash
+copy_executables() # copies all executables necessary for tests to $KSCRIPT_EXEC_DIR
+cdk # bash alias which moves you to your kscript development directory
+switchPath # adds/removes development kscript from $PATH env variable
+help-dev # prints some useful commands 
+```
+
+#### 5. Run test suite
+To run the tests, just run the [`linux_suite.sh`](test_suite.sh)
+
+```bash
+cd $DIR/test
+./linux_suite.sh
+```
+
+You can customize what is executed by giving parameters to test suite script:
+
+* put names of the suite which you want to execute - other scripts will be skipped
+
+```bash
+./linux_suite.sh misc idea  # only misc and idea test suites will be executed
+```
+
+* put 'ALL' and '^<suite name>' to execute all test suites without given
+
+```bash
+./linux_suite.sh ALL ^misc ^idea  # all tests except misc and idea will be executed
+```
+
+* calling linux_suite.sh without parameters is equivalent to passing as a parameter 'ALL'
+
+
+#### 6. Check if all tests passed...
 
 ---
 Useful commands:
@@ -74,7 +106,7 @@ sdk list kotlin
 #sdk use kotlin 1.3.72
 #sdk use kotlin 1.4.10
 
-${KSCRIPT_HOME}/test/test_suite.sh
+${KSCRIPT_HOME}/test/linux_suite.sh
 
 # # run again with kotlin 1.0.X
 # sdk use kotlin 1.0.6

@@ -48,12 +48,14 @@ object Templates {
 
     fun runConfig(rootScriptName: String, rootScriptType: ScriptType, userArgs: List<String>): String {
         val rootFileName = rootScriptName + rootScriptType.extension
+        val userArgsString = userArgs.joinToString(" ") { it }
 
         if (rootScriptType == ScriptType.KT) {
             return """  |<component name="ProjectRunConfigurationManager">
                         |  <configuration default="false" name="$rootFileName" type="JetRunConfigurationType" nameIsGenerated="true">
-                        |    <option name="MAIN_CLASS_NAME" value="${rootScriptName}Kt" />
                         |    <module name="idea" />
+                        |    <option name="MAIN_CLASS_NAME" value="${rootScriptName}Kt" />
+                        |    <option name="PROGRAM_PARAMETERS" value="$userArgsString" />
                         |    <shortenClasspath name="NONE" />
                         |    <method v="2">
                         |      <option name="Make" enabled="true" />
@@ -66,6 +68,7 @@ object Templates {
         return """  |<component name="ProjectRunConfigurationManager">
                     |  <configuration default="false" name="$rootFileName" type="KotlinStandaloneScriptRunConfigurationType" nameIsGenerated="true">
                     |    <module name="idea" />
+                    |    <option name="PROGRAM_PARAMETERS" value="$userArgsString" />
                     |    <shortenClasspath name="NONE" />
                     |    <option name="filePath" value="${'$'}PROJECT_DIR${'$'}/src/$rootFileName" />
                     |    <method v="2">
