@@ -12,7 +12,8 @@ object GradleTemplates {
         val kotlinVersion = KotlinVersion.CURRENT
         val extendedDependencies = setOf(
             Dependency("org.jetbrains.kotlin:kotlin-stdlib"),
-            Dependency("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
+            Dependency("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion"),
+            Dependency("com.github.holgerbrandl:kscript-annotations:1.4"),
         ) + script.dependencies
 
         return """

@@ -72,7 +72,7 @@ object ScriptUtils {
         }
 
         val idxOfDot = filename.lastIndexOf('.')
-        if (idxOfDot > 0) {
+        if (idxOfDot > 0 && (filename.endsWith(".kt") || filename.endsWith(".kts"))) {
             filename = filename.substring(0, idxOfDot)
         }
 
@@ -125,9 +125,8 @@ object ScriptUtils {
         val text =
             code + resolutionContext.repositories.joinToString("\n") + resolutionContext.dependencies.joinToString("\n") + resolutionContext.compilerOpts.joinToString(
                 "\n"
-            ) + resolutionContext.kotlinOpts.joinToString(
-                "\n"
-            ) + (resolutionContext.entryPoint ?: "")
+            ) + resolutionContext.kotlinOpts.joinToString("\n") + (resolutionContext.entryPoint ?: "")
+
         return DigestUtils.md5Hex(text)
     }
 }

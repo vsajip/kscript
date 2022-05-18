@@ -37,6 +37,10 @@ if [[ ! -f "$KSCRIPT_EXEC_DIR/idea" ]]; then
   chmod +x "${KSCRIPT_EXEC_DIR}/idea"
 fi
 
+if [[ ! -f "$KSCRIPT_EXEC_DIR/mydsl" ]]; then
+  cp -R ${PROJECT_DIR}/test/resources/custom_dsl/* $KSCRIPT_EXEC_DIR
+fi
+
 ## define test helper, see https://github.com/lehmannro/assert.sh/issues/24
 assert_statement(){
     # usage cmd exp_stout exp_stder exp_exit_code
@@ -78,6 +82,7 @@ start_suite() {
 export NL=$'\n'
 
 alias cdk="cd $PROJECT_DIR"
+
 alias switchPath='
 if [[ "$PATH" != *"$KSCRIPT_EXEC_DIR"* ]]; then
   export PATH="$KSCRIPT_EXEC_DIR:$PATH"
@@ -87,4 +92,5 @@ else
   echo "Generic path set."
 fi
 '
+
 alias help-dev="cat $SCRIPT_DIR/help-dev.txt"

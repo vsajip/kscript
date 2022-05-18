@@ -12,11 +12,12 @@ Breaking changes
 Major Enhancements
 
 * Initial Windows support
+
+Bugfixes
 * Fix for dependency resolution
 * Fix creation of Gradle files and their indentation
-* Fix for handling potentially duplicated file names 
-
-Minor Enhancements
+* Fix for handling potentially duplicated file names in Idea projects
+* Fix for Idea runtime configuration
 
 ## 4.0.0
 
