@@ -33,17 +33,15 @@ object Templates {
     fun wrapperForScript(packageName: PackageName, className: String): String {
         val classReference = packageName.value + "." + className
 
-        return """
-            class Main_${className}{
-                companion object {
-                    @JvmStatic
-                    fun main(args: Array<String>) {
-                        val script = Main_${className}::class.java.classLoader.loadClass("$classReference")
-                        script.getDeclaredConstructor(Array<String>::class.java).newInstance(args);
-                    }
-                }
-            }
-            """.trimIndent()
+        return """|class Main_${className}{
+                  |    companion object {
+                  |        @JvmStatic
+                  |        fun main(args: Array<String>) {
+                  |            val script = Main_${className}::class.java.classLoader.loadClass("$classReference")
+                  |            script.getDeclaredConstructor(Array<String>::class.java).newInstance(args);
+                  |        }
+                  |    }
+                  |}""".trimMargin()
     }
 
     fun runConfig(rootScriptName: String, rootScriptType: ScriptType, userArgs: List<String>): String {
@@ -65,6 +63,7 @@ object Templates {
                         |""".trimMargin()
         }
 
+        // This is Kotlin scripting configuration (other possible options: ShConfigurationType (linux), BatchConfigurationType (windows))
         return """  |<component name="ProjectRunConfigurationManager">
                     |  <configuration default="false" name="$rootFileName" type="KotlinStandaloneScriptRunConfigurationType" nameIsGenerated="true">
                     |    <module name="idea" />
