@@ -19,7 +19,9 @@ Bugfixes
 * Fix for handling potentially duplicated file names in Idea projects
 * Fix for Idea runtime configuration
 
-## 4.0.0
+## 4.0.2
+
+Released 2022-05-18
 
 Rewrite by https://github.com/aartiPl
 
