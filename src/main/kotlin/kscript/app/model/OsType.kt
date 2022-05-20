@@ -9,6 +9,8 @@ enum class OsType(val osName: String) {
 
     companion object {
         fun findOrThrow(name: String) =
-            values().find { it.osName.equals(name, true) } ?: throw IllegalArgumentException("Unsupported OS: $name")
+            //Exact comparison (it.osName.equals(name, true)) seems to be not feasible as there is also e.g. "darwin21"
+            //and maybe even other osTypes: specific versions of os'es shouldn't belong to OsType.
+            values().find { name.contains(it.osName, true) } ?: throw IllegalArgumentException("Unsupported OS: $name")
     }
 }
