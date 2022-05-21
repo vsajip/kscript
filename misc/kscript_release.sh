@@ -62,7 +62,7 @@ xdg-open $KSCRIPT_ARCHIVE
 ########################################################################
 ### Do the github release
 
-## create tag on github 
+## create tag on github
 #github-release --help
 
 source ~/archive/gh_token.sh
@@ -91,7 +91,7 @@ github-release release \
     --repo kscript \
     --tag "v${kscript_version}" \
     --name "v${kscript_version}" \
-    --description "See [NEWS.md](https://github.com/holgerbrandl/kscript/blob/master/NEWS.md) for changes." 
+    --description "See [NEWS.md](https://github.com/holgerbrandl/kscript/blob/master/NEWS.md) for changes."
 #    \
 #    --pre-release
 
@@ -129,7 +129,7 @@ echo "
 KSCRIPT_VERSION=${kscript_version}
 " > kscript
 
-git add -A 
+git add -A
 git status
 git commit -m "v${kscript_version} release"
 
@@ -209,7 +209,7 @@ class Kscript < Formula
 
   def install
     libexec.install Dir["*"]
-    inreplace "#{libexec}/bin/kscript", /^jarPath=.*/, "jarPath=#{libexec}/bin/kscript.jar"
+    inreplace "#{libexec}/bin/kscript", /^JAR_PATH=.*/, "JAR_PATH=#{libexec}/bin/kscript.jar"
     bin.install_symlink "#{libexec}/bin/kscript"
   end
 end
