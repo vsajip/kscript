@@ -1,0 +1,56 @@
+name: installer
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+          - macos-10.15
+          - windows-2022
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+      - uses: fwilhe2/setup-kotlin@main
+        with:
+          version: 1.6.21
+
+      - name: Install dependencies for ${{ runner.os }}
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            choco install zip
+            # Overwrite the WSL bash.exe
+            cp /c/msys64/usr/bin/bash.exe /c/Windows/System32/bash.exe
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            # SDK man is enough?
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          else 
+            echo "Unknown OS"
+            exit 1
+          fi
+
+      - name: Install sdkman
+        shell: bash
+        run: |
+          bash -c "curl -s "https://get.sdkman.io" | bash"
+          source "$HOME/.sdkman/bin/sdkman-init.sh"   
+
+      - name: Run install/uninstall tests
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          sdk install kscript 4.0.2
+          kscript
+          sdk uninstall kscript 4.0.2
