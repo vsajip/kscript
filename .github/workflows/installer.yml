@@ -36,9 +36,10 @@ jobs:
             cp /c/msys64/usr/bin/bash.exe /c/Windows/System32/bash.exe
           elif [ "$RUNNER_OS" == "Linux" ]; then
             # SDK man is enough?
+            true
           elif [ "$RUNNER_OS" == "macOS" ]; then
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          else 
+          else
             echo "Unknown OS"
             exit 1
           fi
