@@ -1,9 +1,7 @@
-name: build
+name: installer
 
 on:
-  push:
-    paths:
-      - 'misc/kscript_release.sh'
+  workflow_dispatch:
 
 jobs:
   build:
