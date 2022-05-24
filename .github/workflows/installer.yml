@@ -27,34 +27,44 @@ jobs:
         with:
           version: 1.6.21
 
-      - name: Install dependencies for ${{ runner.os }}
+      - name: Install sdkman
+        shell: bash
+        run: |
+          bash -c "curl -s "https://get.sdkman.io" | bash"
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+      - name: Test installers for ${{ runner.os }}
         shell: bash
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
             choco install zip
             # Overwrite the WSL bash.exe
             cp /c/msys64/usr/bin/bash.exe /c/Windows/System32/bash.exe
+          
+            # sdkman
+            source "$HOME/.sdkman/bin/sdkman-init.sh"
+            sdk install kscript 4.0.2
+            kscript --help
+            sdk uninstall kscript 4.0.2
           elif [ "$RUNNER_OS" == "Linux" ]; then
-            # SDK man is enough?
-            true
+            # sdkman
+            source "$HOME/.sdkman/bin/sdkman-init.sh"
+            sdk install kscript 4.0.2
+            kscript --help
+            sdk uninstall kscript 4.0.2
           elif [ "$RUNNER_OS" == "macOS" ]; then
+            # sdkman
+            source "$HOME/.sdkman/bin/sdkman-init.sh"
+            sdk install kscript 4.0.2
+            kscript --help
+            sdk uninstall kscript 4.0.2
+
+            # brew
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            brew install holgerbrandl/tap/kscript
+            kscript --help
+            brew uninstall holgerbrandl/tap/kscript
           else
             echo "Unknown OS"
             exit 1
           fi
-
-      - name: Install sdkman
-        shell: bash
-        run: |
-          bash -c "curl -s "https://get.sdkman.io" | bash"
-          source "$HOME/.sdkman/bin/sdkman-init.sh"   
-
-      - name: Run install/uninstall tests
-        timeout-minutes: 10
-        shell: bash
-        run: |
-          source "$HOME/.sdkman/bin/sdkman-init.sh"
-          sdk install kscript 4.0.2
-          kscript --help
-          sdk uninstall kscript 4.0.2
