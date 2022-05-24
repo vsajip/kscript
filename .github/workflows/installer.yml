@@ -2,8 +2,11 @@ name: installer
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ master ]
+    inputs:
+      kscript_version:
+        description: 'KScript version to test'
+        required: true
+        default: '4.0.2'
 
 jobs:
   build:
@@ -27,6 +30,10 @@ jobs:
         with:
           version: 1.6.21
 
+      - name: "Set KScript version"
+        env:
+          KSCRIPT_VERSION: ${{ github.event.inputs.kscript_version }}
+
       - name: Prerequisites for ${{ runner.os }}
         shell: bash
         run: |
@@ -45,33 +52,23 @@ jobs:
       - name: Test installers for ${{ runner.os }}
         shell: bash
         run: |
+          # sdkman
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
+          sdk install kscript "$KSCRIPT_VERSION"
+          kscript --help
+          kscript -d "println(1+1)"
+          sdk uninstall kscript "$KSCRIPT_VERSION"
+          
           if [ "$RUNNER_OS" == "Windows" ]; then
-            # sdkman
-            source "$HOME/.sdkman/bin/sdkman-init.sh"
-            sdk install kscript 4.0.2
-            kscript --help
-            kscript "println(1+1)"
-            sdk uninstall kscript 4.0.2
+            true  
           elif [ "$RUNNER_OS" == "Linux" ]; then
-            # sdkman
-            source "$HOME/.sdkman/bin/sdkman-init.sh"
-            sdk install kscript 4.0.2
-            kscript --help
-            kscript "println(1+1)"
-            sdk uninstall kscript 4.0.2
+            true
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            # sdkman
-            source "$HOME/.sdkman/bin/sdkman-init.sh"
-            sdk install kscript 4.0.2
-            kscript --help
-            kscript "println(1+1)"
-            sdk uninstall kscript 4.0.2
-
             # brew
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             brew install holgerbrandl/tap/kscript
             kscript --help
-            kscript "println(1+1)"
+            kscript -d "println(1+1)"
             brew uninstall holgerbrandl/tap/kscript
           else
             echo "Unknown OS"
