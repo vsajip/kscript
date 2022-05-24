@@ -4,6 +4,7 @@ import kscript.app.creator.JarArtifact
 import kscript.app.model.Config
 import kscript.app.resolver.CommandResolver
 import kscript.app.util.Logger.devMsg
+import kscript.app.util.Logger.warnMsg
 import java.nio.file.Path
 
 class Executor(private val commandResolver: CommandResolver, private val config: Config) {
@@ -41,22 +42,20 @@ class Executor(private val commandResolver: CommandResolver, private val config:
     }
 
     fun runIdea(projectPath: Path) {
-        if (!ShellUtils.isInPath(config.osType, config.intellijCommand)) {
-            throw IllegalStateException("Could not find '${config.intellijCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_COMMAND_IDEA' env property")
+        if (ShellUtils.isInPath(config.osType, config.gradleCommand)) {
+            // Create gradle wrapper
+            ProcessRunner.runProcess("${config.gradleCommand} wrapper", wd = projectPath.toFile())
+        } else {
+            warnMsg("Could not find '${config.gradleCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_COMMAND_GRADLE' env property")
         }
 
-        if (!ShellUtils.isInPath(config.osType, config.gradleCommand)) {
-            throw IllegalStateException(
-                "Could not find '${config.gradleCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_COMMAND_GRADLE' env property"
-            )
+        if (ShellUtils.isInPath(config.osType, config.intellijCommand)) {
+            val command = commandResolver.executeIdea(projectPath)
+            devMsg("Idea execute command: $command")
+            println(command)
+        } else {
+            warnMsg("Could not find '${config.intellijCommand}' in your PATH. You should set the command used to launch your intellij as 'KSCRIPT_COMMAND_IDEA' env property")
         }
-
-        // Create gradle wrapper
-        ProcessRunner.runProcess("${config.gradleCommand} wrapper", wd = projectPath.toFile())
-
-        val command = commandResolver.executeIdea(projectPath)
-        devMsg("Idea execute command: $command")
-        println(command)
     }
 
     fun createPackage(projectPath: Path) {

@@ -8,10 +8,11 @@ enum class OsType(val osName: String) {
     fun isUnixHostedOnWindows() = (this == CYGWIN || this == MSYS)
 
     companion object {
-        fun findOrThrow(name: String) =
-            //Exact comparison (it.osName.equals(name, true)) seems to be not feasible as there is also e.g. "darwin21"
-            //and maybe even other osTypes, but specific versions of os'es shouldn't belong to OsType.
-            //https://github.com/holgerbrandl/kscript/issues/356
-            values().find { name.contains(it.osName, true) } ?: throw IllegalArgumentException("Unsupported OS: $name")
+        fun findOrThrow(name: String): OsType = find(name) ?: throw IllegalArgumentException("Unsupported OS: '$name'")
+
+        // Exact comparison (it.osName.equals(name, true)) seems to be not feasible as there is also e.g. "darwin21"
+        // "darwin19" and maybe even other osTypes. It seems though that startsWith() is covering all cases.
+        // https://github.com/holgerbrandl/kscript/issues/356
+        fun find(name: String): OsType? = values().find { name.startsWith(it.osName, true) }
     }
 }

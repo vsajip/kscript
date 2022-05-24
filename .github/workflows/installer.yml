@@ -2,9 +2,8 @@ name: build
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    paths:
+      - 'misc/kscript_release.sh'
 
 jobs:
   build:
@@ -35,12 +34,25 @@ jobs:
             choco install zip
             # Overwrite the WSL bash.exe
             cp /c/msys64/usr/bin/bash.exe /c/Windows/System32/bash.exe
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            # SDK man is enough?
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          else 
+            echo "Unknown OS"
+            exit 1
           fi
 
-      - name: Run tests
+      - name: Install sdkman
+        shell: bash
+        run: |
+          bash -c "curl -s "https://get.sdkman.io" | bash"
+          source "$HOME/.sdkman/bin/sdkman-init.sh"   
+
+      - name: Run install/uninstall tests
         timeout-minutes: 10
         shell: bash
-        if: ${{ runner.os != 'Windows' }}
         run: |
-          export KSCRIPT_HOME="$GITHUB_WORKSPACE"
-          ./test/linux_suite.sh
+          sdk install kscript 4.0.2
+          kscript
+          sdk uninstall kscript 4.0.2
