@@ -27,6 +27,15 @@ jobs:
         with:
           version: 1.6.21
 
+      - name: Prerequisites for ${{ runner.os }}
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            choco install zip
+            # Overwrite the WSL bash.exe
+            cp /c/msys64/usr/bin/bash.exe /c/Windows/System32/bash.exe
+          fi
+
       - name: Install sdkman
         shell: bash
         run: |
@@ -37,32 +46,32 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            choco install zip
-            # Overwrite the WSL bash.exe
-            cp /c/msys64/usr/bin/bash.exe /c/Windows/System32/bash.exe
-          
             # sdkman
             source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk install kscript 4.0.2
             kscript --help
+            kscript "println(1+1)"
             sdk uninstall kscript 4.0.2
           elif [ "$RUNNER_OS" == "Linux" ]; then
             # sdkman
             source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk install kscript 4.0.2
             kscript --help
+            kscript "println(1+1)"
             sdk uninstall kscript 4.0.2
           elif [ "$RUNNER_OS" == "macOS" ]; then
             # sdkman
             source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk install kscript 4.0.2
             kscript --help
+            kscript "println(1+1)"
             sdk uninstall kscript 4.0.2
 
             # brew
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             brew install holgerbrandl/tap/kscript
             kscript --help
+            kscript "println(1+1)"
             brew uninstall holgerbrandl/tap/kscript
           else
             echo "Unknown OS"
