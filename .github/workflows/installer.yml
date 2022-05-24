@@ -54,6 +54,7 @@ jobs:
         timeout-minutes: 10
         shell: bash
         run: |
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
           sdk install kscript 4.0.2
           kscript
           sdk uninstall kscript 4.0.2
