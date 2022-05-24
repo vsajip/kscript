@@ -56,5 +56,5 @@ jobs:
         run: |
           source "$HOME/.sdkman/bin/sdkman-init.sh"
           sdk install kscript 4.0.2
-          kscript
+          kscript --help
           sdk uninstall kscript 4.0.2
