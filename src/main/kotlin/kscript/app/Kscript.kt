@@ -18,7 +18,7 @@ import org.docopt.DocOptWrapper
  * @author Marcin Kuszczak
  */
 
-const val KSCRIPT_VERSION = "4.0.2"
+const val KSCRIPT_VERSION = "4.0.3"
 
 fun main(args: Array<String>) {
     try {
