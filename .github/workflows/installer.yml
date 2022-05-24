@@ -50,6 +50,8 @@ jobs:
       - name: Test installers for ${{ runner.os }}
         shell: bash
         run: |
+          echo "Bash path: $(which bash)"
+          
           # sdkman
           source "$HOME/.sdkman/bin/sdkman-init.sh"
           sdk install kscript ${{ env.KSCRIPT_VERSION }}
