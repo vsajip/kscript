@@ -40,7 +40,27 @@ jobs:
       - name: Run tests
         timeout-minutes: 10
         shell: bash
-        if: ${{ runner.os != 'Windows' }}
         run: |
           export KSCRIPT_HOME="$GITHUB_WORKSPACE"
-          ./test/linux_suite.sh
+          
+          if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            ./test/linux_suite.sh
+          elif [[ "$OSTYPE" == "darwin"* ]]; then
+            kscript --help
+            kscript "println(1+1)"
+          elif [[ "$OSTYPE" == "cygwin" ]]; then
+            kscript --help
+            kscript "println(1+1)"                  
+          elif [[ "$OSTYPE" == "msys" ]]; then
+            kscript --help
+            kscript "println(1+1)"                  
+          elif [[ "$OSTYPE" == "win32" ]]; then
+            kscript --help
+            kscript "println(1+1)"                  
+          elif [[ "$OSTYPE" == "freebsd"* ]]; then
+            kscript --help
+            kscript "println(1+1)"
+          else
+            echo "Unknown OS"
+            exit 1
+          fi

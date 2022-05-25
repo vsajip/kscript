@@ -35,12 +35,13 @@ class CommandResolver(private val config: Config, private val script: Script) {
     //How to find if mingw/cyg/win (second part): https://stackoverflow.com/questions/40877323/quickly-find-if-java-was-launched-from-windows-cmd-or-cygwin-terminal
 
     fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>): String {
-        val compilerOptsStr = resolveCompilerOpts(script.compilerOpts)
+        val compilerOpts = resolveCompilerOpts(script.compilerOpts)
         val classpath = resolveClasspath(dependencies)
-        val files = filePaths.joinToString(" ") { "\"${it.absolutePathString()}\"" }
+        val jarFile = resolveJarFile(jar)
+        val files = resolveFiles(filePaths)
         val kotlinc = resolveKotlinBinary("kotlinc")
 
-        return "$kotlinc $compilerOptsStr $classpath -d \"${jar.absolutePathString()}\" $files"
+        return "$kotlinc $compilerOpts $classpath -d $jarFile $files"
     }
 
     fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>): String {
@@ -81,6 +82,10 @@ class CommandResolver(private val config: Config, private val script: Script) {
     private fun resolveKotlinOpts(kotlinOpts: Set<KotlinOpt>) = kotlinOpts.joinToString(" ") { it.value }
 
     private fun resolveCompilerOpts(compilerOpts: Set<CompilerOpt>) = compilerOpts.joinToString(" ") { it.value }
+
+    private fun resolveJarFile(jar: Path): String = "'${jar.absolutePathString()}'"
+
+    private fun resolveFiles(filePaths: Set<Path>): String = filePaths.joinToString(" ") { "'${it.absolutePathString()}'" }
 
     private fun resolveUserArgs(userArgs: List<String>) =
         userArgs.joinToString(" ") { "\"${it.replace("\"", "\\\"")}\"" }

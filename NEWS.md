@@ -12,6 +12,7 @@ Breaking changes
 Major Enhancements
 
 * Initial Windows support
+* When creating IntelliJ project 'gradle' and 'idea' do not have to be in path 
 
 Bugfixes
 * Fix for dependency resolution
