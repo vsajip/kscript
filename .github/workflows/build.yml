@@ -45,7 +45,7 @@ jobs:
           export KSCRIPT_HOME="$GITHUB_WORKSPACE"
           
           if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-            ./test/linux_suite.sh
+            ./test/test_suite.sh
           elif [[ "$OSTYPE" == "darwin"* ]]; then
             kscript --help
             kscript "println(1+1)"
