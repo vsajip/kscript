@@ -22,12 +22,12 @@ class CommandResolver(private val config: Config, private val script: Script) {
 
     //<command_path>kotlinc -classpath "p1:p2"
     //OS Conversion matrix
-    //              command_path    command_quoting     classpath_path  classpath_separator     classpath_quoting       files_path      files_quoting   main_class_quoting
-    //LINUX         native          no                  native          :                       "                       ?
-    //GIT-BASH      shell           no                  native          ;                       "                       ?
-    //CYGWIN        shell           no                  native          ;                       "
-    //WINDOWS       native          no                  native          ;                       "
-    //MACOS         ?               ?                   ?               ?                       ?
+    //              command_path    command_quoting     classpath_path  classpath_separator     classpath_quoting       files_path      files_quoting   main_class_quoting   @arg_file
+    //LINUX         native          no                  native          :                       "                       ?                                                    no
+    //GIT-BASH      shell           no                  native          ;                       "                       ?                                                    no
+    //CYGWIN        shell           no                  native          ;                       "                                                                            no
+    //WINDOWS       native          no                  native          ;                       "                                                                            yes
+    //MACOS         ?               ?                   ?               ?                       ?                                                                            no
 
 
     //Path conversion (Cygwin/mingw): cygpath -u "c:\Users\Admin"; /cygdrive/c/ - Cygwin; /c/ - Mingw
@@ -35,12 +35,13 @@ class CommandResolver(private val config: Config, private val script: Script) {
     //How to find if mingw/cyg/win (second part): https://stackoverflow.com/questions/40877323/quickly-find-if-java-was-launched-from-windows-cmd-or-cygwin-terminal
 
     fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>): String {
-        val compilerOptsStr = resolveCompilerOpts(script.compilerOpts)
+        val compilerOpts = resolveCompilerOpts(script.compilerOpts)
         val classpath = resolveClasspath(dependencies)
-        val files = filePaths.joinToString(" ") { "\"${it.absolutePathString()}\"" }
+        val jarFile = resolveJarFile(jar)
+        val files = resolveFiles(filePaths)
         val kotlinc = resolveKotlinBinary("kotlinc")
 
-        return "$kotlinc $compilerOptsStr $classpath -d \"${jar.absolutePathString()}\" $files"
+        return "$kotlinc $compilerOpts $classpath -d $jarFile $files"
     }
 
     fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>): String {
@@ -81,6 +82,10 @@ class CommandResolver(private val config: Config, private val script: Script) {
     private fun resolveKotlinOpts(kotlinOpts: Set<KotlinOpt>) = kotlinOpts.joinToString(" ") { it.value }
 
     private fun resolveCompilerOpts(compilerOpts: Set<CompilerOpt>) = compilerOpts.joinToString(" ") { it.value }
+
+    private fun resolveJarFile(jar: Path): String = "'${jar.absolutePathString()}'"
+
+    private fun resolveFiles(filePaths: Set<Path>): String = filePaths.joinToString(" ") { "'${it.absolutePathString()}'" }
 
     private fun resolveUserArgs(userArgs: List<String>) =
         userArgs.joinToString(" ") { "\"${it.replace("\"", "\\\"")}\"" }

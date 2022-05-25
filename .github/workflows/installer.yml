@@ -2,6 +2,11 @@ name: installer
 
 on:
   workflow_dispatch:
+    inputs:
+      kscript_version:
+        description: 'KScript version to test'
+        required: true
+        default: '4.0.2'
 
 jobs:
   build:
@@ -14,6 +19,8 @@ jobs:
           - windows-2022
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
+    env:
+      KSCRIPT_VERSION: ${{ github.event.inputs.kscript_version }}
 
     steps:
       - uses: actions/checkout@v2
@@ -25,32 +32,45 @@ jobs:
         with:
           version: 1.6.21
 
-      - name: Install dependencies for ${{ runner.os }}
+      - name: Prerequisites for ${{ runner.os }}
         shell: bash
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
             choco install zip
             # Overwrite the WSL bash.exe
             cp /c/msys64/usr/bin/bash.exe /c/Windows/System32/bash.exe
-          elif [ "$RUNNER_OS" == "Linux" ]; then
-            # SDK man is enough?
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          else 
-            echo "Unknown OS"
-            exit 1
           fi
 
       - name: Install sdkman
         shell: bash
         run: |
           bash -c "curl -s "https://get.sdkman.io" | bash"
-          source "$HOME/.sdkman/bin/sdkman-init.sh"   
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
 
-      - name: Run install/uninstall tests
-        timeout-minutes: 10
+      - name: Test installers for ${{ runner.os }}
         shell: bash
         run: |
-          sdk install kscript 4.0.2
-          kscript
-          sdk uninstall kscript 4.0.2
+          echo "Bash path: $(which bash)"
+          
+          # sdkman
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
+          sdk install kscript ${{ env.KSCRIPT_VERSION }}
+          kscript --help
+          kscript -d "println(1+1)"
+          sdk uninstall kscript ${{ env.KSCRIPT_VERSION }}
+          
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            true  
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            true
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            # brew
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            brew install holgerbrandl/tap/kscript
+            kscript --help
+            kscript -d "println(1+1)"
+            brew uninstall holgerbrandl/tap/kscript
+          else
+            echo "Unknown OS"
+            exit 1
+          fi
