@@ -44,25 +44,34 @@ jobs:
         run: |
           export PATH=${GITHUB_WORKSPACE}/build/libs:${PATH}
           
+          echo "OsType:         $OSTYPE"
+          echo "kscript path:   $(which kscript)"
+          
           if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            echo "Linux test..."
             ./test/test_suite.sh
           elif [[ "$OSTYPE" == "darwin"* ]]; then
+            echo "MacOs test..."
             ./gradlew clean build
             kscript --help
             kscript -d "println(1+1)"
           elif [[ "$OSTYPE" == "cygwin" ]]; then
+            echo "Cygwin test..."
             ./gradlew clean build
             kscript --help
             kscript -d "println(1+1)"                  
           elif [[ "$OSTYPE" == "msys" ]]; then
+            echo "MSys test..."
             ./gradlew clean build
             kscript --help
             kscript -d "println(1+1)"                  
           elif [[ "$OSTYPE" == "win32" ]]; then
+            echo "Windows test..."
             ./gradlew clean build
             kscript --help
             kscript -d "println(1+1)"                  
           elif [[ "$OSTYPE" == "freebsd"* ]]; then
+            echo "FreeBsd test..."
             ./gradlew clean build
             kscript --help
             kscript -d "println(1+1)"
