@@ -42,23 +42,28 @@ jobs:
         timeout-minutes: 10
         shell: bash
         run: |
-          export KSCRIPT_HOME="$GITHUB_WORKSPACE"
+          export PATH=${GITHUB_WORKSPACE}/build/libs:${PATH}
           
           if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             ./test/test_suite.sh
           elif [[ "$OSTYPE" == "darwin"* ]]; then
+            ./gradlew clean build
             kscript --help
             kscript "println(1+1)"
           elif [[ "$OSTYPE" == "cygwin" ]]; then
+            ./gradlew clean build
             kscript --help
             kscript "println(1+1)"                  
           elif [[ "$OSTYPE" == "msys" ]]; then
+            ./gradlew clean build
             kscript --help
             kscript "println(1+1)"                  
           elif [[ "$OSTYPE" == "win32" ]]; then
+            ./gradlew clean build
             kscript --help
             kscript "println(1+1)"                  
           elif [[ "$OSTYPE" == "freebsd"* ]]; then
+            ./gradlew clean build
             kscript --help
             kscript "println(1+1)"
           else
