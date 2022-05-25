@@ -49,23 +49,23 @@ jobs:
           elif [[ "$OSTYPE" == "darwin"* ]]; then
             ./gradlew clean build
             kscript --help
-            kscript "println(1+1)"
+            kscript -d "println(1+1)"
           elif [[ "$OSTYPE" == "cygwin" ]]; then
             ./gradlew clean build
             kscript --help
-            kscript "println(1+1)"                  
+            kscript -d "println(1+1)"                  
           elif [[ "$OSTYPE" == "msys" ]]; then
             ./gradlew clean build
             kscript --help
-            kscript "println(1+1)"                  
+            kscript -d "println(1+1)"                  
           elif [[ "$OSTYPE" == "win32" ]]; then
             ./gradlew clean build
             kscript --help
-            kscript "println(1+1)"                  
+            kscript -d "println(1+1)"                  
           elif [[ "$OSTYPE" == "freebsd"* ]]; then
             ./gradlew clean build
             kscript --help
-            kscript "println(1+1)"
+            kscript -d "println(1+1)"
           else
             echo "Unknown OS"
             exit 1
