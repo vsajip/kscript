@@ -4,14 +4,13 @@ import kscript.app.creator.JarArtifact
 import kscript.app.model.CompilerOpt
 import kscript.app.model.Config
 import kscript.app.model.KotlinOpt
-import kscript.app.model.Script
 import kscript.app.util.FileUtils.nativeToShellPath
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 
-class CommandResolver(private val config: Config, private val script: Script) {
+class CommandResolver(private val config: Config) {
     //Syntax for different OS-es:
     //LINUX:    /usr/local/sdkman/..../kotlin  -classpath "/home/vagrant/workspace/Kod/Repos/kscript/test:/home/vagrant/.kscript/cache/jar_2ccd53e06b0355d3573a4ae8698398fe/scriplet.jar:/usr/local/sdkman/candidates/kotlin/1.6.21/lib/kotlin-script-runtime.jar" Main_Scriplet
     //GIT-BASH: /c/Users/Admin/.sdkman/candidates/kotlin/current/bin/kotlin  -classpath "C:\Users\Admin;C:\Users\Admin\.kscript\cache\jar_2ccd53e06b0355d3573a4ae8698398fe\scriplet.jar;C:\Users\Admin\.sdkman\candidates\kotlin\current\lib\kotlin-script-runtime.jar" Main_Scriplet
@@ -34,18 +33,18 @@ class CommandResolver(private val config: Config, private val script: Script) {
     //uname --> CYGWIN_NT-10.0 or MINGW64_NT-10.0-19043
     //How to find if mingw/cyg/win (second part): https://stackoverflow.com/questions/40877323/quickly-find-if-java-was-launched-from-windows-cmd-or-cygwin-terminal
 
-    fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>): String {
-        val compilerOpts = resolveCompilerOpts(script.compilerOpts)
+    fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>, compilerOpts: Set<CompilerOpt>): String {
+        val compilerOptsStr = resolveCompilerOpts(compilerOpts)
         val classpath = resolveClasspath(dependencies)
         val jarFile = resolveJarFile(jar)
         val files = resolveFiles(filePaths)
         val kotlinc = resolveKotlinBinary("kotlinc")
 
-        return "$kotlinc $compilerOpts $classpath -d $jarFile $files"
+        return "$kotlinc $compilerOptsStr $classpath -d $jarFile $files"
     }
 
-    fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>): String {
-        val kotlinOptsStr = resolveKotlinOpts(script.kotlinOpts)
+    fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>, kotlinOpts: Set<KotlinOpt>): String {
+        val kotlinOptsStr = resolveKotlinOpts(kotlinOpts)
         val userArgsStr = resolveUserArgs(userArgs)
         val scriptRuntime =
             Paths.get("${config.kotlinHome}${config.hostPathSeparatorChar}lib${config.hostPathSeparatorChar}kotlin-script-runtime.jar")
@@ -62,9 +61,9 @@ class CommandResolver(private val config: Config, private val script: Script) {
         return "$kotlin $kotlinOptsStr $classpath ${jarArtifact.execClassName} $userArgsStr"
     }
 
-    fun interactiveKotlinRepl(dependencies: Set<Path>): String {
-        val compilerOptsStr = resolveCompilerOpts(script.compilerOpts)
-        val kotlinOptsStr = resolveKotlinOpts(script.kotlinOpts)
+    fun interactiveKotlinRepl(dependencies: Set<Path>, compilerOpts: Set<CompilerOpt>, kotlinOpts: Set<KotlinOpt>): String {
+        val compilerOptsStr = resolveCompilerOpts(compilerOpts)
+        val kotlinOptsStr = resolveKotlinOpts(kotlinOpts)
         val classpath = resolveClasspath(dependencies)
         val kotlinc = resolveKotlinBinary("kotlinc")
 

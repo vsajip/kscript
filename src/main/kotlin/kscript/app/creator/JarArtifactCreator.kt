@@ -47,7 +47,7 @@ class JarArtifactCreator(private val executor: Executor) {
             filesToCompile.add(wrapper)
         }
 
-        executor.compileKotlin(jarFile, resolvedDependencies, filesToCompile)
+        executor.compileKotlin(jarFile, resolvedDependencies, filesToCompile, script.compilerOpts)
 
         return JarArtifact(jarFile, execClassName)
     }

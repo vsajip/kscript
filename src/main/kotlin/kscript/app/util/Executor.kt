@@ -1,19 +1,21 @@
 package kscript.app.util
 
 import kscript.app.creator.JarArtifact
+import kscript.app.model.CompilerOpt
 import kscript.app.model.Config
+import kscript.app.model.KotlinOpt
 import kscript.app.resolver.CommandResolver
 import kscript.app.util.Logger.devMsg
 import kscript.app.util.Logger.warnMsg
 import java.nio.file.Path
 
 class Executor(private val commandResolver: CommandResolver, private val config: Config) {
-    fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>) {
+    fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>, compilerOpts: Set<CompilerOpt>) {
         if (config.kotlinHome == null && !ShellUtils.isInPath(config.osType, "kotlinc")) {
             throw IllegalStateException("${"kotlinc"} is not in PATH")
         }
 
-        val command = commandResolver.compileKotlin(jar, dependencies, filePaths)
+        val command = commandResolver.compileKotlin(jar, dependencies, filePaths, compilerOpts)
 
         devMsg("JAR compile command: $command")
 
@@ -24,19 +26,19 @@ class Executor(private val commandResolver: CommandResolver, private val config:
         }
     }
 
-    fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>) {
+    fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>, kotlinOpts: Set<KotlinOpt>) {
         if (config.kotlinHome == null && !ShellUtils.isInPath(config.osType, "kotlin") ) {
             throw IllegalStateException("KOTLIN_HOME is not set and could not be inferred from context, and kotlin is not in PATH")
         }
 
-        val command = commandResolver.executeKotlin(jarArtifact, dependencies, userArgs)
+        val command = commandResolver.executeKotlin(jarArtifact, dependencies, userArgs, kotlinOpts)
         devMsg("Kotlin execute command: $command")
         println(command)
     }
 
-    fun runInteractiveRepl(dependencies: Set<Path>) {
+    fun runInteractiveRepl(dependencies: Set<Path>, compilerOpts: Set<CompilerOpt>, kotlinOpts: Set<KotlinOpt>) {
         Logger.infoMsg("Creating REPL")
-        val command = commandResolver.interactiveKotlinRepl(dependencies)
+        val command = commandResolver.interactiveKotlinRepl(dependencies, compilerOpts, kotlinOpts)
         devMsg("REPL Kotlin command: $command")
         println(command)
     }

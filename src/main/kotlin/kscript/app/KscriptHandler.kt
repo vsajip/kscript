@@ -64,7 +64,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         val resolvedDependencies = appDir.cache.getOrCreateDependencies(script.digest) {
             DependencyResolver(script.repositories).resolve(script.dependencies)
         }
-        val executor = Executor(CommandResolver(config, script), config)
+        val executor = Executor(CommandResolver(config), config)
 
         //  Create temporary dev environment
         if (docopt.getBoolean("idea")) {
@@ -80,7 +80,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         //  Optionally enter interactive mode
         if (docopt.getBoolean("interactive")) {
-            executor.runInteractiveRepl(resolvedDependencies)
+            executor.runInteractiveRepl(resolvedDependencies, script.compilerOpts, script.kotlinOpts)
             return
         }
 
@@ -104,6 +104,6 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             return
         }
 
-        executor.executeKotlin(jar, resolvedDependencies, userArgs)
+        executor.executeKotlin(jar, resolvedDependencies, userArgs, script.kotlinOpts)
     }
 }
