@@ -42,25 +42,42 @@ jobs:
         timeout-minutes: 10
         shell: bash
         run: |
-          export KSCRIPT_HOME="$GITHUB_WORKSPACE"
+          echo "OsType:         $OSTYPE"
+          export PATH=./build/libs:${PATH}
           
           if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-            ./test/linux_suite.sh
+            echo "Linux test..."
+            ./test/test_suite.sh
           elif [[ "$OSTYPE" == "darwin"* ]]; then
+            echo "MacOs test..."
+            ./gradlew clean build
+            echo "kscript path:   $(which kscript)"
             kscript --help
-            kscript "println(1+1)"
+            kscript -d "println(1+1)"
           elif [[ "$OSTYPE" == "cygwin" ]]; then
+            echo "Cygwin test..."
+            ./gradlew clean build
+            echo "kscript path:   $(which kscript)"
             kscript --help
-            kscript "println(1+1)"                  
+            kscript -d "println(1+1)"                  
           elif [[ "$OSTYPE" == "msys" ]]; then
+            echo "MSys test..."
+            ./gradlew clean build
+            echo "kscript path:   $(which kscript)"
             kscript --help
-            kscript "println(1+1)"                  
+            kscript -d "println(1+1)"                  
           elif [[ "$OSTYPE" == "win32" ]]; then
+            echo "Windows test..."
+            ./gradlew clean build
+            echo "kscript path:   $(which kscript)"
             kscript --help
-            kscript "println(1+1)"                  
+            kscript -d "println(1+1)"                  
           elif [[ "$OSTYPE" == "freebsd"* ]]; then
+            echo "FreeBsd test..."
+            ./gradlew clean build
+            echo "kscript path:   $(which kscript)"
             kscript --help
-            kscript "println(1+1)"
+            kscript -d "println(1+1)"
           else
             echo "Unknown OS"
             exit 1
