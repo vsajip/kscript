@@ -1,7 +1,7 @@
 package kscript.app.model
 
 enum class OsType(val osName: String) {
-    LINUX("linux-gnu"), DARWIN("darwin"), WINDOWS("windows"), CYGWIN("cygwin"), MSYS("msys"), FREEBSD("freebsd");
+    LINUX("linux"), DARWIN("darwin"), WINDOWS("windows"), CYGWIN("cygwin"), MSYS("msys"), FREEBSD("freebsd");
 
     fun isUnixLike() = (this == LINUX || this == DARWIN || this == FREEBSD)
     fun isWindowsLike() = (this == WINDOWS)
