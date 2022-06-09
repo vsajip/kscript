@@ -27,7 +27,7 @@ class ConfigBuilder internal constructor() {
         //and then converted as needed to shell format.
 
         val osType = OsType.findOrThrow(requireNotNull(osType))
-        val classPathSeparator = classPathSeparator ?: if (osType.isWindowsLike() || osType.isUnixHostedOnWindows()) ';' else ':'
+        val classPathSeparator = classPathSeparator ?: if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ';' else ':'
         val hostPathSeparatorChar = hostPathSeparatorChar ?: File.separatorChar
         val selfName = selfName ?: System.getenv("KSCRIPT_NAME") ?: "kscript"
         val kscriptDir = kscriptDir ?: Paths.get(System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript"))

@@ -3,9 +3,9 @@ package kscript.app.model
 enum class OsType(val osName: String) {
     LINUX("linux"), DARWIN("darwin"), WINDOWS("windows"), CYGWIN("cygwin"), MSYS("msys"), FREEBSD("freebsd");
 
-    fun isUnixLike() = (this == LINUX || this == DARWIN || this == FREEBSD || this == CYGWIN || this == MSYS)
+    fun isPosixLike() = (this == LINUX || this == DARWIN || this == FREEBSD || this == CYGWIN || this == MSYS)
+    fun isPosixHostedOnWindows() = (this == CYGWIN || this == MSYS)
     fun isWindowsLike() = (this == WINDOWS)
-    fun isUnixHostedOnWindows() = (this == CYGWIN || this == MSYS)
 
     companion object {
         fun findOrThrow(name: String): OsType = find(name) ?: throw IllegalArgumentException("Unsupported OS: '$name'")

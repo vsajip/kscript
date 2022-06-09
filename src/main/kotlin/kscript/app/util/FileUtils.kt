@@ -71,7 +71,7 @@ object FileUtils {
     fun shellToNativePath(osType: OsType, path: String?): Path? {
         path ?: return null
 
-        if (osType.isWindowsLike() || osType.isUnixLike()) {
+        if (osType.isWindowsLike() || osType.isPosixLike()) {
             return Paths.get(path)
         }
 
