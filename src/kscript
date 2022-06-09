@@ -44,8 +44,6 @@ fi
 
 ## expose the name of the script being run to the script itself
 export KSCRIPT_FILE="$1"
-## expose the osType which is internal bash variable, not exposed by environment variables
-export OSTYPE=$OSTYPE
 
 ## run it using command substitution to have just the user process once kscript is done
 eval "exec $("${KOTLIN_BIN}kotlin" -classpath "${JAR_PATH}" kscript.app.KscriptKt "$OSTYPE" "$@")"

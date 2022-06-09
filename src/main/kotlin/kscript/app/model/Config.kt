@@ -12,7 +12,6 @@ data class Config(
     val kotlinHome: Path?,
     val classPathSeparator: Char,
     val hostPathSeparatorChar: Char,
-    val shellPathSeparatorChar: Char,
     val homeDir: Path,
     val kotlinOptsEnvVariable: String,
     val repositoryUrlEnvVariable: String,

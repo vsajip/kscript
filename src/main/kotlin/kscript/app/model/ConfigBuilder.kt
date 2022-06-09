@@ -10,7 +10,6 @@ class ConfigBuilder internal constructor() {
     var osType: String? = null
     var classPathSeparator: Char? = null
     var hostPathSeparatorChar: Char? = null
-    var shellPathSeparatorChar: Char? = null
     var selfName: String? = null
     var kscriptDir: Path? = null
     var customPreamble: String? = null
@@ -30,7 +29,6 @@ class ConfigBuilder internal constructor() {
         val osType = OsType.findOrThrow(requireNotNull(osType))
         val classPathSeparator = classPathSeparator ?: if (osType.isWindowsLike() || osType.isUnixHostedOnWindows()) ';' else ':'
         val hostPathSeparatorChar = hostPathSeparatorChar ?: File.separatorChar
-        val shellPathSeparatorChar = shellPathSeparatorChar ?: if (osType.isUnixHostedOnWindows()) '/' else hostPathSeparatorChar
         val selfName = selfName ?: System.getenv("KSCRIPT_NAME") ?: "kscript"
         val kscriptDir = kscriptDir ?: Paths.get(System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript"))
         val customPreamble = customPreamble ?: System.getenv("KSCRIPT_PREAMBLE") ?: ""
@@ -53,7 +51,6 @@ class ConfigBuilder internal constructor() {
             kotlinHome,
             classPathSeparator,
             hostPathSeparatorChar,
-            shellPathSeparatorChar,
             homeDir,
             kotlinOptsEnvVariable,
             repositoryUrlEnvVariable,
