@@ -66,7 +66,10 @@ class OsPath internal constructor(
         TODO()
     }
 
+    fun stringPath(): String =
+        pathParts.joinToString(pathSeparator.toString()) { it }
+
     companion object {
-        fun create(osType: OsType, path: String): OsPath = OsPathExt.create(path, osType)
+        fun create(osType: OsType, path: String): OsPath = OsPathUtils.create(path, osType)
     }
 }

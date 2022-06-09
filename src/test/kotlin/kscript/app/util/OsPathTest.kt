@@ -6,6 +6,7 @@ import kscript.app.model.OsType
 import org.junit.jupiter.api.Test
 
 internal class OsPathTest {
+    // ************************************************** LINUX PATHS **************************************************
     @Test
     fun `Test Linux paths`() {
         assertThat(OsPath.create(OsType.LINUX, "/")).let {
@@ -67,13 +68,28 @@ internal class OsPathTest {
 
         assertThat { OsPath.create(OsType.LINUX, "/.kscript/../../") }.isFailure()
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid path: after normalization it goes beyond root element.")
+            .hasMessage("Path after normalization goes beyond root element: '/.kscript/../../'")
     }
 
     @Test
     fun `Test invalid Linux paths`() {
+        assertThat { OsPath.create(OsType.LINUX, "//") }.isFailure()
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Duplicated path separators or empty path names in '//'")
 
+        assertThat { OsPath.create(OsType.LINUX, "/ad\\asdf") }.isFailure()
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Invalid characters in path: '\\'")
     }
+
+    @Test
+    fun `Test Linux stringPath conversion`() {
+        assertThat(OsPath.create(OsType.LINUX, "/home/admin/.kscript").stringPath()).isEqualTo("/home/admin/.kscript")
+        assertThat(OsPath.create(OsType.LINUX, "/a/b/c/../d/script").stringPath()).isEqualTo("/a/b/d/script")
+        assertThat(OsPath.create(OsType.LINUX, "./././../../script").stringPath()).isEqualTo("../../script")
+    }
+
+    // ************************************************* WINDOWS PATHS *************************************************
 
     @Test
     fun `Test Windows paths`() {
@@ -136,7 +152,7 @@ internal class OsPathTest {
 
         assertThat { OsPath.create(OsType.WINDOWS, "C:\\.kscript\\..\\..\\") }.isFailure()
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid path: after normalization it goes beyond root element.")
+            .hasMessage("Path after normalization goes beyond root element: 'C:\\.kscript\\..\\..\\'")
     }
 
     @Test
@@ -147,6 +163,10 @@ internal class OsPathTest {
 
         assertThat { OsPath.create(OsType.WINDOWS, "C") }.isFailure()
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid path: after normalization it goes beyond root element.")
+            .hasMessage("Invalid root element of path: 'C'")
+
+        assertThat { OsPath.create(OsType.WINDOWS, "C:\\adas?df") }.isFailure()
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Invalid characters in path: '?'")
     }
 }
