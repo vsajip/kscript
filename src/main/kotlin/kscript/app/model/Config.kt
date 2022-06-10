@@ -2,22 +2,59 @@ package kscript.app.model
 
 import kscript.app.util.OsPath
 
-data class Config(
+data class ScriptingConfig(
+    val customPreamble: String,
+    val providedKotlinOpts: String,
+    val providedRepositoryUrl: String,
+    val providedRepositoryUser: String,
+    val providedRepositoryPassword: String
+) {
+    override fun toString(): String {
+        return """|ScriptingConfig {
+                  |  customPreamble:                $customPreamble
+                  |  providedKotlinOpts:            $providedKotlinOpts
+                  |  providedRepositoryUrl:         $providedRepositoryUrl
+                  |  providedRepositoryUser:        $providedRepositoryUser
+                  |  providedRepositoryPassword:    $providedRepositoryPassword
+                  |}
+               """.trimMargin()
+    }
+}
+
+data class OsConfig(
     val osType: OsType,
     val selfName: String,
-    val kscriptDir: OsPath,
-    val customPreamble: String,
     val intellijCommand: String,
     val gradleCommand: String,
-    val kotlinHome: OsPath,
+    val userHomeDir: OsPath,
+    val kscriptConfigDir: OsPath,
+    val kotlinHomeDir: OsPath,
     val classPathSeparator: Char,
     val hostPathSeparatorChar: Char,
-    val homeDir: OsPath,
-    val kotlinOptsEnvVariable: String,
-    val repositoryUrlEnvVariable: String,
-    val repositoryUserEnvVariable: String,
-    val repositoryPasswordEnvVariable: String,
 ) {
+    override fun toString(): String {
+        return """|OsConfig {
+                  |  osType:                $osType
+                  |  selfName:              $selfName
+                  |  intellijCommand:       $intellijCommand
+                  |  gradleCommand:         $gradleCommand
+                  |  userHomeDir:           $userHomeDir
+                  |  kscriptConfigDir:      $kscriptConfigDir
+                  |  kotlinHomeDir:         $kotlinHomeDir
+                  |  classPathSeparator:    $classPathSeparator
+                  |  hostPathSeparatorChar: $hostPathSeparatorChar
+                  |}
+               """.trimMargin()
+    }
+}
+
+data class Config(val osConfig: OsConfig, val scriptingConfig: ScriptingConfig) {
+    override fun toString(): String {
+        return """|$osConfig
+                  |$scriptingConfig 
+               """.trimMargin()
+    }
+
     companion object {
         fun builder() = ConfigBuilder()
     }

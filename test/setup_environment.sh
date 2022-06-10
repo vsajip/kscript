@@ -22,6 +22,9 @@ fi
 echo  "KScript path for testing: $(which kscript)"
 
 copy_executables() {
+  mkdir -p $KSCRIPT_EXEC_DIR
+  mkdir -p $KSCRIPT_TEST_DIR
+
   if [[ ! -f "$KSCRIPT_EXEC_DIR/assert.sh" ]]; then
     curl --silent --show-error -L -o "$KSCRIPT_EXEC_DIR/assert.sh" https://raw.githubusercontent.com/lehmannro/assert.sh/master/assert.sh
     chmod u+x "$KSCRIPT_EXEC_DIR/assert.sh"

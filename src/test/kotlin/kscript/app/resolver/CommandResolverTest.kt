@@ -1,29 +1,25 @@
 package kscript.app.resolver
 
-import assertk.assertThat
-import assertk.assertions.isEqualTo
-import kscript.app.model.CompilerOpt
-import kscript.app.model.Config
-import kscript.app.model.OsType
+import kscript.app.model.*
 import kscript.app.util.OsPath
 import org.junit.jupiter.api.Test
 import java.nio.file.FileSystems
-import java.nio.file.Paths
 
 internal class CommandResolverTest {
     @Test
     fun compileKotlin() {
         val config = createConfig(OsType.LINUX)
         val commandResolver = CommandResolver(config)
-        val jarPath = config.homeDir.resolve("/cache/somefile.jar")
+        val jarPath = config.osConfig.userHomeDir.resolve("/cache/somefile.jar")
         val depPaths = setOf(
-            config.homeDir.resolve("/.m2/somepath/dep1.jar"),
-            config.homeDir.resolve("/.m2/somepath/dep2.jar"),
-            config.homeDir.resolve("/.m2/somepath/dep3.jar")
+            config.osConfig.userHomeDir.resolve("/.m2/somepath/dep1.jar"),
+            config.osConfig.userHomeDir.resolve("/.m2/somepath/dep2.jar"),
+            config.osConfig.userHomeDir.resolve("/.m2/somepath/dep3.jar")
         )
 
         val filePaths = setOf(
-            config.homeDir.resolve("/source/somepath/dep1.jar"), config.homeDir.resolve("/source/somepath/dep2.jar")
+            config.osConfig.userHomeDir.resolve("/source/somepath/dep1.jar"),
+            config.osConfig.userHomeDir.resolve("/source/somepath/dep2.jar")
         )
 
         val compilerOpts = setOf(CompilerOpt("-abc"), CompilerOpt("-def"), CompilerOpt("--clear"))
@@ -32,7 +28,7 @@ internal class CommandResolverTest {
 //            println(jarPath.getName(i))
 //        }
 
-        println("home: " + config.homeDir)
+        println("home: " + config.osConfig.userHomeDir)
         println("jarFile: " + jarPath)
 
 //        assertThat(commandResolver.compileKotlin(jarPath, depPaths, filePaths, compilerOpts)).isEqualTo(
@@ -43,34 +39,31 @@ internal class CommandResolverTest {
         val homeDir = when (osType) {
             OsType.LINUX, OsType.DARWIN, OsType.FREEBSD -> OsPath.create(osType, "/home/my workspace/Code")
             OsType.WINDOWS -> OsPath.create(osType, "C:\\My Workspace\\Code")
-            OsType.CYGWIN -> OsPath.create(osType,"/cygdrive/c/my workspace/Code")
-            OsType.MSYS -> OsPath.create(osType,"/c/my workspace/Code")
+            OsType.CYGWIN -> OsPath.create(osType, "/cygdrive/c/my workspace/Code")
+            OsType.MSYS -> OsPath.create(osType, "/c/my workspace/Code")
         }
 
         //homeDir.fileSystem
 
         FileSystems.getDefault()
 
-
-
         val classPathSeparator = if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ';' else ':'
         val hostPathSeparatorChar = if (osType.isPosixLike()) ':' else ';'
 
-        return Config(
+        val osConfig = OsConfig(
             osType,
             "kscript",
-            homeDir.resolve(".kscript/"),
-            "",
             "idea",
             "gradle",
+            homeDir,
+            homeDir.resolve(".kscript/"),
             homeDir.resolve("kotlin/"),
             classPathSeparator,
-            hostPathSeparatorChar,
-            homeDir,
-            "",
-            "",
-            "",
-            "",
+            hostPathSeparatorChar
         )
+
+        val scriptingConfig = ScriptingConfig("", "", "", "", "")
+
+        return Config(osConfig, scriptingConfig)
     }
 }

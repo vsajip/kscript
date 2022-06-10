@@ -47,7 +47,7 @@ class CommandResolver(private val config: Config) {
         val kotlinOptsStr = resolveKotlinOpts(kotlinOpts)
         val userArgsStr = resolveUserArgs(userArgs)
         val scriptRuntime =
-            Paths.get("${config.kotlinHome.stringPath()}${config.hostPathSeparatorChar}lib${config.hostPathSeparatorChar}kotlin-script-runtime.jar")
+            Paths.get("${config.osConfig.kotlinHomeDir.stringPath()}${config.osConfig.hostPathSeparatorChar}lib${config.osConfig.hostPathSeparatorChar}kotlin-script-runtime.jar")
 
         val dependenciesSet = buildSet<Path> {
             addAll(dependencies)
@@ -73,11 +73,11 @@ class CommandResolver(private val config: Config) {
     }
 
     fun executeIdea(projectPath: Path): String {
-        return "${config.intellijCommand} \"$projectPath\""
+        return "${config.osConfig.intellijCommand} \"$projectPath\""
     }
 
     fun createPackage(projectPath: Path): String {
-        return "cd '${projectPath}' && ${config.gradleCommand} simpleCapsule"
+        return "cd '${projectPath}' && ${config.osConfig.gradleCommand} simpleCapsule"
     }
 
     private fun resolveKotlinOpts(kotlinOpts: Set<KotlinOpt>) = kotlinOpts.joinToString(" ") { it.value }
@@ -93,9 +93,9 @@ class CommandResolver(private val config: Config) {
         userArgs.joinToString(" ") { "\"${it.replace("\"", "\\\"")}\"" }
 
     private fun resolveClasspath(dependencies: Set<Path>) =
-        if (dependencies.isEmpty()) "" else "-classpath \"" + dependencies.joinToString(config.classPathSeparator.toString()) {
+        if (dependencies.isEmpty()) "" else "-classpath \"" + dependencies.joinToString(config.osConfig.classPathSeparator.toString()) {
             it.absolutePathString()
         } + "\""
 
-    private fun resolveKotlinBinary(binary: String) = config.kotlinHome.resolve("bin", binary).convert(config.osType).stringPath()
+    private fun resolveKotlinBinary(binary: String) = config.osConfig.kotlinHomeDir.resolve("bin", binary).convert(config.osConfig.osType).stringPath()
 }

@@ -2,6 +2,7 @@ package kscript.app.resolver
 
 import kscript.app.model.*
 import kscript.app.parser.LineParser.extractValues
+import kscript.app.util.OsHandler
 import kscript.app.util.ScriptUtils
 import java.io.File
 import java.io.FileInputStream
@@ -9,9 +10,10 @@ import java.net.URI
 import java.net.URL
 
 class ScriptResolver(
-    private val sectionResolver: SectionResolver,
+    private val osHandler: OsHandler,
     private val contentResolver: ContentResolver,
-    private val kotlinOptsEnvVariable: String = ""
+    private val sectionResolver: SectionResolver,
+    private val scriptingConfig: ScriptingConfig
 ) {
     private val kotlinExtensions = listOf("kts", "kt")
     private val scripletName = "scriplet"
@@ -33,7 +35,7 @@ class ScriptResolver(
                 ScriptSource.STD_INPUT,
                 scriptType,
                 null,
-                File(".").toURI(),
+                osHandler.resolveCurrentDir(),
                 scripletName,
                 scriptText,
                 true,
@@ -58,6 +60,10 @@ class ScriptResolver(
             )
         }
 
+        //TODO: shouldn't we treat / and \ the same way on Linux and Windows? Seems that Java Path works that way.
+        //TODO: throws already at the beginning, as the argument is treated as path
+        //There should be method isValid()
+        //val filePath = osHandler.createPath(string)
         val file = File(string)
         if (file.canRead()) {
             if (kotlinExtensions.contains(file.extension)) {
@@ -110,7 +116,7 @@ class ScriptResolver(
             ScriptSource.PARAMETER,
             scriptType,
             null,
-            File(".").toURI(),
+            osHandler.resolveCurrentDir(),
             scripletName,
             scriptText,
             true,
@@ -140,8 +146,8 @@ class ScriptResolver(
 
         val code = ScriptUtils.resolveCode(resolutionContext.packageName, resolutionContext.importNames, scriptNode)
 
-        if (kotlinOptsEnvVariable.isNotBlank()) {
-            extractValues(kotlinOptsEnvVariable).map { KotlinOpt(it) }.forEach {
+        if (scriptingConfig.providedKotlinOpts.isNotBlank()) {
+            extractValues(scriptingConfig.providedKotlinOpts).map { KotlinOpt(it) }.forEach {
                 resolutionContext.kotlinOpts.add(it)
             }
         }

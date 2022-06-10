@@ -4,7 +4,7 @@ import kscript.app.model.OsType
 import kscript.app.model.PathType
 
 //Path representation for different OSes
-class OsPath internal constructor(
+class OsPath private constructor(
     val osType: OsType, val pathType: PathType, val pathParts: List<String>, val pathSeparator: Char
 ) {
     fun resolve(vararg pathParts: String): OsPath {
@@ -94,6 +94,30 @@ class OsPath internal constructor(
         }
 
         return pathParts.joinToString(pathSeparator.toString()) { it }
+    }
+
+    override fun toString(): String = stringPath()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as OsPath
+
+        if (osType != other.osType) return false
+        if (pathType != other.pathType) return false
+        if (pathParts != other.pathParts) return false
+        if (pathSeparator != other.pathSeparator) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = osType.hashCode()
+        result = 31 * result + pathType.hashCode()
+        result = 31 * result + pathParts.hashCode()
+        result = 31 * result + pathSeparator.hashCode()
+        return result
     }
 
     companion object {

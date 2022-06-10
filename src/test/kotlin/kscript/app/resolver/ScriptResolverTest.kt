@@ -5,25 +5,19 @@ import assertk.assertions.endsWith
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.prop
-import kscript.app.appdir.Cache
+import io.mockk.mockk
 import kscript.app.model.*
 import kscript.app.parser.Parser
-import kscript.app.util.OsPath
-import kscript.app.util.path
-import org.junit.jupiter.api.Disabled
+import kscript.app.util.OsHandler
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.nio.file.Paths
-import kotlin.io.path.createDirectories
 
 class ScriptResolverTest {
-    private val testHome = OsPath.create(OsType.LINUX, "/home/")
-    private val config =
-        Config.builder().apply { osType = OsType.LINUX.osName; homeDir = testHome.resolve("resolver_test") }.build()
-    private val cache = Cache(testHome.resolve("cache").path().createDirectories())
-    private val contentResolver = ContentResolver(cache)
-    private val sectionResolver = SectionResolver(Parser(), contentResolver, config)
-    private val scriptResolver = ScriptResolver(sectionResolver, contentResolver)
+    private val contentResolver = mockk<ContentResolver>()
+    private val osHandler = mockk<OsHandler>()
+    private val scriptingConfig = ScriptingConfig("", "", "", "", "")
+    private val sectionResolver = SectionResolver(osHandler, contentResolver, Parser(), scriptingConfig)
+    private val scriptResolver = ScriptResolver(osHandler, contentResolver, sectionResolver, scriptingConfig)
 
     private val defaultPackageName = PackageName("kscript.scriplet")
 

@@ -12,9 +12,6 @@ REQUESTED_SUITES="${@:-ALL}"
 echo "Starting KScript test suites: $REQUESTED_SUITES"
 echo
 
-# Clearing kscript app directory
-rm -rf ~/.kscript
-
 ########################################################################################################################
 
 source "$SCRIPT_DIR/setup_environment.sh"
@@ -22,6 +19,7 @@ echo
 
 ########################################################################################################################
 
+start_suite "clean" $REQUESTED_SUITES
 start_suite "assemble" $REQUESTED_SUITES
 start_suite "junit" $REQUESTED_SUITES
 start_suite "script_input_modes" $REQUESTED_SUITES

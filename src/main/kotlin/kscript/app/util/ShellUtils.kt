@@ -2,7 +2,6 @@ package kscript.app.util
 
 import kscript.app.model.OsType
 import java.io.File
-import kotlin.io.path.absolutePathString
 import kotlin.system.exitProcess
 
 object ShellUtils {
@@ -21,10 +20,10 @@ object ShellUtils {
     fun guessKotlinHome(osType: OsType): String? {
         val kotlinHome = evalBash(osType, "KOTLIN_RUNNER=1 JAVACMD=echo kotlinc").stdout.run {
             "kotlin.home=([^\\s]*)".toRegex().find(this)?.groups?.get(1)?.value
-        }
+        } ?: return null
 
         if (osType == OsType.MSYS) {
-            return FileUtils.shellToNativePath(osType, kotlinHome)?.absolutePathString()
+            return OsPath.create(OsType.MSYS, kotlinHome).convert(OsType.WINDOWS).stringPath()
         }
 
         return kotlinHome

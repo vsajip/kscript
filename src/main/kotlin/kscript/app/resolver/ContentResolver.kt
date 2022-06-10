@@ -2,7 +2,7 @@ package kscript.app.resolver
 
 import kscript.app.appdir.Cache
 import kscript.app.model.Content
-import kscript.app.util.OsPath
+import kscript.app.util.OsHandler
 import kscript.app.util.ScriptUtils
 import kscript.app.util.ScriptUtils.isUrl
 import java.net.URI
@@ -11,7 +11,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.readText
 
-class ContentResolver(private val cache: Cache) {
+class ContentResolver(private val osHandler: OsHandler, private val cache: Cache) {
 
     fun resolve(filePath: Path): Content {
         val uri = filePath.toUri()

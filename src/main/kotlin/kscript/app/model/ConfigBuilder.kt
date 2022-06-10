@@ -15,10 +15,10 @@ class ConfigBuilder internal constructor() {
     var gradleCommand: String? = null
     var kotlinHome: OsPath? = null
     var homeDir: OsPath? = null
-    var kotlinOptsEnvVariable: String? = null
-    var repositoryUrlEnvVariable: String? = null
-    var repositoryUserEnvVariable: String? = null
-    var repositoryPasswordEnvVariable: String? = null
+    var providedKotlinOpts: String? = null
+    var repositoryUrl: String? = null
+    var repositoryUser: String? = null
+    var repositoryPassword: String? = null
 
     fun build(): Config {
         //Java resolved env variables paths are always in native format; All paths should be stored in Config as native,
@@ -43,27 +43,29 @@ class ConfigBuilder internal constructor() {
         } ?: throw IllegalStateException("KOTLIN_HOME is not set and could not be inferred from context.")
 
         val homeDir = homeDir ?: OsPath.create(nativeOsType, System.getProperty("user.home")!!)
-        val kotlinOptsEnvVariable = kotlinOptsEnvVariable ?: System.getenv("KSCRIPT_KOTLIN_OPTS") ?: ""
-        val repositoryUrlEnvVariable = repositoryUrlEnvVariable ?: System.getenv("KSCRIPT_REPOSITORY_URL") ?: ""
-        val repositoryUserEnvVariable = repositoryUserEnvVariable ?: System.getenv("KSCRIPT_REPOSITORY_USER") ?: ""
-        val repositoryPasswordEnvVariable =
-            repositoryPasswordEnvVariable ?: System.getenv("KSCRIPT_REPOSITORY_PASSWORD") ?: ""
+        val providedKotlinOpts = providedKotlinOpts ?: System.getenv("KSCRIPT_KOTLIN_OPTS") ?: ""
+        val repositoryUrl = repositoryUrl ?: System.getenv("KSCRIPT_REPOSITORY_URL") ?: ""
+        val repositoryUser = repositoryUser ?: System.getenv("KSCRIPT_REPOSITORY_USER") ?: ""
+        val repositoryPassword = repositoryPassword ?: System.getenv("KSCRIPT_REPOSITORY_PASSWORD") ?: ""
 
-        return Config(
+        val osConfig = OsConfig(
             osType,
             selfName,
-            kscriptDir,
-            customPreamble,
             intellijCommand,
             gradleCommand,
+            homeDir,
+            kscriptDir,
             kotlinHome,
             classPathSeparator,
-            hostPathSeparatorChar,
-            homeDir,
-            kotlinOptsEnvVariable,
-            repositoryUrlEnvVariable,
-            repositoryUserEnvVariable,
-            repositoryPasswordEnvVariable
+            hostPathSeparatorChar
+        )
+
+        val scriptingConfig = ScriptingConfig(
+            customPreamble, providedKotlinOpts, repositoryUrl, repositoryUser, repositoryPassword
+        )
+
+        return Config(
+            osConfig, scriptingConfig
         )
     }
 }
