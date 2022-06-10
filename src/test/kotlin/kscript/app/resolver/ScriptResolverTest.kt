@@ -8,6 +8,8 @@ import assertk.assertions.prop
 import kscript.app.appdir.Cache
 import kscript.app.model.*
 import kscript.app.parser.Parser
+import kscript.app.util.OsPath
+import kscript.app.util.path
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -15,10 +17,10 @@ import java.nio.file.Paths
 import kotlin.io.path.createDirectories
 
 class ScriptResolverTest {
-    private val testHome = Paths.get("build/tmp/script_resolver_test")
+    private val testHome = OsPath.create(OsType.LINUX, "/home/")
     private val config =
-        Config.builder().apply { osType = OsType.LINUX.osName; homeDir = testHome.resolve("home") }.build()
-    private val cache = Cache(testHome.resolve("cache").createDirectories())
+        Config.builder().apply { osType = OsType.LINUX.osName; homeDir = testHome.resolve("resolver_test") }.build()
+    private val cache = Cache(testHome.resolve("cache").path().createDirectories())
     private val contentResolver = ContentResolver(cache)
     private val sectionResolver = SectionResolver(Parser(), contentResolver, config)
     private val scriptResolver = ScriptResolver(sectionResolver, contentResolver)

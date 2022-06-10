@@ -1,18 +1,18 @@
 package kscript.app.model
 
-import java.nio.file.Path
+import kscript.app.util.OsPath
 
 data class Config(
     val osType: OsType,
     val selfName: String,
-    val kscriptDir: Path,
+    val kscriptDir: OsPath,
     val customPreamble: String,
     val intellijCommand: String,
     val gradleCommand: String,
-    val kotlinHome: Path?,
+    val kotlinHome: OsPath,
     val classPathSeparator: Char,
     val hostPathSeparatorChar: Char,
-    val homeDir: Path,
+    val homeDir: OsPath,
     val kotlinOptsEnvVariable: String,
     val repositoryUrlEnvVariable: String,
     val repositoryUserEnvVariable: String,

@@ -1,15 +1,16 @@
 package kscript.app.util
 
 import kscript.app.model.OsType
-
-enum class PathType {
-    ABSOLUTE, RELATIVE
-}
+import kscript.app.model.PathType
 
 //Path representation for different OSes
 class OsPath internal constructor(
     val osType: OsType, val pathType: PathType, val pathParts: List<String>, val pathSeparator: Char
 ) {
+    fun resolve(vararg pathParts: String): OsPath {
+        return resolve(create(osType, pathParts.joinToString(pathSeparator.toString())))
+    }
+
     //functionality:
     //* relative + relative
     //* absolute + relative
@@ -34,8 +35,8 @@ class OsPath internal constructor(
 
     //Not all conversions make sense: only Windows to CygWin and Msys and vice versa
     fun convert(targetOsType: OsType): OsPath {
-        if (this.osType == targetOsType || (this.osType.isPosixLike() && targetOsType.isPosixLike())) {
-            return this
+        if (this.osType == targetOsType || (this.osType.isPosixLike() && targetOsType.isPosixLike()) || (this.osType.isWindowsLike() && targetOsType.isWindowsLike())) {
+            return OsPath(targetOsType, pathType, pathParts, pathSeparator)
         }
 
         val toPosix = osType.isWindowsLike() && targetOsType.isPosixHostedOnWindows()
@@ -49,7 +50,7 @@ class OsPath internal constructor(
 
         when {
             toPosix -> {
-                var drive = ""
+                val drive: String
 
                 if (pathType == PathType.ABSOLUTE) {
                     drive = pathParts[0][0].lowercase()
@@ -149,7 +150,12 @@ class OsPath internal constructor(
                     isAbsolute = true
                     rootElementSize = 2
                 }
-                else -> throw IllegalArgumentException("Invalid root element of path: '${pathParts[0]}'")
+                else -> {
+                    //This is relative path, but without preceding '..' or '.'
+                    pathParts.add(0, ".")
+                    isAbsolute = false
+                    rootElementSize = 1
+                }
             }
 
             //Last path element can be empty (trailing path separator); removing it

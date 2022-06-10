@@ -1,11 +1,12 @@
 package kscript.app.appdir
 
+import kscript.app.util.OsPath
+import kscript.app.util.path
 import org.apache.commons.io.FileUtils
-import java.nio.file.Path
 import kotlin.io.path.createDirectories
 
-class AppDir(path: Path) {
-    private val cachePath = path.resolve("cache")
+class AppDir(path: OsPath) {
+    private val cachePath = path.resolve("cache").path()
 
     init {
         cachePath.createDirectories()

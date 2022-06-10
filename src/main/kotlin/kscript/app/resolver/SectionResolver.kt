@@ -2,12 +2,18 @@ package kscript.app.resolver
 
 import kscript.app.model.*
 import kscript.app.parser.Parser
+import kscript.app.util.OsPath
 import kscript.app.util.ScriptUtils
+import kscript.app.util.path
 import java.io.File
 import java.net.URI
 import java.nio.file.Path
 
-class SectionResolver(private val parser: Parser, private val contentResolver: ContentResolver, private val config: Config) {
+class SectionResolver(
+    private val parser: Parser,
+    private val contentResolver: ContentResolver,
+    private val config: Config
+) {
     fun resolve(
         scriptText: String,
         includeContext: URI,
@@ -51,11 +57,13 @@ class SectionResolver(private val parser: Parser, private val contentResolver: C
 
         when (scriptAnnotation) {
             is SheBang -> resolvedScriptAnnotations += scriptAnnotation
+
             is Code -> resolvedScriptAnnotations += scriptAnnotation
+
             is ScriptNode -> resolvedScriptAnnotations += scriptAnnotation
 
             is Include -> {
-                val uri = resolveInclude(includeContext, scriptAnnotation.value, config.homeDir)
+                val uri = resolveIncludeUri(includeContext, scriptAnnotation.value, config.homeDir)
 
                 if (currentLevel < maxResolutionLevel && !resolutionContext.uriRegistry.contains(uri)) {
                     resolutionContext.uriRegistry.add(uri)
@@ -115,18 +123,22 @@ class SectionResolver(private val parser: Parser, private val contentResolver: C
                 resolutionContext.importNames.add(scriptAnnotation)
                 resolvedScriptAnnotations += scriptAnnotation
             }
+
             is Dependency -> {
                 resolutionContext.dependencies.add(scriptAnnotation)
                 resolvedScriptAnnotations += scriptAnnotation
             }
+
             is KotlinOpt -> {
                 resolutionContext.kotlinOpts.add(scriptAnnotation)
                 resolvedScriptAnnotations += scriptAnnotation
             }
+
             is CompilerOpt -> {
                 resolutionContext.compilerOpts.add(scriptAnnotation)
                 resolvedScriptAnnotations += scriptAnnotation
             }
+
             is Repository -> {
                 val repository = Repository(
                     scriptAnnotation.id,
@@ -145,10 +157,10 @@ class SectionResolver(private val parser: Parser, private val contentResolver: C
         return resolvedScriptAnnotations
     }
 
-    private fun resolveInclude(includeContext: URI, include: String, homeDir: Path): URI {
+    private fun resolveIncludeUri(includeContext: URI, include: String, homeDir: OsPath): URI {
         val result = when {
             include.startsWith("/") -> File(include).toURI()
-            include.startsWith("~/") -> File(homeDir.toAbsolutePath().toString() + include.substring(1)).toURI()
+            include.startsWith("~/") -> File(homeDir.path().toAbsolutePath().toString() + include.substring(1)).toURI()
             else -> includeContext.resolve(URI(include.removePrefix("./")))
         }
 

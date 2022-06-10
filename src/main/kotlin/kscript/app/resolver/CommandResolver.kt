@@ -4,11 +4,9 @@ import kscript.app.creator.JarArtifact
 import kscript.app.model.CompilerOpt
 import kscript.app.model.Config
 import kscript.app.model.KotlinOpt
-import kscript.app.util.FileUtils.nativeToShellPath
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.div
 
 class CommandResolver(private val config: Config) {
     //Syntax for different OS-es:
@@ -17,7 +15,6 @@ class CommandResolver(private val config: Config) {
     //CYGWIN:   /home/Admin/.sdkman/candidates/kotlin/current/bin/kotlin  -classpath "C:\Users\Admin;C:\Users\Admin\.kscript\cache\jar_2ccd53e06b0355d3573a4ae8698398fe\scriplet.jar;C:\Users\Admin\.sdkman\candidates\kotlin\current\lib\kotlin-script-runtime.jar" Main_Scriplet
     //WINDOWS:  C:\Users\Admin\.sdkman\candidates\kotlin\current\bin\kotlin  -classpath "C:\Users\Admin;C:\Users\Admin\.kscript\cache\jar_2ccd53e06b0355d3573a4ae8698398fe\scriplet.jar;C:\Users\Admin\.sdkman\candidates\kotlin\current\lib\kotlin-script-runtime.jar" Main_Scriplet
     //MACOS:
-
 
     //<command_path>kotlinc -classpath "p1:p2"
     //OS Conversion matrix
@@ -28,12 +25,13 @@ class CommandResolver(private val config: Config) {
     //WINDOWS       native          no                  native          ;                       "                                                                            yes
     //MACOS         ?               ?                   ?               ?                       ?                                                                            no
 
-
     //Path conversion (Cygwin/mingw): cygpath -u "c:\Users\Admin"; /cygdrive/c/ - Cygwin; /c/ - Mingw
     //uname --> CYGWIN_NT-10.0 or MINGW64_NT-10.0-19043
     //How to find if mingw/cyg/win (second part): https://stackoverflow.com/questions/40877323/quickly-find-if-java-was-launched-from-windows-cmd-or-cygwin-terminal
 
-    fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>, compilerOpts: Set<CompilerOpt>): String {
+    fun compileKotlin(
+        jar: Path, dependencies: Set<Path>, filePaths: Set<Path>, compilerOpts: Set<CompilerOpt>
+    ): String {
         val compilerOptsStr = resolveCompilerOpts(compilerOpts)
         val classpath = resolveClasspath(dependencies)
         val jarFile = resolveJarFile(jar)
@@ -43,11 +41,13 @@ class CommandResolver(private val config: Config) {
         return "$kotlinc $compilerOptsStr $classpath -d $jarFile $files"
     }
 
-    fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>, kotlinOpts: Set<KotlinOpt>): String {
+    fun executeKotlin(
+        jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>, kotlinOpts: Set<KotlinOpt>
+    ): String {
         val kotlinOptsStr = resolveKotlinOpts(kotlinOpts)
         val userArgsStr = resolveUserArgs(userArgs)
         val scriptRuntime =
-            Paths.get("${config.kotlinHome}${config.hostPathSeparatorChar}lib${config.hostPathSeparatorChar}kotlin-script-runtime.jar")
+            Paths.get("${config.kotlinHome.stringPath()}${config.hostPathSeparatorChar}lib${config.hostPathSeparatorChar}kotlin-script-runtime.jar")
 
         val dependenciesSet = buildSet<Path> {
             addAll(dependencies)
@@ -61,7 +61,9 @@ class CommandResolver(private val config: Config) {
         return "$kotlin $kotlinOptsStr $classpath ${jarArtifact.execClassName} $userArgsStr"
     }
 
-    fun interactiveKotlinRepl(dependencies: Set<Path>, compilerOpts: Set<CompilerOpt>, kotlinOpts: Set<KotlinOpt>): String {
+    fun interactiveKotlinRepl(
+        dependencies: Set<Path>, compilerOpts: Set<CompilerOpt>, kotlinOpts: Set<KotlinOpt>
+    ): String {
         val compilerOptsStr = resolveCompilerOpts(compilerOpts)
         val kotlinOptsStr = resolveKotlinOpts(kotlinOpts)
         val classpath = resolveClasspath(dependencies)
@@ -84,7 +86,8 @@ class CommandResolver(private val config: Config) {
 
     private fun resolveJarFile(jar: Path): String = "'${jar.absolutePathString()}'"
 
-    private fun resolveFiles(filePaths: Set<Path>): String = filePaths.joinToString(" ") { "'${it.absolutePathString()}'" }
+    private fun resolveFiles(filePaths: Set<Path>): String =
+        filePaths.joinToString(" ") { "'${it.absolutePathString()}'" }
 
     private fun resolveUserArgs(userArgs: List<String>) =
         userArgs.joinToString(" ") { "\"${it.replace("\"", "\\\"")}\"" }
@@ -94,8 +97,7 @@ class CommandResolver(private val config: Config) {
             it.absolutePathString()
         } + "\""
 
-    private fun resolveKotlinBinary(binary: String) = if (config.kotlinHome != null) nativeToShellPath(
-        config.osType,
-        (config.kotlinHome / "bin" / binary)
-    ) else binary
+    private fun resolveKotlinBinary(binary: String) = if (config.kotlinHome != null) {
+        config.kotlinHome.resolve("bin", binary).convert(config.osType).stringPath()
+    } else binary
 }

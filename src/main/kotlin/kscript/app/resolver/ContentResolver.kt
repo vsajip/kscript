@@ -2,6 +2,7 @@ package kscript.app.resolver
 
 import kscript.app.appdir.Cache
 import kscript.app.model.Content
+import kscript.app.util.OsPath
 import kscript.app.util.ScriptUtils
 import kscript.app.util.ScriptUtils.isUrl
 import java.net.URI
