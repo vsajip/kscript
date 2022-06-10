@@ -120,51 +120,52 @@ class OsPath internal constructor(
             '\\'
         }
 
-        fun create(osType: OsType, path: String): OsPath {
-            require(path.isNotEmpty()) {
-                "Path must not be empty"
+        fun create(osType: OsType, vararg pathParts: String): OsPath {
+            require(pathParts.isNotEmpty() && pathParts.none { it.isBlank() }) {
+                "Path parts must not be empty"
             }
 
             val pathSeparatorCharacter = resolvePathSeparator(osType)
 
-            val pathParts = path.split(pathSeparatorCharacter).toMutableList()
+            val path = pathParts.joinToString(pathSeparatorCharacter.toString())
+            val pathPartsResolved = path.split(pathSeparatorCharacter).toMutableList()
 
             //Validate root element of path and find out if it is absolute or relative
             val rootElementSize: Int
             val isAbsolute: Boolean
 
             when {
-                pathParts[0] == ".." || pathParts[0] == "." -> {
+                pathPartsResolved[0] == ".." || pathPartsResolved[0] == "." -> {
                     isAbsolute = false
-                    rootElementSize = pathParts[0].length
+                    rootElementSize = pathPartsResolved[0].length
                 }
                 osType.isPosixLike() && path.startsWith("/") -> {
                     //After split first element is empty for absolute paths on Linux; assigning correct value below
-                    pathParts[0] = "/"
+                    pathPartsResolved[0] = "/"
                     isAbsolute = true
                     rootElementSize = 1
                 }
-                osType.isWindowsLike() && pathParts[0].length == 2 && pathParts[0][1] == ':' && alphaChars.contains(
-                    pathParts[0][0]
+                osType.isWindowsLike() && pathPartsResolved[0].length == 2 && pathPartsResolved[0][1] == ':' && alphaChars.contains(
+                    pathPartsResolved[0][0]
                 ) -> {
                     isAbsolute = true
                     rootElementSize = 2
                 }
                 else -> {
                     //This is relative path, but without preceding '..' or '.'
-                    pathParts.add(0, ".")
+                    pathPartsResolved.add(0, ".")
                     isAbsolute = false
                     rootElementSize = 1
                 }
             }
 
             //Last path element can be empty (trailing path separator); removing it
-            if (pathParts.last().isBlank()) {
-                pathParts.removeAt(pathParts.size - 1)
+            if (pathPartsResolved.last().isBlank()) {
+                pathPartsResolved.removeAt(pathPartsResolved.size - 1)
             }
 
             //Make sure that there are no "empty parts" in path
-            require(pathParts.find { it.isEmpty() } == null) {
+            require(pathPartsResolved.find { it.isEmpty() } == null) {
                 "Duplicated path separators or empty path names in '$path'"
             }
 
@@ -178,7 +179,7 @@ class OsPath internal constructor(
 
             val pathType = if (isAbsolute) PathType.ABSOLUTE else PathType.RELATIVE
 
-            return OsPath(osType, pathType, normalize(path, pathParts, pathType), pathSeparatorCharacter)
+            return OsPath(osType, pathType, normalize(path, pathPartsResolved, pathType), pathSeparatorCharacter)
         }
 
         fun normalize(path: String, pathParts: List<String>, pathType: PathType): List<String> {
