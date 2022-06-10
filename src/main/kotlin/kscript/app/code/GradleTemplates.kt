@@ -65,7 +65,6 @@ object GradleTemplates {
 
     fun createGradlePackageScript(script: Script, jarArtifact: JarArtifact): String {
         val kotlinOptions = kotlinOptions(script.compilerOpts)
-
         val kotlinVersion = KotlinVersion.CURRENT
         val extendedDependencies = setOf(
             Dependency("org.jetbrains.kotlin:kotlin-stdlib"),
