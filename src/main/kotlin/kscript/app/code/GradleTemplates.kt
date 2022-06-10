@@ -39,7 +39,30 @@ object GradleTemplates {
         """.trimIndent()
     }
 
-    //Capsule: https://github.com/ngyewch/gradle-capsule-plugin
+    fun hangingIndents(s: String, n: Int): String {
+        val parts = s.split('\n')
+        val indent = String.format("%${n}s", " ")
+        val result = StringBuilder()
+        val psize = parts.size
+
+        if (psize == 1) {
+            return s
+        }
+        for ((i, p) in parts.withIndex()) {
+            if (i == 0) {
+                result.append(p)
+            }
+            else {
+                result.append(indent)
+                result.append(p)
+            }
+            if (i < (psize - 1)) {
+                result.append('\n')
+            }
+        }
+        return result.toString()
+    }
+
     fun createGradlePackageScript(script: Script, jarArtifact: JarArtifact): String {
         val kotlinOptions = kotlinOptions(script.compilerOpts)
 
@@ -66,7 +89,7 @@ object GradleTemplates {
         repositories {
             mavenLocal()
             mavenCentral()
-            ${createGradleRepositoriesSection(script.repositories).prependIndent()}
+            ${createGradleRepositoriesSection(script.repositories).prependIndent("")}
         }
 
         tasks.jar {
@@ -87,7 +110,7 @@ object GradleTemplates {
                 val arc = layout.buildDirectory.file("libs/$baseName.jar").get().toString()
                 val out = layout.buildDirectory.file("libs/$baseName").get().toString()
                 val eol = System.getProperty("line.separator").encodeToByteArray()
-                var p = Paths.get(hdr).resolve("exec_header.sh")
+                val p = Paths.get(hdr).resolve("exec_header.sh")
                 val hb = Files.readAllBytes(p)
                 val ab = Files.readAllBytes(Paths.get(arc))
                 val outfile = Paths.get(out).toFile()
@@ -101,16 +124,18 @@ object GradleTemplates {
 
         /*
          * Old code here for now, but will be removed soon!
+           Capsule: https://github.com/ngyewch/gradle-capsule-plugin
+
         tasks.create<us.kirchmeier.capsule.task.FatCapsule>("simpleCapsule") {
             applicationClass("$capsuleApp")
-            archiveFileName.set("${script.scriptName.dropExtension()}")
+            archiveFileName.set("$baseName")
 
             // https://github.com/danthegoodman/gradle-capsule-plugin/blob/master/DOCUMENTATION.md#really-executable-capsules
             reallyExecutable
 
             capsuleManifest.apply {
                 applicationClass = "$capsuleApp"
-                application = "${script.scriptName.dropExtension()}"
+                application = "$baseName"
                 applicationScript = "exec_header.sh"
                 jvmArgs = listOf()
             }
@@ -118,11 +143,11 @@ object GradleTemplates {
          */
         dependencies {
             implementation(files("${jarArtifact.path.parent.resolve("scriplet.jar")}"))
-            ${createGradleDependenciesSection(extendedDependencies).prependIndent()}
+            ${hangingIndents(createGradleDependenciesSection(extendedDependencies), 12)}
         }
 
         $kotlinOptions
-        """.trimIndent()
+        """.trimStart('\n').trimIndent()
     }
 
     private fun createGradleRepositoryCredentials(repository: Repository): String {
