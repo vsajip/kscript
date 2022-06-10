@@ -6,6 +6,7 @@ import kscript.app.model.Script
 import kscript.app.util.Executor
 import kscript.app.util.FileUtils
 import kscript.app.util.Logger.infoMsg
+import kscript.app.util.ScriptUtils.dropExtension
 import java.nio.file.Path
 
 class PackageCreator(private val executor: Executor) {
@@ -14,6 +15,8 @@ class PackageCreator(private val executor: Executor) {
      * See https://github.com/puniverse/capsule
      */
     fun packageKscript(basePath: Path, script: Script, jarArtifact: JarArtifact): Path {
+        val baseName = script.scriptName.dropExtension()
+
         infoMsg("Packaging script '${script.scriptName}' into standalone executable...")
 
         // create exec_header to allow for direction execution (see http://www.capsule.io/user-guide/#really-executable-capsules)
@@ -25,9 +28,9 @@ class PackageCreator(private val executor: Executor) {
 
         executor.createPackage(basePath)
 
-        basePath.resolve("build/libs/appName").toFile().setExecutable(true)
+        basePath.resolve("build/libs/$baseName").toFile().setExecutable(true)
 
-        infoMsg("Finished packaging '${script.scriptName}'; executable path: ${basePath}/build/libs/")
+        infoMsg("Finished packaging '${script.scriptName}'; executable path: ${basePath}/build/libs/$baseName")
 
         return basePath
     }

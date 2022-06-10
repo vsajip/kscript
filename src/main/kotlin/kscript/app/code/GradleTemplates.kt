@@ -50,11 +50,16 @@ object GradleTemplates {
         ) + script.dependencies
 
         val capsuleApp = jarArtifact.execClassName
+        val baseName = script.scriptName.dropExtension()
 
         return """
+        import java.io.*
+        import java.lang.System
+        import java.nio.file.Files
+        import java.nio.file.Paths
+
         plugins {
             id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
-            id("it.gianluz.capsule") version "1.0.3"
             application
         }
 
@@ -63,7 +68,39 @@ object GradleTemplates {
             mavenCentral()
             ${createGradleRepositoriesSection(script.repositories).prependIndent()}
         }
-        
+
+        tasks.jar {
+            manifest {
+                attributes["Main-Class"] = "$capsuleApp"
+            }
+            baseName = "$baseName"
+            configurations["compileClasspath"].forEach { file: File ->
+                from(zipTree(file.absoluteFile))
+            }
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+
+        tasks.register("makeScript") {
+            dependsOn(":jar")
+            doLast {
+                val hdr = layout.projectDirectory.toString()
+                val arc = layout.buildDirectory.file("libs/$baseName.jar").get().toString()
+                val out = layout.buildDirectory.file("libs/$baseName").get().toString()
+                val eol = System.getProperty("line.separator").encodeToByteArray()
+                var p = Paths.get(hdr).resolve("exec_header.sh")
+                val hb = Files.readAllBytes(p)
+                val ab = Files.readAllBytes(Paths.get(arc))
+                val outfile = Paths.get(out).toFile()
+                val fos = FileOutputStream(outfile)
+                fos.write(hb)
+                fos.write(eol)
+                fos.write(ab)
+                fos.close()
+            }
+        }
+
+        /*
+         * Old code here for now, but will be removed soon!
         tasks.create<us.kirchmeier.capsule.task.FatCapsule>("simpleCapsule") {
             applicationClass("$capsuleApp")
             archiveFileName.set("${script.scriptName.dropExtension()}")
@@ -78,7 +115,7 @@ object GradleTemplates {
                 jvmArgs = listOf()
             }
         }
-        
+         */
         dependencies {
             implementation(files("${jarArtifact.path.parent.resolve("scriplet.jar")}"))
             ${createGradleDependenciesSection(extendedDependencies).prependIndent()}
@@ -106,7 +143,7 @@ object GradleTemplates {
     }
 
     private fun createGradleRepositoriesSection(repositories: Set<Repository>) = repositories.joinToString("\n") {
-        """ 
+        """
         maven {
             url "${it.url}"
             ${createGradleRepositoryCredentials(it).prependIndent()}
@@ -127,7 +164,7 @@ object GradleTemplates {
         val kotlinOpts = if (jvmTargetOption != null) {
             """
             tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-                kotlinOptions { 
+                kotlinOptions {
                     jvmTarget = "$jvmTargetOption"
                 }
             }
