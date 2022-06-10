@@ -97,7 +97,5 @@ class CommandResolver(private val config: Config) {
             it.absolutePathString()
         } + "\""
 
-    private fun resolveKotlinBinary(binary: String) = if (config.kotlinHome != null) {
-        config.kotlinHome.resolve("bin", binary).convert(config.osType).stringPath()
-    } else binary
+    private fun resolveKotlinBinary(binary: String) = config.kotlinHome.resolve("bin", binary).convert(config.osType).stringPath()
 }

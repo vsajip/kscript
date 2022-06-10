@@ -40,8 +40,7 @@ class ConfigBuilder internal constructor() {
 
         val kotlinHome = kotlinHome ?: (System.getenv("KOTLIN_HOME") ?: ShellUtils.guessKotlinHome(osType))?.let {
             OsPath.create(nativeOsType, it)
-        }
-        ?: throw IllegalStateException("Can not determine KOTLIN_HOME, but it is required to run kscript. Please set KOTLIN_HOME environment variable explicitly.")
+        } ?: throw IllegalStateException("KOTLIN_HOME is not set and could not be inferred from context.")
 
         val homeDir = homeDir ?: OsPath.create(nativeOsType, System.getProperty("user.home")!!)
         val kotlinOptsEnvVariable = kotlinOptsEnvVariable ?: System.getenv("KSCRIPT_KOTLIN_OPTS") ?: ""
