@@ -11,7 +11,7 @@ class DebugInfoCreator {
 
         val table = TableBuilder(BoxTextTableStyleSet()) {
             row {
-                cell { value = "Debugging information for KScript" }
+                cell { value = "Debugging information for KScript (using tablevis by aartiPl)" }
             }
 
             row {

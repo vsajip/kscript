@@ -45,6 +45,20 @@ class OsPathTest {
             it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
             it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
         }
+
+        //Duplicated separators are accepted
+        assertThat(OsPath.create(OsType.LINUX, "..//home////admin/.kscript/")).let {
+            it.prop(OsPath::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
+            it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        }
+
+        //Both types of separator are accepted
+        assertThat(OsPath.create(OsType.LINUX, "..//home\\admin\\.kscript/")).let {
+            it.prop(OsPath::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
+            it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        }
     }
 
     @Test
@@ -74,13 +88,9 @@ class OsPathTest {
 
     @Test
     fun `Test invalid Linux paths`() {
-        assertThat { OsPath.create(OsType.LINUX, "//") }.isFailure()
+        assertThat { OsPath.create(OsType.LINUX, "/ad*asdf") }.isFailure()
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Duplicated path separators or empty path names in '//'")
-
-        assertThat { OsPath.create(OsType.LINUX, "/ad\\asdf") }.isFailure()
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid characters in path: '\\'")
+            .hasMessage("Invalid character '*' in path '/ad*asdf'")
     }
 
     @Test
@@ -167,6 +177,20 @@ class OsPathTest {
             it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
             it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
         }
+
+        //Duplicated separators are accepted
+        assertThat(OsPath.create(OsType.WINDOWS, "C:\\home\\\\\\\\admin\\.kscript\\")).let {
+            it.prop(OsPath::pathParts).isEqualTo(listOf("C:", "home", "admin", ".kscript"))
+            it.prop(OsPath::pathType).isEqualTo(PathType.ABSOLUTE)
+            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        }
+
+        //Both types of separator are accepted
+        assertThat(OsPath.create(OsType.WINDOWS, "C:/home\\admin/.kscript////")).let {
+            it.prop(OsPath::pathParts).isEqualTo(listOf("C:", "home", "admin", ".kscript"))
+            it.prop(OsPath::pathType).isEqualTo(PathType.ABSOLUTE)
+            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        }
     }
 
     @Test
@@ -196,13 +220,9 @@ class OsPathTest {
 
     @Test
     fun `Test invalid Windows paths`() {
-        assertThat { OsPath.create(OsType.WINDOWS, "C:\\\\") }.isFailure()
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Duplicated path separators or empty path names in 'C:\\\\'")
-
         assertThat { OsPath.create(OsType.WINDOWS, "C:\\adas?df") }.isFailure()
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid characters in path: '?'")
+            .hasMessage("Invalid character '?' in path 'C:\\adas?df'")
     }
 
     @Test

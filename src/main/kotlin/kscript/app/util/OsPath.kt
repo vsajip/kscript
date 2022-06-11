@@ -144,6 +144,10 @@ class OsPath private constructor(
             '\\'
         }
 
+
+        //Relaxed validation:
+        //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated he same
+        //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
         fun create(osType: OsType, vararg pathParts: String): OsPath {
             require(pathParts.isNotEmpty() && pathParts.none { it.isBlank() }) {
                 "Path parts must not be empty"
@@ -152,7 +156,7 @@ class OsPath private constructor(
             val pathSeparatorCharacter = resolvePathSeparator(osType)
 
             val path = pathParts.joinToString(pathSeparatorCharacter.toString())
-            val pathPartsResolved = path.split(pathSeparatorCharacter).toMutableList()
+            val pathPartsResolved = path.split('/', '\\').toMutableList()
 
             //Validate root element of path and find out if it is absolute or relative
             val rootElementSize: Int
@@ -183,22 +187,13 @@ class OsPath private constructor(
                 }
             }
 
-            //Last path element can be empty (trailing path separator); removing it
-            if (pathPartsResolved.last().isBlank()) {
-                pathPartsResolved.removeAt(pathPartsResolved.size - 1)
-            }
+            //Remove empty path parts - there were duplicated or trailing slashes / backslashes in initial path
+            pathPartsResolved.removeAll { it.isEmpty() }
 
-            //Make sure that there are no "empty parts" in path
-            require(pathPartsResolved.find { it.isEmpty() } == null) {
-                "Duplicated path separators or empty path names in '$path'"
-            }
-
-            val osSpecificForbiddenCharacters =
-                mutableSetOf(if (osType.isPosixLike()) '\\' else '/').plus(forbiddenCharacters)
-            val forbiddenCharacter = path.substring(rootElementSize).find { osSpecificForbiddenCharacters.contains(it) }
+            val forbiddenCharacter = path.substring(rootElementSize).find { forbiddenCharacters.contains(it) }
 
             require(forbiddenCharacter == null) {
-                "Invalid characters in path: '$forbiddenCharacter'"
+                "Invalid character '$forbiddenCharacter' in path '$path'"
             }
 
             val pathType = if (isAbsolute) PathType.ABSOLUTE else PathType.RELATIVE

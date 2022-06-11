@@ -60,7 +60,6 @@ class ScriptResolver(
             )
         }
 
-        //TODO: shouldn't we treat / and \ the same way on Linux and Windows? Seems that Java Path works that way.
         //TODO: throws already at the beginning, as the argument is treated as path
         //There should be method isValid()
         //val filePath = osHandler.createPath(string)
