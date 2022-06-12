@@ -5,28 +5,34 @@ import assertk.assertions.endsWith
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.prop
-import io.mockk.mockk
+import kscript.app.appdir.Cache
 import kscript.app.model.*
 import kscript.app.parser.Parser
-import kscript.app.util.OsHandler
+import kscript.app.util.OsPath
+import kscript.app.util.toNativePath
 import org.junit.jupiter.api.Test
 import java.io.File
 
 class ScriptResolverTest {
-    private val contentResolver = mockk<ContentResolver>()
-    private val osHandler = mockk<OsHandler>()
+    private val guessedOsType = OsType.findOrThrow(System.getProperty("os.name"))
+    private val testHome = OsPath.createOrThrow(guessedOsType, "build/tmp/script_resolver_test")
+    private val config =
+        Config.builder().apply { osType = guessedOsType.name; homeDir = testHome.resolve("home") }.build()
+
+    private val cache = Cache(testHome.resolve("cache").toNativePath())
+    private val inputOutputResolver = InputOutputResolver(config.osConfig, cache)
     private val scriptingConfig = ScriptingConfig("", "", "", "", "")
-    private val sectionResolver = SectionResolver(osHandler, contentResolver, Parser(), scriptingConfig)
-    private val scriptResolver = ScriptResolver(osHandler, contentResolver, sectionResolver, scriptingConfig)
+    private val sectionResolver = SectionResolver(inputOutputResolver, Parser(), scriptingConfig)
+    private val scriptResolver = ScriptResolver(inputOutputResolver, sectionResolver, scriptingConfig)
 
     private val defaultPackageName = PackageName("kscript.scriplet")
 
     @Test
     fun `Test includes consolidation`() {
-        val input = "test/resources/consolidate_includes/template.kts"
-        val expected = File("test/resources/consolidate_includes/expected.kts").readText().discardEmptyLines()
+        val inputString = "test/resources/consolidate_includes/template.kts"
+        val expectedContent = File("test/resources/consolidate_includes/expected.kts").readText().discardEmptyLines()
 
-        val script = scriptResolver.resolve(input)
+        val script = scriptResolver.resolve(inputString)
 
         println("""'${script.resolvedCode}'""")
 
@@ -63,7 +69,7 @@ class ScriptResolverTest {
             prop(Script::kotlinOpts).isEmpty()
             prop(Script::compilerOpts).isEmpty()
 
-            prop(Script::resolvedCode).transform { it.discardEmptyLines() }.isEqualTo(expected)
+            prop(Script::resolvedCode).transform { it.discardEmptyLines() }.isEqualTo(expectedContent)
         }
     }
 

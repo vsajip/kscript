@@ -31,7 +31,7 @@ class ConfigBuilder internal constructor() {
             classPathSeparator ?: if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ';' else ':'
         val hostPathSeparatorChar = hostPathSeparatorChar ?: File.separatorChar
         val selfName = selfName ?: System.getenv("KSCRIPT_NAME") ?: "kscript"
-        val kscriptDir = kscriptDir ?: OsPath.create(
+        val kscriptDir = kscriptDir ?: OsPath.createOrThrow(
             nativeOsType, System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript")
         )
         val customPreamble = customPreamble ?: System.getenv("KSCRIPT_PREAMBLE") ?: ""
@@ -39,10 +39,10 @@ class ConfigBuilder internal constructor() {
         val gradleCommand = gradleCommand ?: System.getenv("KSCRIPT_COMMAND_GRADLE") ?: "gradle"
 
         val kotlinHome = kotlinHome ?: (System.getenv("KOTLIN_HOME") ?: ShellUtils.guessKotlinHome(osType))?.let {
-            OsPath.create(nativeOsType, it)
+            OsPath.createOrThrow(nativeOsType, it)
         } ?: throw IllegalStateException("KOTLIN_HOME is not set and could not be inferred from context.")
 
-        val homeDir = homeDir ?: OsPath.create(nativeOsType, System.getProperty("user.home")!!)
+        val homeDir = homeDir ?: OsPath.createOrThrow(nativeOsType, System.getProperty("user.home")!!)
         val providedKotlinOpts = providedKotlinOpts ?: System.getenv("KSCRIPT_KOTLIN_OPTS") ?: ""
         val repositoryUrl = repositoryUrl ?: System.getenv("KSCRIPT_REPOSITORY_URL") ?: ""
         val repositoryUser = repositoryUser ?: System.getenv("KSCRIPT_REPOSITORY_USER") ?: ""
@@ -50,6 +50,7 @@ class ConfigBuilder internal constructor() {
 
         val osConfig = OsConfig(
             osType,
+            nativeOsType,
             selfName,
             intellijCommand,
             gradleCommand,

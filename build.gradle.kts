@@ -58,6 +58,7 @@ dependencies {
     implementation("commons-codec:commons-codec:1.15")
 
     implementation("net.igsoft:tablevis:0.6.0")
+    implementation("io.arrow-kt:arrow-core:1.0.1")
 
     implementation("org.slf4j:slf4j-nop:1.7.36")
 

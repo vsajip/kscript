@@ -23,6 +23,7 @@ data class ScriptingConfig(
 
 data class OsConfig(
     val osType: OsType,
+    val nativeOsType: OsType,
     val selfName: String,
     val intellijCommand: String,
     val gradleCommand: String,
@@ -35,6 +36,7 @@ data class OsConfig(
     override fun toString(): String {
         return """|OsConfig {
                   |  osType:                $osType
+                  |  nativeOsType:          $nativeOsType
                   |  selfName:              $selfName
                   |  intellijCommand:       $intellijCommand
                   |  gradleCommand:         $gradleCommand

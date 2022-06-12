@@ -5,7 +5,6 @@ import kscript.app.model.CompilerOpt
 import kscript.app.model.Dependency
 import kscript.app.model.Repository
 import kscript.app.model.Script
-import kscript.app.util.ScriptUtils.dropExtension
 
 object GradleTemplates {
     fun createGradleIdeaScript(script: Script): String {
@@ -65,14 +64,14 @@ object GradleTemplates {
         
         tasks.create<us.kirchmeier.capsule.task.FatCapsule>("simpleCapsule") {
             applicationClass("$capsuleApp")
-            archiveFileName.set("${script.scriptName.dropExtension()}")
+            archiveFileName.set("${script.scriptName}")
 
             // https://github.com/danthegoodman/gradle-capsule-plugin/blob/master/DOCUMENTATION.md#really-executable-capsules
             reallyExecutable
 
             capsuleManifest.apply {
                 applicationClass = "$capsuleApp"
-                application = "${script.scriptName.dropExtension()}"
+                application = "${script.scriptName}"
                 applicationScript = "exec_header.sh"
                 jvmArgs = listOf()
             }

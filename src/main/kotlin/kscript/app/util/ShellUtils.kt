@@ -23,7 +23,7 @@ object ShellUtils {
         } ?: return null
 
         if (osType == OsType.MSYS) {
-            return OsPath.create(OsType.MSYS, kotlinHome).convert(OsType.WINDOWS).stringPath()
+            return OsPath.createOrThrow(OsType.MSYS, kotlinHome).convert(OsType.WINDOWS).stringPath()
         }
 
         return kotlinHome

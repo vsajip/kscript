@@ -37,10 +37,10 @@ internal class CommandResolverTest {
 
     private fun createConfig(osType: OsType): Config {
         val homeDir = when (osType) {
-            OsType.LINUX, OsType.DARWIN, OsType.FREEBSD -> OsPath.create(osType, "/home/my workspace/Code")
-            OsType.WINDOWS -> OsPath.create(osType, "C:\\My Workspace\\Code")
-            OsType.CYGWIN -> OsPath.create(osType, "/cygdrive/c/my workspace/Code")
-            OsType.MSYS -> OsPath.create(osType, "/c/my workspace/Code")
+            OsType.LINUX, OsType.MAC, OsType.FREEBSD -> OsPath.createOrThrow(osType, "/home/my workspace/Code")
+            OsType.WINDOWS -> OsPath.createOrThrow(osType, "C:\\My Workspace\\Code")
+            OsType.CYGWIN -> OsPath.createOrThrow(osType, "/cygdrive/c/my workspace/Code")
+            OsType.MSYS -> OsPath.createOrThrow(osType, "/c/my workspace/Code")
         }
 
         //homeDir.fileSystem
@@ -52,6 +52,7 @@ internal class CommandResolverTest {
 
         val osConfig = OsConfig(
             osType,
+            if (osType.isPosixHostedOnWindows()) OsType.WINDOWS else osType,
             "kscript",
             "idea",
             "gradle",

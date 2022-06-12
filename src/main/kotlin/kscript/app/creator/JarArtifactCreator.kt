@@ -5,7 +5,6 @@ import kscript.app.model.Script
 import kscript.app.model.ScriptType
 import kscript.app.util.Executor
 import kscript.app.util.FileUtils
-import kscript.app.util.ScriptUtils.dropExtension
 import java.nio.file.Path
 import kotlin.io.path.writeText
 
@@ -16,10 +15,9 @@ class JarArtifactCreator(private val executor: Executor) {
     fun create(basePath: Path, script: Script, resolvedDependencies: Set<Path>): JarArtifact {
         // Capitalize first letter and get rid of dashes (since this is what kotlin compiler is doing for the wrapper to create a valid java class name)
         // For valid characters see https://stackoverflow.com/questions/4814040/allowed-characters-in-filename
-        val className =
-            script.scriptName.dropExtension().replace("[^A-Za-z0-9]".toRegex(), "_").replaceFirstChar { it.titlecase() }
-                // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
-                .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_$it" else it }
+        val className = script.scriptName.replace("[^A-Za-z0-9]".toRegex(), "_").replaceFirstChar { it.titlecase() }
+            // also make sure that it is a valid identifier by avoiding an initial digit (to stay in sync with what the kotlin script compiler will do as well)
+            .let { if ("^[0-9]".toRegex().containsMatchIn(it)) "_$it" else it }
 
         // Define the entrypoint for the scriptlet jar
         val execClassName = if (script.scriptType == ScriptType.KTS) {

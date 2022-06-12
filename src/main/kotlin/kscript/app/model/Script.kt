@@ -7,7 +7,7 @@ data class Script(
     val scriptType: ScriptType,
     val sourceUri: URI?,
     val sourceContextUri: URI,
-    val scriptName: String,
+    val scriptName: String, //without Kotlin extension (but possibly with other extensions)
 
     val resolvedCode: String,
 

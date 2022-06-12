@@ -2,13 +2,12 @@ package kscript.app.resolver
 
 import kscript.app.model.*
 import kscript.app.parser.Parser
-import kscript.app.util.OsHandler
 import kscript.app.util.ScriptUtils
+import kscript.app.util.UriUtils
 import java.net.URI
 
 class SectionResolver(
-    private val osHandler: OsHandler,
-    private val contentResolver: ContentResolver,
+    private val inputOutputResolver: InputOutputResolver,
     private val parser: Parser,
     private val scriptingConfig: ScriptingConfig
 ) {
@@ -66,13 +65,13 @@ class SectionResolver(
                 if (currentLevel < maxResolutionLevel && !resolutionContext.uriRegistry.contains(uri)) {
                     resolutionContext.uriRegistry.add(uri)
 
-                    val scriptSource = if (ScriptUtils.isRegularFile(uri)) ScriptSource.FILE else ScriptSource.HTTP
+                    val scriptSource = if (UriUtils.isRegularFile(uri)) ScriptSource.FILE else ScriptSource.HTTP
 
                     if (scriptSource == ScriptSource.FILE && !allowLocalReferences) {
                         throw IllegalStateException("References to local files from remote scripts are disallowed.")
                     }
 
-                    val content = contentResolver.resolve(uri)
+                    val content = inputOutputResolver.resolveContent(uri)
 
                     val newSections = resolve(
                         content.text,
@@ -89,7 +88,7 @@ class SectionResolver(
                         content.scriptType,
                         uri,
                         content.contextUri,
-                        ScriptUtils.extractFileName(uri),
+                        content.fileName,
                         newSections
                     )
 
@@ -139,16 +138,11 @@ class SectionResolver(
 
             is Repository -> {
                 val repository = Repository(
-                    scriptAnnotation.id,
-                    scriptAnnotation.url.replace(
-                        "{{KSCRIPT_REPOSITORY_URL}}",
-                        scriptingConfig.providedRepositoryUrl
-                    ),
-                    scriptAnnotation.user.replace(
-                        "{{KSCRIPT_REPOSITORY_USER}}",
-                        scriptingConfig.providedRepositoryUser
-                    ),
-                    scriptAnnotation.password.replace(
+                    scriptAnnotation.id, scriptAnnotation.url.replace(
+                        "{{KSCRIPT_REPOSITORY_URL}}", scriptingConfig.providedRepositoryUrl
+                    ), scriptAnnotation.user.replace(
+                        "{{KSCRIPT_REPOSITORY_USER}}", scriptingConfig.providedRepositoryUser
+                    ), scriptAnnotation.password.replace(
                         "{{KSCRIPT_REPOSITORY_PASSWORD}}", scriptingConfig.providedRepositoryPassword
                     )
                 )
@@ -163,8 +157,8 @@ class SectionResolver(
 
     private fun resolveIncludeUri(includeContext: URI, include: String): URI {
         val result = when {
-            include.startsWith("/") -> osHandler.resolveRootUri(include.substring(1))
-            include.startsWith("~/") -> osHandler.resolveHomeDirUri(include.substring(2))
+            include.startsWith("/") -> inputOutputResolver.resolveUriRelativeToRoot(include.substring(1))
+            include.startsWith("~/") -> inputOutputResolver.resolveUriRelativeToHomeDir(include.substring(2))
             else -> includeContext.resolve(URI(include.removePrefix("./")))
         }
 

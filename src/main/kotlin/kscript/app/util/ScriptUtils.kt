@@ -3,45 +3,29 @@ package kscript.app.util
 import kscript.app.model.*
 import kscript.app.resolver.ResolutionContext
 import org.apache.commons.codec.digest.DigestUtils
-import java.net.HttpURLConnection
 import java.net.URI
-import java.net.URL
 
 object ScriptUtils {
-    fun resolveRedirects(url: URL): URL {
-        val con: HttpURLConnection = url.openConnection() as HttpURLConnection
-        con.instanceFollowRedirects = false
-        con.connect()
+    fun extractScriptDetails(uri: URI): Pair<String, ScriptType?> {
+        return extractScriptDetails(uri.normalize().path)
+    }
 
-        if (con.responseCode == HttpURLConnection.HTTP_MOVED_PERM || con.responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
-            val redirectUrl = URL(con.getHeaderField("Location"))
-            return resolveRedirects(redirectUrl)
+    private fun extractScriptDetails(path: String): Pair<String, ScriptType?> {
+        var filename = path
+
+        val idx = path.lastIndexOf("/")
+        if (idx >= 0) {
+            filename = path.substring(idx + 1, path.length)
         }
 
-        return url
-    }
+        val scriptType = ScriptType.findByExtension(filename)
 
-    fun isUrl(string: String): Boolean {
-        val normalizedString = string.lowercase().trim()
-        return normalizedString.startsWith("http://") || normalizedString.startsWith("https://")
-    }
-
-    fun isUrl(uri: URI) = uri.scheme.equals("http") || uri.scheme.equals("https")
-
-    fun isRegularFile(uri: URI) = uri.scheme.startsWith("file")
-
-    fun String.dropExtension(): String {
-        val name = extractFileName(this)
-
-        if (name.indexOf(".") > 0) {
-            return name.substring(0, name.lastIndexOf("."))
+        if (scriptType != null) {
+            //Drop extension
+            filename = filename.dropLast(scriptType.extension.length)
         }
 
-        return name
-    }
-
-    fun extractFileName(uri: URI): String {
-        return extractFileName(uri.normalize().path)
+        return Pair(filename, scriptType)
     }
 
     fun prependPreambles(preambles: List<String>, string: String): String {
@@ -61,22 +45,6 @@ object ScriptUtils {
 
     fun resolveScriptType(code: String): ScriptType {
         return if (code.contains("fun main")) ScriptType.KT else ScriptType.KTS
-    }
-
-    private fun extractFileName(path: String): String {
-        var filename = path
-
-        val idx = path.lastIndexOf("/")
-        if (idx >= 0) {
-            filename = path.substring(idx + 1, path.length)
-        }
-
-        val idxOfDot = filename.lastIndexOf('.')
-        if (idxOfDot > 0 && (filename.endsWith(".kt") || filename.endsWith(".kts"))) {
-            filename = filename.substring(0, idxOfDot)
-        }
-
-        return filename
     }
 
     fun resolveCode(packageName: PackageName?, importNames: Set<ImportName>, scriptNode: ScriptNode): String {

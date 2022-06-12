@@ -1,14 +1,16 @@
 package kscript.app.util
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import kscript.app.model.OsType
 import kscript.app.model.PathType
 
 //Path representation for different OSes
-class OsPath private constructor(
-    val osType: OsType, val pathType: PathType, val pathParts: List<String>, val pathSeparator: Char
-) {
+data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: List<String>, val pathSeparator: Char) {
+
     fun resolve(vararg pathParts: String): OsPath {
-        return resolve(create(osType, pathParts.joinToString(pathSeparator.toString())))
+        return resolve(createOrThrow(osType, pathParts.joinToString(pathSeparator.toString())))
     }
 
     //functionality:
@@ -30,12 +32,21 @@ class OsPath private constructor(
             addAll(path.pathParts)
         }
 
-        return OsPath(osType, pathType, normalize(newPath, newPathParts, pathType), pathSeparator)
+        val normalizedPath = when (val result = normalize(newPath, newPathParts, pathType)) {
+            is Either.Right -> result.value
+            is Either.Left -> throw IllegalArgumentException(result.value)
+        }
+
+        return OsPath(osType, pathType, normalizedPath, pathSeparator)
     }
 
     //Not all conversions make sense: only Windows to CygWin and Msys and vice versa
     fun convert(targetOsType: OsType): OsPath {
-        if (this.osType == targetOsType || (this.osType.isPosixLike() && targetOsType.isPosixLike()) || (this.osType.isWindowsLike() && targetOsType.isWindowsLike())) {
+        if (this.osType == targetOsType) {
+            return this
+        }
+
+        if ((this.osType.isPosixLike() && targetOsType.isPosixLike()) || (this.osType.isWindowsLike() && targetOsType.isWindowsLike())) {
             return OsPath(targetOsType, pathType, pathParts, pathSeparator)
         }
 
@@ -98,28 +109,6 @@ class OsPath private constructor(
 
     override fun toString(): String = stringPath()
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as OsPath
-
-        if (osType != other.osType) return false
-        if (pathType != other.pathType) return false
-        if (pathParts != other.pathParts) return false
-        if (pathSeparator != other.pathSeparator) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = osType.hashCode()
-        result = 31 * result + pathType.hashCode()
-        result = 31 * result + pathParts.hashCode()
-        result = 31 * result + pathSeparator.hashCode()
-        return result
-    }
-
     companion object {
         //https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
         //The rule here is more strict than necessary, but it is at least good practice to follow such a rule.
@@ -144,13 +133,26 @@ class OsPath private constructor(
             '\\'
         }
 
+        fun createOrThrow(osType: OsType, vararg pathParts: String): OsPath {
+            return when (val result = internalCreate(osType, *pathParts)) {
+                is Either.Right -> result.value
+                is Either.Left -> throw IllegalArgumentException(result.value)
+            }
+        }
+
+        fun create(osType: OsType, vararg pathParts: String): OsPath? {
+            return when (val result = internalCreate(osType, *pathParts)) {
+                is Either.Right -> result.value
+                is Either.Left -> null
+            }
+        }
 
         //Relaxed validation:
         //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated he same
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
-        fun create(osType: OsType, vararg pathParts: String): OsPath {
-            require(pathParts.isNotEmpty() && pathParts.none { it.isBlank() }) {
-                "Path parts must not be empty"
+        private fun internalCreate(osType: OsType, vararg pathParts: String): Either<String, OsPath> {
+            if (pathParts.isEmpty() || pathParts.any { it.isBlank() }) {
+                return "Path parts must not be empty".left()
             }
 
             val pathSeparatorCharacter = resolvePathSeparator(osType)
@@ -192,16 +194,21 @@ class OsPath private constructor(
 
             val forbiddenCharacter = path.substring(rootElementSize).find { forbiddenCharacters.contains(it) }
 
-            require(forbiddenCharacter == null) {
-                "Invalid character '$forbiddenCharacter' in path '$path'"
+            if (forbiddenCharacter != null) {
+                return "Invalid character '$forbiddenCharacter' in path '$path'".left()
             }
 
             val pathType = if (isAbsolute) PathType.ABSOLUTE else PathType.RELATIVE
 
-            return OsPath(osType, pathType, normalize(path, pathPartsResolved, pathType), pathSeparatorCharacter)
+            val normalizedPath = when (val result = normalize(path, pathPartsResolved, pathType)) {
+                is Either.Right -> result.value
+                is Either.Left -> return result.value.left()
+            }
+
+            return OsPath(osType, pathType, normalizedPath, pathSeparatorCharacter).right()
         }
 
-        fun normalize(path: String, pathParts: List<String>, pathType: PathType): List<String> {
+        fun normalize(path: String, pathParts: List<String>, pathType: PathType): Either<String, List<String>> {
             //Relative:
             // ./../ --> ../
             // ./a/../ --> ./
@@ -222,9 +229,11 @@ class OsPath private constructor(
                 if (pathParts[index] == ".") {
                     //Just skip . without adding it to newParts
                 } else if (pathParts[index] == "..") {
+
                     if (pathType == PathType.ABSOLUTE && newParts.size == 1) {
-                        throw IllegalArgumentException("Path after normalization goes beyond root element: '$path'")
+                        return "Path after normalization goes beyond root element: '$path'".left()
                     }
+
                     if (newParts.size > 0) {
                         when (newParts.last()) {
                             "." -> {
@@ -249,7 +258,7 @@ class OsPath private constructor(
                 index += 1
             }
 
-            return newParts
+            return newParts.right()
         }
     }
 }

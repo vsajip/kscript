@@ -2,20 +2,15 @@ package kscript.app.resolver
 
 import kscript.app.model.*
 import kscript.app.parser.LineParser.extractValues
-import kscript.app.util.OsHandler
 import kscript.app.util.ScriptUtils
-import java.io.File
-import java.io.FileInputStream
+import kscript.app.util.UriUtils
 import java.net.URI
-import java.net.URL
 
 class ScriptResolver(
-    private val osHandler: OsHandler,
-    private val contentResolver: ContentResolver,
+    private val inputOutputResolver: InputOutputResolver,
     private val sectionResolver: SectionResolver,
     private val scriptingConfig: ScriptingConfig
 ) {
-    private val kotlinExtensions = listOf("kts", "kt")
     private val scripletName = "scriplet"
 
     //level parameter - for how many levels should include be resolved
@@ -35,7 +30,7 @@ class ScriptResolver(
                 ScriptSource.STD_INPUT,
                 scriptType,
                 null,
-                osHandler.resolveCurrentDir(),
+                inputOutputResolver.resolveCurrentDir(),
                 scripletName,
                 scriptText,
                 true,
@@ -44,8 +39,8 @@ class ScriptResolver(
         }
 
         //Is it a URL?
-        if (ScriptUtils.isUrl(string)) {
-            val content = contentResolver.resolve(URL(string))
+        if (UriUtils.isUrl(string)) {
+            val content = inputOutputResolver.resolveContent(URI(string))
             val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
 
             return createScript(
@@ -60,51 +55,49 @@ class ScriptResolver(
             )
         }
 
-        //TODO: throws already at the beginning, as the argument is treated as path
-        //There should be method isValid()
-        //val filePath = osHandler.createPath(string)
-        val file = File(string)
-        if (file.canRead()) {
-            if (kotlinExtensions.contains(file.extension)) {
-                //Regular file
-                val content = contentResolver.resolve(file.toPath())
-                val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
+        val filePath = inputOutputResolver.tryToCreateFilePath(string)
 
-                return createScript(
-                    ScriptSource.FILE,
-                    content.scriptType,
-                    content.uri,
-                    content.contextUri,
-                    content.fileName,
-                    scriptText,
-                    true,
-                    maxResolutionLevel
-                )
-            } else {
-                //If script input is a process substitution file handle we can not use for content reading:
-                //FileInputStream(this).bufferedReader().use{ readText() } nor readText()
-                val uri = file.toURI()
-                val includeContext = uri.resolve(".")
+        if (filePath != null) {
+            val scriptType = ScriptType.findByExtension(filePath.pathParts.last())
 
-                val scriptText =
-                    ScriptUtils.prependPreambles(preambles, FileInputStream(file).bufferedReader().readText())
+            if (inputOutputResolver.isReadable(filePath)) {
+                if (scriptType != null) {
+                    //Regular file
+                    val content = inputOutputResolver.resolveContent(filePath)
+                    val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
 
-                val scriptType = ScriptUtils.resolveScriptType(scriptText)
-                return createScript(
-                    ScriptSource.OTHER_FILE,
-                    scriptType,
-                    uri,
-                    includeContext,
-                    scripletName,
-                    scriptText,
-                    true,
-                    maxResolutionLevel
-                )
+                    return createScript(
+                        ScriptSource.FILE,
+                        content.scriptType,
+                        content.uri,
+                        content.contextUri,
+                        content.fileName,
+                        scriptText,
+                        true,
+                        maxResolutionLevel
+                    )
+                } else {
+                    //If script input is a process substitution file handle we can not use for content reading:
+                    //FileInputStream(this).bufferedReader().use{ readText() } nor readText()
+                    val content = inputOutputResolver.resolveContentUsingInputStream(filePath)
+                    val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
+
+                    return createScript(
+                        ScriptSource.OTHER_FILE,
+                        content.scriptType,
+                        content.uri,
+                        content.contextUri,
+                        scripletName,
+                        scriptText,
+                        true,
+                        maxResolutionLevel
+                    )
+                }
             }
-        }
 
-        if (kotlinExtensions.contains(file.extension)) {
-            throw IllegalStateException("Could not read script from '$string'")
+            if (scriptType != null) {
+                throw IllegalStateException("Could not read script from '$string'")
+            }
         }
 
         //As a last resort we assume that input is a Kotlin program...
@@ -115,7 +108,7 @@ class ScriptResolver(
             ScriptSource.PARAMETER,
             scriptType,
             null,
-            osHandler.resolveCurrentDir(),
+            inputOutputResolver.resolveCurrentDir(),
             scripletName,
             scriptText,
             true,

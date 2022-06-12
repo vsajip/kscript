@@ -4,5 +4,7 @@ import kscript.app.model.OsType
 import java.nio.file.Path
 import java.nio.file.Paths
 
-fun OsPath.path(): Path = Paths.get(stringPath())
-fun OsPath.native(): OsPath = if (osType.isPosixHostedOnWindows()) convert(OsType.WINDOWS) else this
+//Path is always native, so implicit conversion to native path
+fun OsPath.toNativePath(): Path = Paths.get(toNativeOsPath().stringPath())
+
+fun OsPath.toNativeOsPath() = if (osType.isPosixHostedOnWindows()) convert(OsType.WINDOWS) else this

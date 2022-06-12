@@ -5,7 +5,6 @@ import kscript.app.model.Content
 import kscript.app.model.ScriptType
 import org.apache.commons.codec.digest.DigestUtils
 import java.net.URI
-import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.createDirectories
@@ -37,12 +36,12 @@ class Cache(private val path: Path) {
         }
     }
 
-    fun getOrCreateUriItem(url: URL, creator: (URL, Path) -> Content): Content {
-        val digest = DigestUtils.md5Hex(url.toString())
+    fun getOrCreateUriItem(uri: URI, creator: (URI, Path) -> Content): Content {
+        val digest = DigestUtils.md5Hex(uri.toString())
 
-        val directory = path.resolve("url_$digest")
-        val descriptorFile = directory.resolve("url.descriptor")
-        val contentFile = directory.resolve("url.content")
+        val directory = path.resolve("uri_$digest")
+        val descriptorFile = directory.resolve("uri.descriptor")
+        val contentFile = directory.resolve("uri.content")
 
         if (descriptorFile.exists() && contentFile.exists()) {
             //Cache hit
@@ -57,7 +56,7 @@ class Cache(private val path: Path) {
         }
 
         //Cache miss
-        val content = creator(url, contentFile)
+        val content = creator(uri, contentFile)
 
         directory.createDirectories()
         descriptorFile.writeText("${content.scriptType}\n${content.fileName}\n${content.uri}\n${content.contextUri}")

@@ -1,9 +1,9 @@
 package kscript.app.model
 
 enum class OsType(val osName: String) {
-    LINUX("linux"), DARWIN("darwin"), WINDOWS("windows"), CYGWIN("cygwin"), MSYS("msys"), FREEBSD("freebsd");
+    LINUX("linux"), MAC("darwin"), WINDOWS("windows"), CYGWIN("cygwin"), MSYS("msys"), FREEBSD("freebsd");
 
-    fun isPosixLike() = (this == LINUX || this == DARWIN || this == FREEBSD || this == CYGWIN || this == MSYS)
+    fun isPosixLike() = (this == LINUX || this == MAC || this == FREEBSD || this == CYGWIN || this == MSYS)
     fun isPosixHostedOnWindows() = (this == CYGWIN || this == MSYS)
     fun isWindowsLike() = (this == WINDOWS)
 
