@@ -4,6 +4,7 @@ import kscript.app.model.*
 import kscript.app.parser.LineParser.extractValues
 import kscript.app.util.ScriptUtils
 import kscript.app.util.UriUtils
+import kscript.app.util.leaf
 import java.net.URI
 
 class ScriptResolver(
@@ -58,7 +59,7 @@ class ScriptResolver(
         val filePath = inputOutputResolver.tryToCreateFilePath(string)
 
         if (filePath != null) {
-            val scriptType = ScriptType.findByExtension(filePath.pathParts.last())
+            val scriptType = ScriptType.findByExtension(filePath.leaf)
 
             if (inputOutputResolver.isReadable(filePath)) {
                 if (scriptType != null) {
@@ -76,23 +77,23 @@ class ScriptResolver(
                         true,
                         maxResolutionLevel
                     )
-                } else {
-                    //If script input is a process substitution file handle we can not use for content reading:
-                    //FileInputStream(this).bufferedReader().use{ readText() } nor readText()
-                    val content = inputOutputResolver.resolveContentUsingInputStream(filePath)
-                    val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
-
-                    return createScript(
-                        ScriptSource.OTHER_FILE,
-                        content.scriptType,
-                        content.uri,
-                        content.contextUri,
-                        scripletName,
-                        scriptText,
-                        true,
-                        maxResolutionLevel
-                    )
                 }
+
+                //If script input is a process substitution file handle we can not use for content reading following methods:
+                //FileInputStream(this).bufferedReader().use{ readText() } nor readText()
+                val content = inputOutputResolver.resolveContentUsingInputStream(filePath)
+                val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
+
+                return createScript(
+                    ScriptSource.OTHER_FILE,
+                    content.scriptType,
+                    content.uri,
+                    content.contextUri,
+                    scripletName,
+                    scriptText,
+                    true,
+                    maxResolutionLevel
+                )
             }
 
             if (scriptType != null) {

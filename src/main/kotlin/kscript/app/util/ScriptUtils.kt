@@ -6,11 +6,11 @@ import org.apache.commons.codec.digest.DigestUtils
 import java.net.URI
 
 object ScriptUtils {
-    fun extractScriptDetails(uri: URI): Pair<String, ScriptType?> {
-        return extractScriptDetails(uri.normalize().path)
+    fun extractScriptFileDetails(uri: URI): Pair<String, ScriptType?> {
+        return extractScriptFileDetails(uri.normalize().path)
     }
 
-    private fun extractScriptDetails(path: String): Pair<String, ScriptType?> {
+    private fun extractScriptFileDetails(path: String): Pair<String, ScriptType?> {
         var filename = path
 
         val idx = path.lastIndexOf("/")
@@ -30,17 +30,6 @@ object ScriptUtils {
 
     fun prependPreambles(preambles: List<String>, string: String): String {
         return preambles.joinToString("\n") + string
-    }
-
-    fun resolveScriptType(uri: URI): ScriptType? {
-        val path = uri.path.lowercase()
-
-        when {
-            path.endsWith(".kt") -> return ScriptType.KT
-            path.endsWith(".kts") -> return ScriptType.KTS
-        }
-
-        return null
     }
 
     fun resolveScriptType(code: String): ScriptType {

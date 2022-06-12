@@ -8,3 +8,9 @@ import java.nio.file.Paths
 fun OsPath.toNativePath(): Path = Paths.get(toNativeOsPath().stringPath())
 
 fun OsPath.toNativeOsPath() = if (osType.isPosixHostedOnWindows()) convert(OsType.WINDOWS) else this
+
+val OsPath.leaf
+    get() = pathParts.last()
+
+val OsPath.root
+    get() = pathParts.first()

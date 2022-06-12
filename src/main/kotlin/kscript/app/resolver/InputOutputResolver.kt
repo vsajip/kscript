@@ -9,12 +9,14 @@ import java.io.File
 import java.io.FileInputStream
 import java.net.URI
 import java.nio.file.Paths
+import kotlin.io.path.pathString
+import kotlin.io.path.readText
 
 class InputOutputResolver(private val osConfig: OsConfig, private val cache: Cache) {
     fun resolveContent(osPath: OsPath): Content {
         val uri = resolveUri(osPath)
-        val content = File(osPath.toNativeOsPath().stringPath()).readText()
-        val (fileName, scriptType) = ScriptUtils.extractScriptDetails(uri)
+        val content = osPath.toNativePath().readText()
+        val (fileName, scriptType) = ScriptUtils.extractScriptFileDetails(uri)
         val contextUri = uri.resolve(".")
         return Content(
             content,
@@ -28,13 +30,13 @@ class InputOutputResolver(private val osConfig: OsConfig, private val cache: Cac
 
     fun resolveContent(uri: URI): Content {
         if (!isUrl(uri)) {
-            return resolveContent(OsPath.createOrThrow(osConfig.osType, Paths.get(uri).toString()))
+            return resolveContent(OsPath.createOrThrow(osConfig.nativeOsType, Paths.get(uri).toString()))
         }
 
         return cache.getOrCreateUriItem(uri) { sourceUrl, contentFile ->
             val resolvedUri = UriUtils.resolveRedirects(sourceUrl.toURL()).toURI()
             val content = resolvedUri.toURL().readText()
-            val (fileName, scriptType) = ScriptUtils.extractScriptDetails(resolvedUri)
+            val (fileName, scriptType) = ScriptUtils.extractScriptFileDetails(resolvedUri)
             val contextUri = resolvedUri.resolve(".")
 
             Content(
@@ -60,7 +62,7 @@ class InputOutputResolver(private val osConfig: OsConfig, private val cache: Cac
     fun resolveUriRelativeToRoot(path: String): URI {
         return resolveUri(
             OsPath.createOrThrow(
-                osConfig.nativeOsType, File(".").toPath().resolve(path).normalize().toAbsolutePath().root!!.toString()
+                osConfig.nativeOsType, File(".").toPath().toAbsolutePath().root!!.resolve(path).pathString
             )
         )
     }
