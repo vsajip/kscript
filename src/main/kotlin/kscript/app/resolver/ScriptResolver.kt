@@ -56,7 +56,7 @@ class ScriptResolver(
             )
         }
 
-        val filePath = inputOutputResolver.tryToCreateFilePath(string)
+        val filePath = inputOutputResolver.tryToCreateShellFilePath(string)
 
         if (filePath != null) {
             val scriptType = ScriptType.findByExtension(filePath.leaf)

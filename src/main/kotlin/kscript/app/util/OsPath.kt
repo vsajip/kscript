@@ -151,8 +151,8 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
         //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated he same
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
         private fun internalCreate(osType: OsType, vararg pathParts: String): Either<String, OsPath> {
-            if (pathParts.isEmpty() || pathParts.any { it.isBlank() }) {
-                return "Path parts must not be empty".left()
+            if (pathParts.isEmpty() || pathParts.any { it.isEmpty() }) {
+                return "Path parts must not be empty: [${pathParts.joinToString(",")}]".left()
             }
 
             val pathSeparatorCharacter = resolvePathSeparator(osType)
@@ -161,38 +161,38 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
             val pathPartsResolved = path.split('/', '\\').toMutableList()
 
             //Validate root element of path and find out if it is absolute or relative
-            val rootElementSize: Int
+            val rootElementSizeInInputPath: Int
             val isAbsolute: Boolean
 
             when {
                 pathPartsResolved[0] == ".." || pathPartsResolved[0] == "." -> {
                     isAbsolute = false
-                    rootElementSize = pathPartsResolved[0].length
+                    rootElementSizeInInputPath = pathPartsResolved[0].length
                 }
                 osType.isPosixLike() && path.startsWith("/") -> {
                     //After split first element is empty for absolute paths on Linux; assigning correct value below
                     pathPartsResolved[0] = "/"
                     isAbsolute = true
-                    rootElementSize = 1
+                    rootElementSizeInInputPath = 1
                 }
                 osType.isWindowsLike() && pathPartsResolved[0].length == 2 && pathPartsResolved[0][1] == ':' && alphaChars.contains(
                     pathPartsResolved[0][0]
                 ) -> {
                     isAbsolute = true
-                    rootElementSize = 2
+                    rootElementSizeInInputPath = 2
                 }
                 else -> {
                     //This is relative path, but without preceding '..' or '.'
                     pathPartsResolved.add(0, ".")
                     isAbsolute = false
-                    rootElementSize = 1
+                    rootElementSizeInInputPath = 0
                 }
             }
 
             //Remove empty path parts - there were duplicated or trailing slashes / backslashes in initial path
             pathPartsResolved.removeAll { it.isEmpty() }
 
-            val forbiddenCharacter = path.substring(rootElementSize).find { forbiddenCharacters.contains(it) }
+            val forbiddenCharacter = path.substring(rootElementSizeInInputPath).find { forbiddenCharacters.contains(it) }
 
             if (forbiddenCharacter != null) {
                 return "Invalid character '$forbiddenCharacter' in path '$path'".left()

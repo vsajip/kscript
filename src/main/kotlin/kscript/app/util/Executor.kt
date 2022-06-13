@@ -11,7 +11,7 @@ import kscript.app.util.Logger.warnMsg
 import java.nio.file.Path
 
 class Executor(private val commandResolver: CommandResolver, private val osConfig: OsConfig) {
-    fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>, compilerOpts: Set<CompilerOpt>) {
+    fun compileKotlin(jar: OsPath, dependencies: Set<OsPath>, filePaths: Set<OsPath>, compilerOpts: Set<CompilerOpt>) {
         val command = commandResolver.compileKotlin(jar, dependencies, filePaths, compilerOpts)
         devMsg("JAR compile command: $command")
 
@@ -24,7 +24,7 @@ class Executor(private val commandResolver: CommandResolver, private val osConfi
 
     fun executeKotlin(
         jarArtifact: JarArtifact,
-        dependencies: Set<Path>,
+        dependencies: Set<OsPath>,
         userArgs: List<String>,
         kotlinOpts: Set<KotlinOpt>
     ) {
@@ -34,7 +34,7 @@ class Executor(private val commandResolver: CommandResolver, private val osConfi
         println(command)
     }
 
-    fun runInteractiveRepl(dependencies: Set<Path>, compilerOpts: Set<CompilerOpt>, kotlinOpts: Set<KotlinOpt>) {
+    fun runInteractiveRepl(dependencies: Set<OsPath>, compilerOpts: Set<CompilerOpt>, kotlinOpts: Set<KotlinOpt>) {
         infoMsg("Creating REPL")
         val command = commandResolver.interactiveKotlinRepl(dependencies, compilerOpts, kotlinOpts)
         devMsg("REPL Kotlin command: $command")
@@ -42,10 +42,10 @@ class Executor(private val commandResolver: CommandResolver, private val osConfi
         println(command)
     }
 
-    fun runIdea(projectPath: Path) {
+    fun runIdea(projectPath: OsPath) {
         if (ShellUtils.isInPath(osConfig.osType, osConfig.gradleCommand)) {
             // Create gradle wrapper
-            ProcessRunner.runProcess("${osConfig.gradleCommand} wrapper", wd = projectPath.toFile())
+            ProcessRunner.runProcess("${osConfig.gradleCommand} wrapper", wd = projectPath.toNativeFile())
         } else {
             warnMsg("Could not find '${osConfig.gradleCommand}' in your PATH. You must set the command used to launch your intellij as 'KSCRIPT_COMMAND_GRADLE' env property")
         }
@@ -59,7 +59,7 @@ class Executor(private val commandResolver: CommandResolver, private val osConfi
         }
     }
 
-    fun createPackage(projectPath: Path) {
+    fun createPackage(projectPath: OsPath) {
         if (!ShellUtils.isInPath(osConfig.osType, osConfig.gradleCommand)) {
             throw IllegalStateException("gradle is required to package scripts")
         }

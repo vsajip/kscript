@@ -1,14 +1,15 @@
 package kscript.app.resolver
 
+import assertk.assertThat
+import assertk.assertions.isEqualTo
 import kscript.app.model.*
 import kscript.app.util.OsPath
 import org.junit.jupiter.api.Test
-import java.nio.file.FileSystems
 
 internal class CommandResolverTest {
     @Test
     fun compileKotlin() {
-        val config = createConfig(OsType.LINUX)
+        val config = createConfig(OsType.WINDOWS)
         val commandResolver = CommandResolver(config)
         val jarPath = config.osConfig.userHomeDir.resolve("/cache/somefile.jar")
         val depPaths = setOf(
@@ -22,17 +23,11 @@ internal class CommandResolverTest {
             config.osConfig.userHomeDir.resolve("/source/somepath/dep2.jar")
         )
 
-        val compilerOpts = setOf(CompilerOpt("-abc"), CompilerOpt("-def"), CompilerOpt("--clear"))
-
-//        for( i in 0 until jarPath.toAbsolutePath().nameCount) {
-//            println(jarPath.getName(i))
-//        }
-
-        println("home: " + config.osConfig.userHomeDir)
-        println("jarFile: " + jarPath)
+        val compilerOpts = setOf(CompilerOpt("-abc"), CompilerOpt("-def"), CompilerOpt("--experimental"))
 
 //        assertThat(commandResolver.compileKotlin(jarPath, depPaths, filePaths, compilerOpts)).isEqualTo(
-//            "C:\\home\\my workspace\\Code\\kotlin\\bin\\kotlinc -abc -def --clear -classpath \"C:\\.m2\\somepath\\dep1.jar:C:\\.m2\\somepath\\dep2.jar:C:\\.m2\\somepath\\dep3.jar\" -d 'C:\\cache\\somefile.jar' 'C:\\source\\somepath\\dep1.jar' 'C:\\source\\somepath\\dep2.jar'")
+//            "C:\\home\\my workspace\\Code\\kotlin\\bin\\kotlinc -abc -def --clear -classpath \"C:\\.m2\\somepath\\dep1.jar:C:\\.m2\\somepath\\dep2.jar:C:\\.m2\\somepath\\dep3.jar\" -d 'C:\\cache\\somefile.jar' 'C:\\source\\somepath\\dep1.jar' 'C:\\source\\somepath\\dep2.jar'"
+//        )
     }
 
     private fun createConfig(osType: OsType): Config {
@@ -43,24 +38,14 @@ internal class CommandResolverTest {
             OsType.MSYS -> OsPath.createOrThrow(osType, "/c/my workspace/Code")
         }
 
-        //homeDir.fileSystem
-
-        FileSystems.getDefault()
-
-        val classPathSeparator = if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ';' else ':'
-        val hostPathSeparatorChar = if (osType.isPosixLike()) ':' else ';'
-
         val osConfig = OsConfig(
             osType,
-            if (osType.isPosixHostedOnWindows()) OsType.WINDOWS else osType,
             "kscript",
             "idea",
             "gradle",
             homeDir,
-            homeDir.resolve(".kscript/"),
-            homeDir.resolve("kotlin/"),
-            classPathSeparator,
-            hostPathSeparatorChar
+            homeDir.resolve("./.kscript/"),
+            homeDir.resolve("./kotlin/"),
         )
 
         val scriptingConfig = ScriptingConfig("", "", "", "", "")

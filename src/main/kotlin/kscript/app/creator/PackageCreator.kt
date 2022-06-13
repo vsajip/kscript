@@ -6,14 +6,15 @@ import kscript.app.model.Script
 import kscript.app.util.Executor
 import kscript.app.util.FileUtils
 import kscript.app.util.Logger.infoMsg
-import java.nio.file.Path
+import kscript.app.util.OsPath
+import kscript.app.util.toNativeFile
 
 class PackageCreator(private val executor: Executor) {
     /**
      * Create and use a temporary gradle project to package the compiled script using capsule.
      * See https://github.com/puniverse/capsule
      */
-    fun packageKscript(basePath: Path, script: Script, jarArtifact: JarArtifact): Path {
+    fun packageKscript(basePath: OsPath, script: Script, jarArtifact: JarArtifact): OsPath {
         infoMsg("Packaging script '${script.scriptName}' into standalone executable...")
 
         // create exec_header to allow for direction execution (see http://www.capsule.io/user-guide/#really-executable-capsules)
@@ -25,7 +26,7 @@ class PackageCreator(private val executor: Executor) {
 
         executor.createPackage(basePath)
 
-        basePath.resolve("build/libs/appName").toFile().setExecutable(true)
+        basePath.resolve("build/libs/appName").toNativeFile().setExecutable(true)
 
         infoMsg("Finished packaging '${script.scriptName}'; executable path: ${basePath}/build/libs/")
 

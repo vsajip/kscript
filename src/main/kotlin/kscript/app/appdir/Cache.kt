@@ -3,31 +3,26 @@ package kscript.app.appdir
 import kscript.app.creator.JarArtifact
 import kscript.app.model.Content
 import kscript.app.model.ScriptType
+import kscript.app.util.*
 import org.apache.commons.codec.digest.DigestUtils
 import java.net.URI
-import java.nio.file.Path
-import java.nio.file.Paths
-import kotlin.io.path.createDirectories
-import kotlin.io.path.exists
-import kotlin.io.path.readText
-import kotlin.io.path.writeText
 
-class Cache(private val path: Path) {
-    fun getOrCreateIdeaProject(digest: String, creator: (Path) -> Path): Path {
+class Cache(private val path: OsPath) {
+    fun getOrCreateIdeaProject(digest: String, creator: (OsPath) -> OsPath): OsPath {
         return directoryCache(path.resolve("idea_$digest"), creator)
     }
 
-    fun getOrCreatePackage(digest: String, creator: (Path) -> Path): Path {
+    fun getOrCreatePackage(digest: String, creator: (OsPath) -> OsPath): OsPath {
         return directoryCache(path.resolve("package_$digest"), creator)
     }
 
-    fun getOrCreateJar(digest: String, creator: (Path) -> JarArtifact): JarArtifact {
+    fun getOrCreateJar(digest: String, creator: (OsPath) -> JarArtifact): JarArtifact {
         val directory = path.resolve("jar_$digest")
         val cachedJarArtifact = directory.resolve("jarArtifact.descriptor")
 
         return if (cachedJarArtifact.exists()) {
             val jarArtifactLines = cachedJarArtifact.readText().lines()
-            JarArtifact(Paths.get(jarArtifactLines[0]), jarArtifactLines[1])
+            JarArtifact(OsPath.createOrThrow(path.nativeType, jarArtifactLines[0]), jarArtifactLines[1])
         } else {
             directory.createDirectories()
             val jarArtifact = creator(directory)
@@ -36,7 +31,7 @@ class Cache(private val path: Path) {
         }
     }
 
-    fun getOrCreateUriItem(uri: URI, creator: (URI, Path) -> Content): Content {
+    fun getOrCreateUriItem(uri: URI, creator: (URI, OsPath) -> Content): Content {
         val digest = DigestUtils.md5Hex(uri.toString())
 
         val directory = path.resolve("uri_$digest")
@@ -65,12 +60,17 @@ class Cache(private val path: Path) {
         return content
     }
 
-    fun getOrCreateDependencies(digest: String, creator: () -> Set<Path>): Set<Path> {
+    fun getOrCreateDependencies(digest: String, creator: () -> Set<OsPath>): Set<OsPath> {
         val directory = path.resolve("dependencies_$digest")
         val contentFile = directory.resolve("dependencies.content")
 
         if (directory.exists()) {
-            val dependencies = contentFile.readText().lines().map { Paths.get(it) }.toSet()
+            val dependencies =
+                contentFile.readText()
+                    .lines()
+                    .filter { it.isNotEmpty() }
+                    .map { OsPath.createOrThrow(path.nativeType, it) }
+                    .toSet()
 
             //Recheck cached paths - if there are missing artifacts skip the cached values
             if (dependencies.all { it.exists() }) {
@@ -85,7 +85,7 @@ class Cache(private val path: Path) {
         return dependencies
     }
 
-    private fun directoryCache(path: Path, creator: (Path) -> Path): Path {
+    private fun directoryCache(path: OsPath, creator: (OsPath) -> OsPath): OsPath {
         return if (path.exists()) {
             path
         } else {

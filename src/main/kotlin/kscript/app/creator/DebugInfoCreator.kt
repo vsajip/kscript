@@ -9,6 +9,9 @@ class DebugInfoCreator {
     fun create(config: Config, kscriptArgs: List<String>, userArgs: List<String>): String {
         val printer = TextTablePrinter()
 
+        val classpathSeparator =
+            if (config.osConfig.osType.isWindowsLike() || config.osConfig.osType.isPosixHostedOnWindows()) ';' else ':'
+
         val table = TableBuilder(BoxTextTableStyleSet()) {
             row {
                 cell { value = "Debugging information for KScript (using tablevis by aartiPl)" }
@@ -35,7 +38,7 @@ class DebugInfoCreator {
                     value =
                         System.getProperty("java.class.path")
                             .replace("file:", "")
-                            .split(config.osConfig.classPathSeparator)
+                            .split(classpathSeparator)
                             .joinToString("\n")
                 }
             }

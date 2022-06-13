@@ -23,28 +23,22 @@ data class ScriptingConfig(
 
 data class OsConfig(
     val osType: OsType,
-    val nativeOsType: OsType,
     val selfName: String,
     val intellijCommand: String,
     val gradleCommand: String,
     val userHomeDir: OsPath,
     val kscriptConfigDir: OsPath,
     val kotlinHomeDir: OsPath,
-    val classPathSeparator: Char,
-    val hostPathSeparatorChar: Char,
 ) {
     override fun toString(): String {
         return """|OsConfig {
                   |  osType:                $osType
-                  |  nativeOsType:          $nativeOsType
                   |  selfName:              $selfName
                   |  intellijCommand:       $intellijCommand
                   |  gradleCommand:         $gradleCommand
                   |  userHomeDir:           $userHomeDir
                   |  kscriptConfigDir:      $kscriptConfigDir
                   |  kotlinHomeDir:         $kotlinHomeDir
-                  |  classPathSeparator:    $classPathSeparator
-                  |  hostPathSeparatorChar: $hostPathSeparatorChar
                   |}
                """.trimMargin()
     }

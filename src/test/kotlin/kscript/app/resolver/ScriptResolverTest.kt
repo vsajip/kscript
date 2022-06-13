@@ -9,17 +9,15 @@ import kscript.app.appdir.Cache
 import kscript.app.model.*
 import kscript.app.parser.Parser
 import kscript.app.util.OsPath
-import kscript.app.util.toNativePath
 import org.junit.jupiter.api.Test
 import java.io.File
 
 class ScriptResolverTest {
-    private val guessedOsType = OsType.findOrThrow(System.getProperty("os.name"))
-    private val testHome = OsPath.createOrThrow(guessedOsType, "build/tmp/script_resolver_test")
+    private val testHome = OsPath.createOrThrow(OsType.native, "build/tmp/script_resolver_test")
     private val config =
-        Config.builder().apply { osType = guessedOsType.name; homeDir = testHome.resolve("home") }.build()
+        Config.builder().apply { osType = OsType.native.name; homeDir = testHome.resolve("home") }.build()
 
-    private val cache = Cache(testHome.resolve("cache").toNativePath())
+    private val cache = Cache(testHome.resolve("cache"))
     private val inputOutputResolver = InputOutputResolver(config.osConfig, cache)
     private val scriptingConfig = ScriptingConfig("", "", "", "", "")
     private val sectionResolver = SectionResolver(inputOutputResolver, Parser(), scriptingConfig)

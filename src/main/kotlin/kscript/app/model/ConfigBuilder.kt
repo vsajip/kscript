@@ -2,12 +2,9 @@ package kscript.app.model
 
 import kscript.app.util.OsPath
 import kscript.app.util.ShellUtils
-import java.io.File
 
 class ConfigBuilder internal constructor() {
     var osType: String? = null
-    var classPathSeparator: Char? = null
-    var hostPathSeparatorChar: Char? = null
     var selfName: String? = null
     var kscriptDir: OsPath? = null
     var customPreamble: String? = null
@@ -25,40 +22,27 @@ class ConfigBuilder internal constructor() {
         //and then converted as needed to shell format.
 
         val osType = OsType.findOrThrow(requireNotNull(osType))
-        val nativeOsType = if (osType.isPosixHostedOnWindows()) OsType.WINDOWS else osType
 
-        val classPathSeparator =
-            classPathSeparator ?: if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ';' else ':'
-        val hostPathSeparatorChar = hostPathSeparatorChar ?: File.separatorChar
         val selfName = selfName ?: System.getenv("KSCRIPT_NAME") ?: "kscript"
         val kscriptDir = kscriptDir ?: OsPath.createOrThrow(
-            nativeOsType, System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript")
+            OsType.native, System.getenv("KSCRIPT_DIR") ?: (System.getProperty("user.home")!! + "/.kscript")
         )
         val customPreamble = customPreamble ?: System.getenv("KSCRIPT_PREAMBLE") ?: ""
         val intellijCommand = intellijCommand ?: System.getenv("KSCRIPT_COMMAND_IDEA") ?: "idea"
         val gradleCommand = gradleCommand ?: System.getenv("KSCRIPT_COMMAND_GRADLE") ?: "gradle"
 
         val kotlinHome = kotlinHome ?: (System.getenv("KOTLIN_HOME") ?: ShellUtils.guessKotlinHome(osType))?.let {
-            OsPath.createOrThrow(nativeOsType, it)
+            OsPath.createOrThrow(OsType.native, it)
         } ?: throw IllegalStateException("KOTLIN_HOME is not set and could not be inferred from context.")
 
-        val homeDir = homeDir ?: OsPath.createOrThrow(nativeOsType, System.getProperty("user.home")!!)
+        val homeDir = homeDir ?: OsPath.createOrThrow(OsType.native, System.getProperty("user.home")!!)
         val providedKotlinOpts = providedKotlinOpts ?: System.getenv("KSCRIPT_KOTLIN_OPTS") ?: ""
         val repositoryUrl = repositoryUrl ?: System.getenv("KSCRIPT_REPOSITORY_URL") ?: ""
         val repositoryUser = repositoryUser ?: System.getenv("KSCRIPT_REPOSITORY_USER") ?: ""
         val repositoryPassword = repositoryPassword ?: System.getenv("KSCRIPT_REPOSITORY_PASSWORD") ?: ""
 
         val osConfig = OsConfig(
-            osType,
-            nativeOsType,
-            selfName,
-            intellijCommand,
-            gradleCommand,
-            homeDir,
-            kscriptDir,
-            kotlinHome,
-            classPathSeparator,
-            hostPathSeparatorChar
+            osType, selfName, intellijCommand, gradleCommand, homeDir, kscriptDir, kotlinHome
         )
 
         val scriptingConfig = ScriptingConfig(

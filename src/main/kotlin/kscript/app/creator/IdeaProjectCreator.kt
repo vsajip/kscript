@@ -7,11 +7,12 @@ import kscript.app.util.FileUtils
 import kscript.app.util.FileUtils.resolveUniqueFilePath
 import kscript.app.util.Logger.devMsg
 import kscript.app.util.Logger.infoMsg
+import kscript.app.util.OsPath
 import java.net.URI
 import java.nio.file.Path
 
 class IdeaProjectCreator {
-    fun create(basePath: Path, script: Script, userArgs: List<String>, uriLocalPathProvider: (URI) -> Path): Path {
+    fun create(basePath: OsPath, script: Script, userArgs: List<String>, uriLocalPathProvider: (URI) -> OsPath): OsPath {
         infoMsg("Setting up idea project...")
         val srcPath = basePath.resolve("src/")
 

@@ -4,9 +4,7 @@ import kscript.app.creator.JarArtifact
 import kscript.app.model.CompilerOpt
 import kscript.app.model.Config
 import kscript.app.model.KotlinOpt
-import java.nio.file.Path
-import java.nio.file.Paths
-import kotlin.io.path.absolutePathString
+import kscript.app.util.OsPath
 
 class CommandResolver(private val config: Config) {
     //Syntax for different OS-es:
@@ -30,7 +28,7 @@ class CommandResolver(private val config: Config) {
     //How to find if mingw/cyg/win (second part): https://stackoverflow.com/questions/40877323/quickly-find-if-java-was-launched-from-windows-cmd-or-cygwin-terminal
 
     fun compileKotlin(
-        jar: Path, dependencies: Set<Path>, filePaths: Set<Path>, compilerOpts: Set<CompilerOpt>
+        jar: OsPath, dependencies: Set<OsPath>, filePaths: Set<OsPath>, compilerOpts: Set<CompilerOpt>
     ): String {
         val compilerOptsStr = resolveCompilerOpts(compilerOpts)
         val classpath = resolveClasspath(dependencies)
@@ -42,14 +40,13 @@ class CommandResolver(private val config: Config) {
     }
 
     fun executeKotlin(
-        jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>, kotlinOpts: Set<KotlinOpt>
+        jarArtifact: JarArtifact, dependencies: Set<OsPath>, userArgs: List<String>, kotlinOpts: Set<KotlinOpt>
     ): String {
         val kotlinOptsStr = resolveKotlinOpts(kotlinOpts)
         val userArgsStr = resolveUserArgs(userArgs)
-        val scriptRuntime =
-            Paths.get("${config.osConfig.kotlinHomeDir.stringPath()}${config.osConfig.hostPathSeparatorChar}lib${config.osConfig.hostPathSeparatorChar}kotlin-script-runtime.jar")
+        val scriptRuntime = config.osConfig.kotlinHomeDir.resolve("lib/kotlin-script-runtime.jar")
 
-        val dependenciesSet = buildSet<Path> {
+        val dependenciesSet = buildSet<OsPath> {
             addAll(dependencies)
             add(jarArtifact.path)
             add(scriptRuntime)
@@ -62,7 +59,7 @@ class CommandResolver(private val config: Config) {
     }
 
     fun interactiveKotlinRepl(
-        dependencies: Set<Path>, compilerOpts: Set<CompilerOpt>, kotlinOpts: Set<KotlinOpt>
+        dependencies: Set<OsPath>, compilerOpts: Set<CompilerOpt>, kotlinOpts: Set<KotlinOpt>
     ): String {
         val compilerOptsStr = resolveCompilerOpts(compilerOpts)
         val kotlinOptsStr = resolveKotlinOpts(kotlinOpts)
@@ -72,11 +69,11 @@ class CommandResolver(private val config: Config) {
         return "$kotlinc $compilerOptsStr $kotlinOptsStr $classpath"
     }
 
-    fun executeIdea(projectPath: Path): String {
+    fun executeIdea(projectPath: OsPath): String {
         return "${config.osConfig.intellijCommand} \"$projectPath\""
     }
 
-    fun createPackage(projectPath: Path): String {
+    fun createPackage(projectPath: OsPath): String {
         return "cd '${projectPath}' && ${config.osConfig.gradleCommand} simpleCapsule"
     }
 
@@ -84,18 +81,24 @@ class CommandResolver(private val config: Config) {
 
     private fun resolveCompilerOpts(compilerOpts: Set<CompilerOpt>) = compilerOpts.joinToString(" ") { it.value }
 
-    private fun resolveJarFile(jar: Path): String = "'${jar.absolutePathString()}'"
+    private fun resolveJarFile(jar: OsPath): String = "'${jar.stringPath()}'"
 
-    private fun resolveFiles(filePaths: Set<Path>): String =
-        filePaths.joinToString(" ") { "'${it.absolutePathString()}'" }
+    private fun resolveFiles(filePaths: Set<OsPath>): String = filePaths.joinToString(" ") { "'${it.stringPath()}'" }
 
     private fun resolveUserArgs(userArgs: List<String>) =
         userArgs.joinToString(" ") { "\"${it.replace("\"", "\\\"")}\"" }
 
-    private fun resolveClasspath(dependencies: Set<Path>) =
-        if (dependencies.isEmpty()) "" else "-classpath \"" + dependencies.joinToString(config.osConfig.classPathSeparator.toString()) {
-            it.absolutePathString()
-        } + "\""
+    private fun resolveClasspath(dependencies: Set<OsPath>): String {
+        if (dependencies.isEmpty()) {
+            return ""
+        }
 
-    private fun resolveKotlinBinary(binary: String) = config.osConfig.kotlinHomeDir.resolve("bin", binary).convert(config.osConfig.osType).stringPath()
+        val classPathSeparator =
+            if (config.osConfig.osType.isWindowsLike() || config.osConfig.osType.isPosixHostedOnWindows()) ';' else ':'
+
+        return "-classpath \"" + dependencies.joinToString(classPathSeparator.toString()) { it.stringPath() } + "\""
+    }
+
+    private fun resolveKotlinBinary(binary: String) =
+        config.osConfig.kotlinHomeDir.resolve("bin", binary).convert(config.osConfig.osType).stringPath()
 }
