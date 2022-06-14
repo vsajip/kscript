@@ -28,6 +28,18 @@ class OsPathTest {
             it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
         }
 
+        assertThat(OsPath.createOrThrow(OsType.LINUX, "")).let {
+            it.prop(OsPath::pathParts).isEqualTo(listOf("."))
+            it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        }
+
+        assertThat(OsPath.createOrThrow(OsType.LINUX, ".")).let {
+            it.prop(OsPath::pathParts).isEqualTo(listOf("."))
+            it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        }
+
         assertThat(OsPath.createOrThrow(OsType.LINUX, "../home/admin/.kscript")).let {
             it.prop(OsPath::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
             it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
@@ -36,12 +48,6 @@ class OsPathTest {
 
         assertThat(OsPath.createOrThrow(OsType.LINUX, "..")).let {
             it.prop(OsPath::pathParts).isEqualTo(listOf(".."))
-            it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
-        }
-
-        assertThat(OsPath.createOrThrow(OsType.LINUX, ".")).let {
-            it.prop(OsPath::pathParts).isEqualTo(listOf("."))
             it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
             it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
         }
@@ -105,22 +111,27 @@ class OsPathTest {
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "/").resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).stringPath()
         ).isEqualTo("/.kscript")
+
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "/home/admin/").resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).stringPath()
         ).isEqualTo("/home/admin/.kscript")
+
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "./home/admin/")
                 .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/"))
                 .stringPath()
         ).isEqualTo("./home/admin/.kscript")
+
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "../home/admin/")
                 .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/"))
                 .stringPath()
         ).isEqualTo("../home/admin/.kscript")
+
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "..").resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).stringPath()
         ).isEqualTo("../.kscript")
+
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, ".").resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).stringPath()
         ).isEqualTo("./.kscript")
@@ -154,6 +165,18 @@ class OsPathTest {
             it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
         }
 
+        assertThat(OsPath.createOrThrow(OsType.WINDOWS, "")).let {
+            it.prop(OsPath::pathParts).isEqualTo(listOf("."))
+            it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
+            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        }
+
+        assertThat(OsPath.createOrThrow(OsType.WINDOWS, ".")).let {
+            it.prop(OsPath::pathParts).isEqualTo(listOf("."))
+            it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
+            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        }
+
         assertThat(OsPath.createOrThrow(OsType.WINDOWS, ".\\home\\admin\\.kscript")).let {
             it.prop(OsPath::pathParts).isEqualTo(listOf(".", "home", "admin", ".kscript"))
             it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
@@ -168,12 +191,6 @@ class OsPathTest {
 
         assertThat(OsPath.createOrThrow(OsType.WINDOWS, "..")).let {
             it.prop(OsPath::pathParts).isEqualTo(listOf(".."))
-            it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
-        }
-
-        assertThat(OsPath.createOrThrow(OsType.WINDOWS, ".")).let {
-            it.prop(OsPath::pathParts).isEqualTo(listOf("."))
             it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
             it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
         }

@@ -133,15 +133,15 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
             '\\'
         }
 
-        fun createOrThrow(osType: OsType, vararg pathParts: String): OsPath {
-            return when (val result = internalCreate(osType, *pathParts)) {
+        fun createOrThrow(osType: OsType, root: String, vararg pathParts: String): OsPath {
+            return when (val result = internalCreate(osType, root, *pathParts)) {
                 is Either.Right -> result.value
                 is Either.Left -> throw IllegalArgumentException(result.value)
             }
         }
 
-        fun create(osType: OsType, vararg pathParts: String): OsPath? {
-            return when (val result = internalCreate(osType, *pathParts)) {
+        fun create(osType: OsType, root: String, vararg pathParts: String): OsPath? {
+            return when (val result = internalCreate(osType, root, *pathParts)) {
                 is Either.Right -> result.value
                 is Either.Left -> null
             }
@@ -150,14 +150,10 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
         //Relaxed validation:
         //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated he same
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
-        private fun internalCreate(osType: OsType, vararg pathParts: String): Either<String, OsPath> {
-            if (pathParts.isEmpty() || pathParts.any { it.isEmpty() }) {
-                return "Path parts must not be empty: [${pathParts.joinToString(",")}]".left()
-            }
-
+        private fun internalCreate(osType: OsType, root: String, vararg pathParts: String): Either<String, OsPath> {
             val pathSeparatorCharacter = resolvePathSeparator(osType)
 
-            val path = pathParts.joinToString(pathSeparatorCharacter.toString())
+            val path = listOf(root, *pathParts).joinToString(pathSeparatorCharacter.toString())
             val pathPartsResolved = path.split('/', '\\').toMutableList()
 
             //Validate root element of path and find out if it is absolute or relative
@@ -171,7 +167,7 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
                 }
                 osType.isPosixLike() && path.startsWith("/") -> {
                     //After split first element is empty for absolute paths on Linux; assigning correct value below
-                    pathPartsResolved[0] = "/"
+                    pathPartsResolved.add(0, "/")
                     isAbsolute = true
                     rootElementSizeInInputPath = 1
                 }
@@ -189,14 +185,15 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
                 }
             }
 
-            //Remove empty path parts - there were duplicated or trailing slashes / backslashes in initial path
-            pathPartsResolved.removeAll { it.isEmpty() }
-
-            val forbiddenCharacter = path.substring(rootElementSizeInInputPath).find { forbiddenCharacters.contains(it) }
+            val forbiddenCharacter =
+                path.substring(rootElementSizeInInputPath).find { forbiddenCharacters.contains(it) }
 
             if (forbiddenCharacter != null) {
                 return "Invalid character '$forbiddenCharacter' in path '$path'".left()
             }
+
+            //Remove empty path parts - there were duplicated or trailing slashes / backslashes in initial path
+            pathPartsResolved.removeAll { it.isEmpty() }
 
             val pathType = if (isAbsolute) PathType.ABSOLUTE else PathType.RELATIVE
 
