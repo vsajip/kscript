@@ -18,6 +18,41 @@ object ShellUtils {
 
     // see discussion on https://github.com/holgerbrandl/kscript/issues/15
     fun guessKotlinHome(osType: OsType): String? {
+        if (osType.isWindowsLike()) {
+            val whereKotlinOutputString = evalBash(osType, "where kotlinc.bat").stdout
+            val whereKotlinOutput = whereKotlinOutputString.lines()
+
+            //Default case - Kotlin is installed manually and added to path
+            whereKotlinOutput.forEach {
+                val path = it.substringBefore("kotlinc.bat").ifBlank { null }
+
+                if (path != null) {
+                    return path
+                }
+            }
+
+            //Scoop installer
+            if (whereKotlinOutputString.contains("scoop")) {
+                whereKotlinOutput.forEach {
+                    val path = it.substringBefore("kotlinc.cmd").ifBlank { null }
+                    if (path != null) {
+                        val scoopPath = OsPath.createOrThrow(OsType.WINDOWS, path)
+                        val scoopScript = scoopPath.readText().lines()
+
+                        scoopScript.forEach {
+                            val scoopPath = it.substringBefore("kotlinc.bat").ifBlank { null }
+
+                            if (scoopPath != null) {
+                                return scoopPath.substringAfter("@rem ").ifEmpty { null }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null
+        }
+
         val kotlinHome = evalBash(osType, "KOTLIN_RUNNER=1 JAVACMD=echo kotlinc").stdout.run {
             "kotlin.home=([^\\s]*)".toRegex().find(this)?.groups?.get(1)?.value
         } ?: return null
@@ -30,7 +65,6 @@ object ShellUtils {
     }
 
     fun quit(status: Int): Nothing {
-        print(if (status == 0) "true" else "false")
         exitProcess(status)
     }
 }

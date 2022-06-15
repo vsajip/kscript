@@ -8,7 +8,6 @@ import kscript.app.model.ScriptType
 import kscript.app.parser.Parser
 import kscript.app.resolver.*
 import kscript.app.util.Executor
-import kscript.app.resolver.InputOutputResolver
 import kscript.app.util.Logger
 import kscript.app.util.Logger.info
 import kscript.app.util.Logger.infoMsg
@@ -30,7 +29,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         // optionally clear up the jar cache
         if (docopt.getBoolean("clear-cache")) {
-            Logger.info("Cleaning up cache...")
+            info("Cleaning up cache...")
             appDir.clearCache()
             return
         }
@@ -59,7 +58,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         val resolvedDependencies = appDir.cache.getOrCreateDependencies(script.digest) {
             DependencyResolver(script.repositories).resolve(script.dependencies)
         }
-        val executor = Executor(CommandResolver(config), config.osConfig)
+        val executor = Executor(CommandResolver(config.osConfig), config.osConfig)
 
         //  Create temporary dev environment
         if (docopt.getBoolean("idea")) {

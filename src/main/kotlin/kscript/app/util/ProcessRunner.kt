@@ -45,7 +45,7 @@ object ProcessRunner {
 
             val exitVal = proc.waitFor()
 
-            // we need to wait for the gobbler threads or we may loose some output (e.g. in case of short-lived processes
+            // we need to wait for the gobbler threads, or we may lose some output (e.g. in case of short-lived processes
             stderrGobbler.join()
             stdoutGobbler.join()
 

@@ -8,7 +8,6 @@ import kscript.app.resolver.CommandResolver
 import kscript.app.util.Logger.devMsg
 import kscript.app.util.Logger.infoMsg
 import kscript.app.util.Logger.warnMsg
-import java.nio.file.Path
 
 class Executor(private val commandResolver: CommandResolver, private val osConfig: OsConfig) {
     fun compileKotlin(jar: OsPath, dependencies: Set<OsPath>, filePaths: Set<OsPath>, compilerOpts: Set<CompilerOpt>) {
@@ -23,10 +22,7 @@ class Executor(private val commandResolver: CommandResolver, private val osConfi
     }
 
     fun executeKotlin(
-        jarArtifact: JarArtifact,
-        dependencies: Set<OsPath>,
-        userArgs: List<String>,
-        kotlinOpts: Set<KotlinOpt>
+        jarArtifact: JarArtifact, dependencies: Set<OsPath>, userArgs: List<String>, kotlinOpts: Set<KotlinOpt>
     ) {
         val command = commandResolver.executeKotlin(jarArtifact, dependencies, userArgs, kotlinOpts)
         devMsg("Kotlin execute command: $command")

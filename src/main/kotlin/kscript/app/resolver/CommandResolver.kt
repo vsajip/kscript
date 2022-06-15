@@ -2,11 +2,12 @@ package kscript.app.resolver
 
 import kscript.app.creator.JarArtifact
 import kscript.app.model.CompilerOpt
-import kscript.app.model.Config
 import kscript.app.model.KotlinOpt
+import kscript.app.model.OsConfig
+import kscript.app.model.OsType
 import kscript.app.util.OsPath
 
-class CommandResolver(private val config: Config) {
+class CommandResolver(private val osConfig: OsConfig) {
     //Syntax for different OS-es:
     //LINUX:    /usr/local/sdkman/..../kotlin  -classpath "/home/vagrant/workspace/Kod/Repos/kscript/test:/home/vagrant/.kscript/cache/jar_2ccd53e06b0355d3573a4ae8698398fe/scriplet.jar:/usr/local/sdkman/candidates/kotlin/1.6.21/lib/kotlin-script-runtime.jar" Main_Scriplet
     //GIT-BASH: /c/Users/Admin/.sdkman/candidates/kotlin/current/bin/kotlin  -classpath "C:\Users\Admin;C:\Users\Admin\.kscript\cache\jar_2ccd53e06b0355d3573a4ae8698398fe\scriplet.jar;C:\Users\Admin\.sdkman\candidates\kotlin\current\lib\kotlin-script-runtime.jar" Main_Scriplet
@@ -44,9 +45,9 @@ class CommandResolver(private val config: Config) {
     ): String {
         val kotlinOptsStr = resolveKotlinOpts(kotlinOpts)
         val userArgsStr = resolveUserArgs(userArgs)
-        val scriptRuntime = config.osConfig.kotlinHomeDir.resolve("lib/kotlin-script-runtime.jar")
+        val scriptRuntime = osConfig.kotlinHomeDir.resolve("lib/kotlin-script-runtime.jar")
 
-        val dependenciesSet = buildSet<OsPath> {
+        val dependenciesSet = buildSet {
             addAll(dependencies)
             add(jarArtifact.path)
             add(scriptRuntime)
@@ -70,20 +71,26 @@ class CommandResolver(private val config: Config) {
     }
 
     fun executeIdea(projectPath: OsPath): String {
-        return "${config.osConfig.intellijCommand} \"$projectPath\""
+        return "${osConfig.intellijCommand} \"$projectPath\""
     }
 
     fun createPackage(projectPath: OsPath): String {
-        return "cd '${projectPath}' && ${config.osConfig.gradleCommand} simpleCapsule"
+        return "cd '${projectPath}' && ${osConfig.gradleCommand} simpleCapsule"
     }
 
     private fun resolveKotlinOpts(kotlinOpts: Set<KotlinOpt>) = kotlinOpts.joinToString(" ") { it.value }
 
     private fun resolveCompilerOpts(compilerOpts: Set<CompilerOpt>) = compilerOpts.joinToString(" ") { it.value }
 
-    private fun resolveJarFile(jar: OsPath): String = "'${jar.stringPath()}'"
+    private fun resolveJarFile(jar: OsPath): String = when (osConfig.osType) {
+        OsType.WINDOWS -> "\"${jar.stringPath()}\""
+        else -> "'${jar.stringPath()}'"
+    }
 
-    private fun resolveFiles(filePaths: Set<OsPath>): String = filePaths.joinToString(" ") { "'${it.stringPath()}'" }
+    private fun resolveFiles(filePaths: Set<OsPath>): String = when (osConfig.osType) {
+        OsType.WINDOWS -> filePaths.joinToString(" ") { "\"${it.stringPath()}\"" }
+        else -> filePaths.joinToString(" ") { "'${it.stringPath()}'" }
+    }
 
     private fun resolveUserArgs(userArgs: List<String>) =
         userArgs.joinToString(" ") { "\"${it.replace("\"", "\\\"")}\"" }
@@ -94,11 +101,13 @@ class CommandResolver(private val config: Config) {
         }
 
         val classPathSeparator =
-            if (config.osConfig.osType.isWindowsLike() || config.osConfig.osType.isPosixHostedOnWindows()) ';' else ':'
+            if (osConfig.osType.isWindowsLike() || osConfig.osType.isPosixHostedOnWindows()) ';' else ':'
 
         return "-classpath \"" + dependencies.joinToString(classPathSeparator.toString()) { it.stringPath() } + "\""
     }
 
     private fun resolveKotlinBinary(binary: String) =
-        config.osConfig.kotlinHomeDir.resolve("bin", binary).convert(config.osConfig.osType).stringPath()
+        osConfig.kotlinHomeDir.resolve("bin", if (osConfig.osType.isWindowsLike()) "$binary.bat" else binary)
+            .convert(osConfig.osType)
+            .stringPath()
 }

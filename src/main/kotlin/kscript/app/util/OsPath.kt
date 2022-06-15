@@ -13,17 +13,13 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
         return resolve(createOrThrow(osType, pathParts.joinToString(pathSeparator.toString())))
     }
 
-    //functionality:
-    //* relative + relative
-    //* absolute + relative
-    //* throw relative + absolute
     fun resolve(path: OsPath): OsPath {
         require(osType == path.osType) {
             "Paths from different OS's: '${this.osType.name}' path can not be resolved with '${path.osType.name}' path"
         }
 
-        require(!(pathType == PathType.RELATIVE && path.pathType == PathType.ABSOLUTE)) {
-            "Can not resolve relative path '${stringPath()}' using absolute path '${path.stringPath()}'"
+        require(path.pathType != PathType.ABSOLUTE) {
+            "Can not resolve absolute or relative path '${stringPath()}' using absolute path '${path.stringPath()}'"
         }
 
         val newPath = stringPath() + pathSeparator + path.stringPath()

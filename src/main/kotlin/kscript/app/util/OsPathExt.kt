@@ -37,6 +37,9 @@ val OsPath.leaf
 val OsPath.root
     get() = pathParts.first()
 
+val OsPath.rootOsPath
+    get() = OsPath.createOrThrow(osType, root)
+
 val OsPath.parent
     get() = toNativePath().parent
 

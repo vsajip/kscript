@@ -31,9 +31,9 @@ fun main(args: Array<String>) {
         if (remainingArgs.size == 1 && listOf("--help", "-h", "--version", "-v").contains(remainingArgs[0])) {
             Logger.info(usage)
             VersionChecker.versionCheck(KSCRIPT_VERSION)
-            val systemInfo = evalBash(config.osConfig.osType, "kotlin -version").stdout
-            Logger.info("Kotlin    : " + systemInfo.split('(')[0].removePrefix("Kotlin version").trim())
-            Logger.info("Java      : " + systemInfo.split('(')[1].split('-', ')')[0].trim())
+            val systemInfo = evalBash(config.osConfig.osType, "kotlin -version").stdout.split('(')
+            Logger.info("Kotlin    : " + systemInfo[0].removePrefix("Kotlin version").trim())
+            Logger.info("Java      : " + systemInfo[1].split('-', ')')[0].trim())
             return
         }
 

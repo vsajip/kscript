@@ -2,41 +2,64 @@ package kscript.app.resolver
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import kscript.app.creator.JarArtifact
 import kscript.app.model.*
 import kscript.app.util.OsPath
 import org.junit.jupiter.api.Test
 
-internal class CommandResolverTest {
+class CommandResolverTest {
+    private val compilerOpts = setOf(CompilerOpt("-abc"), CompilerOpt("-def"), CompilerOpt("--experimental"))
+    private val kotlinOpts = setOf(KotlinOpt("-k1"), KotlinOpt("-k2"), KotlinOpt("--disable"))
+    private val userArgs = listOf("arg", "u", "ments")
+
     @Test
-    fun compileKotlin() {
-        val config = createConfig(OsType.WINDOWS)
-        val commandResolver = CommandResolver(config)
-        val jarPath = config.osConfig.userHomeDir.resolve("/cache/somefile.jar")
-        val depPaths = setOf(
-            config.osConfig.userHomeDir.resolve("/.m2/somepath/dep1.jar"),
-            config.osConfig.userHomeDir.resolve("/.m2/somepath/dep2.jar"),
-            config.osConfig.userHomeDir.resolve("/.m2/somepath/dep3.jar")
+    fun `Windows commands`() {
+        val (config, jarPath, jarArtifact, depPaths, filePaths) = createTestData(
+            OsType.WINDOWS,
+            "C:\\My Workspace\\Code",
+            "C:\\Users\\Admin\\scoop\\apps\\kotlin\\current"
+        )
+        val commandResolver = CommandResolver(config.osConfig)
+
+        assertThat(commandResolver.compileKotlin(jarPath, depPaths, filePaths, compilerOpts)).isEqualTo(
+            """C:\Users\Admin\scoop\apps\kotlin\current\bin\kotlinc -abc -def --experimental -classpath "C:\My Workspace\Code\.m2\somepath\dep1.jar;C:\My Workspace\Code\.m2\somepath\dep2.jar;C:\My Workspace\Code\.m2\somepath\dep3.jar" -d 'C:\My Workspace\Code\.kscript\cache\somefile.jar' 'C:\My Workspace\Code\source\somepath\dep1.kt' 'C:\My Workspace\Code\source\somepath\dep2.kts'"""
         )
 
-        val filePaths = setOf(
-            config.osConfig.userHomeDir.resolve("/source/somepath/dep1.jar"),
-            config.osConfig.userHomeDir.resolve("/source/somepath/dep2.jar")
+        assertThat(commandResolver.executeKotlin(jarArtifact, depPaths, userArgs, kotlinOpts)).isEqualTo(
+            """C:\Users\Admin\scoop\apps\kotlin\current\bin\kotlin -k1 -k2 --disable -classpath "C:\My Workspace\Code\.m2\somepath\dep1.jar;C:\My Workspace\Code\.m2\somepath\dep2.jar;C:\My Workspace\Code\.m2\somepath\dep3.jar;C:\My Workspace\Code\.kscript\cache\somefile.jar;C:\Users\Admin\scoop\apps\kotlin\current\lib\kotlin-script-runtime.jar" mainClass "arg" "u" "ments""""
         )
-
-        val compilerOpts = setOf(CompilerOpt("-abc"), CompilerOpt("-def"), CompilerOpt("--experimental"))
-
-//        assertThat(commandResolver.compileKotlin(jarPath, depPaths, filePaths, compilerOpts)).isEqualTo(
-//            "C:\\home\\my workspace\\Code\\kotlin\\bin\\kotlinc -abc -def --clear -classpath \"C:\\.m2\\somepath\\dep1.jar:C:\\.m2\\somepath\\dep2.jar:C:\\.m2\\somepath\\dep3.jar\" -d 'C:\\cache\\somefile.jar' 'C:\\source\\somepath\\dep1.jar' 'C:\\source\\somepath\\dep2.jar'"
-//        )
     }
 
-    private fun createConfig(osType: OsType): Config {
-        val homeDir = when (osType) {
-            OsType.LINUX, OsType.MAC, OsType.FREEBSD -> OsPath.createOrThrow(osType, "/home/my workspace/Code")
-            OsType.WINDOWS -> OsPath.createOrThrow(osType, "C:\\My Workspace\\Code")
-            OsType.CYGWIN -> OsPath.createOrThrow(osType, "/cygdrive/c/my workspace/Code")
-            OsType.MSYS -> OsPath.createOrThrow(osType, "/c/my workspace/Code")
-        }
+    private data class TestData(
+        val config: Config,
+        val jarPath: OsPath,
+        val jarArtifact: JarArtifact,
+        val depPaths: Set<OsPath>,
+        val filePaths: Set<OsPath>
+    )
+
+    private fun createTestData(osType: OsType, homeDirString: String, kotlinDirString: String): TestData {
+        val homeDir: OsPath = OsPath.createOrThrow(osType, homeDirString)
+        val kotlinDir: OsPath = OsPath.createOrThrow(osType, kotlinDirString)
+
+//        when (osType) {
+//            OsType.LINUX, OsType.MAC, OsType.FREEBSD -> {
+//                homeDir = OsPath.createOrThrow(osType, "/My Workspace/Code")
+//                kotlinDir = OsPath.createOrThrow(osType, "/usr/local/sdkman/candidates/kotlin/1.6.21")
+//            }
+//            OsType.WINDOWS -> {
+//                homeDir = OsPath.createOrThrow(osType, "C:\\My Workspace\\Code")
+//                kotlinDir = OsPath.createOrThrow(osType, "/usr/local/sdkman/candidates/kotlin/1.6.21")
+//            }
+//            OsType.CYGWIN -> {
+//                homeDir = OsPath.createOrThrow(osType, "/cygdrive/c/My Workspace/Code")
+//                kotlinDir = OsPath.createOrThrow(osType, "/usr/local/sdkman/candidates/kotlin/1.6.21")
+//            }
+//            OsType.MSYS -> {
+//                homeDir = OsPath.createOrThrow(osType, "/c/My Workspace/Code")
+//                kotlinDir = OsPath.createOrThrow(osType, "/usr/local/sdkman/candidates/kotlin/1.6.21")
+//            }
+//        }
 
         val osConfig = OsConfig(
             osType,
@@ -45,11 +68,26 @@ internal class CommandResolverTest {
             "gradle",
             homeDir,
             homeDir.resolve("./.kscript/"),
-            homeDir.resolve("./kotlin/"),
+            kotlinDir,
         )
 
         val scriptingConfig = ScriptingConfig("", "", "", "", "")
 
-        return Config(osConfig, scriptingConfig)
+        val jarPath = osConfig.userHomeDir.resolve(".kscript/cache/somefile.jar")
+        val depPaths = sortedSetOf(
+            compareBy { it.stringPath() },
+            osConfig.userHomeDir.resolve(".m2/somepath/dep1.jar"),
+            osConfig.userHomeDir.resolve(".m2/somepath/dep2.jar"),
+            osConfig.userHomeDir.resolve(".m2/somepath/dep3.jar")
+        )
+        val filePaths = sortedSetOf(
+            compareBy { it.stringPath() },
+            osConfig.userHomeDir.resolve("source/somepath/dep1.kt"),
+            osConfig.userHomeDir.resolve("source/somepath/dep2.kts")
+        )
+
+        return TestData(
+            Config(osConfig, scriptingConfig), jarPath, JarArtifact(jarPath, "mainClass"), depPaths, filePaths
+        )
     }
 }

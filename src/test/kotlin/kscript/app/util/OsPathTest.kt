@@ -146,7 +146,7 @@ class OsPathTest {
             OsPath.createOrThrow(OsType.LINUX, "./home/admin").resolve(OsPath.createOrThrow(OsType.LINUX, "/run"))
         }.isFailure()
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Can not resolve relative path './home/admin' using absolute path '/run'")
+            .hasMessage("Can not resolve absolute or relative path './home/admin' using absolute path '/run'")
     }
 
     // ************************************************* WINDOWS PATHS *************************************************
