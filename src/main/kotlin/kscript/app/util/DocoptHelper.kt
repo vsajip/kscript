@@ -16,9 +16,6 @@ class DocOptWrapper(args: Iterable<String>, private val usage: String) {
         Docopt(usage).withExit(false).parse(args.toList())
     } catch (e: DocoptExitException) {
         // mimic docopts exit behavior but using process-substituion handler at the end
-        Logger.devMode = true
-        errorMsg(e)
-
         val ps = System.err
 
         val message = e.message
