@@ -8,10 +8,10 @@ object ShellUtils {
 
     fun evalBash(osType: OsType, cmd: String, wd: File? = null): ProcessResult {
         if (osType == OsType.WINDOWS) {
-            return ProcessRunner.runProcess("cmd /c $cmd", wd = wd)
+            return ProcessRunner.runProcess("cmd", "/c", cmd, wd = wd)
         }
 
-        return ProcessRunner.runProcess("bash -c $cmd", wd = wd)
+        return ProcessRunner.runProcess("bash", "-c", cmd, wd = wd)
     }
 
     fun isInPath(osType: OsType, tool: String) =

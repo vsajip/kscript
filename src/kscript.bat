@@ -18,8 +18,6 @@ if errorlevel 1 (
     exit /b %errorlevel%
 )
 
-if [%RESULT%]==[] (
-    exit /b %errorlevel%
+if NOT [%RESULT%]==[] (
+    %RESULT%
 )
-
-%RESULT%

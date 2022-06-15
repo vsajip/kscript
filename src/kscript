@@ -50,8 +50,9 @@ COMMAND=$("${KOTLIN_BIN}kotlin" -classpath "${JAR_PATH}" kscript.app.KscriptKt "
 RESULT=$?
 
 if [ ! $RESULT -eq 0 ]; then
-    echo "KScript execution failure: $RESULT"
     exit $RESULT
 fi
 
-eval "exec $COMMAND"
+if [ -n "$COMMAND" ]; then
+    eval "exec $COMMAND"
+fi
