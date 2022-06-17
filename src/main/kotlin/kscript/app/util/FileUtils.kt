@@ -1,6 +1,7 @@
 package kscript.app.util
 
 import kscript.app.model.OsType
+import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -83,5 +84,12 @@ object FileUtils {
 
         //osType == OsType.CYGWIN
         TODO()
+    }
+
+    fun isPossibleJarPath(path: String): Boolean {
+        // Checks could be changed to e.g. look for a .jar extension, allow relative paths etc.
+        val f = File(path)
+
+        return f.exists() && !f.isDirectory && f.isAbsolute
     }
 }
