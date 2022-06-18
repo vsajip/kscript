@@ -1,7 +1,7 @@
 package kscript.app.parser
 
 import kscript.app.model.*
-
+import kscript.app.util.FileUtils
 
 object LineParser {
     private val sheBang = listOf(SheBang)
@@ -29,9 +29,13 @@ object LineParser {
     }
 
     private fun validateDependency(dependency: String): String {
+        // First check for a file that exists (potentially a jar)
+        if (FileUtils.isPossibleJarPath(dependency)) {
+            return dependency
+        }
         val regex = Regex("^([^:]*):([^:]*):([^:@]*)(:(.*))?(@(.*))?\$")
         regex.find(dependency) ?: throw ParseException(
-            "Invalid dependency locator: '${dependency}'. Expected format is groupId:artifactId:version[:classifier][@type]"
+            "Invalid dependency locator: '${dependency}'. Expected an absolute path to a jar or a string with the format groupId:artifactId:version[:classifier][@type]"
         )
         return dependency
     }

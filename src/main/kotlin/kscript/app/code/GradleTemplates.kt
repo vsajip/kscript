@@ -5,6 +5,7 @@ import kscript.app.model.CompilerOpt
 import kscript.app.model.Dependency
 import kscript.app.model.Repository
 import kscript.app.model.Script
+import kscript.app.util.FileUtils
 import kscript.app.util.ScriptUtils.dropExtension
 
 object GradleTemplates {
@@ -163,7 +164,12 @@ object GradleTemplates {
     }
 
     private fun createGradleDependenciesSection(dependencies: Set<Dependency>) = dependencies.joinToString("\n") {
-        "implementation(\"${it.value}\")"
+        if (FileUtils.isPossibleJarPath(it.value)) {
+            "implementation(files(\"${it.value}\"))"
+        }
+        else {
+            "implementation(\"${it.value}\")"
+        }
     }
 
     private fun createGradleRepositoriesSection(repositories: Set<Repository>) = repositories.joinToString("\n") {
