@@ -8,13 +8,13 @@ object Templates {
     @Language("sh")
     val bootstrapHeader = """
         #!/bin/bash
-        
+
         //usr/bin/env echo '
         /**** BOOTSTRAP kscript ****\'>/dev/null
         command -v kscript >/dev/null 2>&1 || source /dev/stdin <<< "${'$'}(curl -L https://git.io/fpF1K)"
         exec kscript $0 "$@"
         \*** IMPORTANT: Any code including imports and annotations must come after this line ***/
-        
+
         """.trimIndent()
 
     val textProcessingPreamble = """
@@ -22,7 +22,7 @@ object Templates {
 
         import kscript.text.*
         val lines = resolveArgFile(args)
-        
+
         """.trimIndent()
 
     val executeHeader = """
@@ -68,7 +68,7 @@ object Templates {
             </configuration>
             """.trimIndent()
         } else {
-            """  
+            """
         <configuration default="false" name="Main" type="BashConfigurationType" factoryName="Bash">
             <option name="INTERPRETER_OPTIONS" value="" />
             <option name="INTERPRETER_PATH" value="kscript" />
@@ -115,5 +115,6 @@ object Templates {
         License   : MIT
         Version   : v${version}
         Website   : https://github.com/holgerbrandl/kscript
+        OS type   : ${System.getenv("OSTYPE")}
         """.trimIndent().trim()
 }
