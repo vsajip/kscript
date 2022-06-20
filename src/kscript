@@ -46,4 +46,5 @@ fi
 export KSCRIPT_FILE="$1"
 
 ## run it using command substitution to have just the user process once kscript is done
-eval "exec $("${KOTLIN_BIN}kotlin" -classpath "${JAR_PATH}" kscript.app.KscriptKt "$OSTYPE" "$@")"
+export OSTYPE="$OSTYPE"
+eval "exec $("${KOTLIN_BIN}kotlin" -classpath "${JAR_PATH}" kscript.app.KscriptKt "$@")"
