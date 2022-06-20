@@ -22,8 +22,8 @@ const val KSCRIPT_VERSION = "4.0.4"
 
 fun main(args: Array<String>) {
     try {
-        val config = Config.builder().apply { osType = args[0] }.build()
-        val remainingArgs = args.drop(1)
+        val config = Config.builder().apply { osType = System.getenv("OSTYPE") }.build()
+        val remainingArgs = args
 
         // skip org.docopt for version and help to allow for lazy version-check
         val usage = Templates.usageOptions(config.selfName, KSCRIPT_VERSION)
