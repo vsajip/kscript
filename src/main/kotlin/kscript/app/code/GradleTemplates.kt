@@ -38,30 +38,6 @@ object GradleTemplates {
             |""".trimMargin()
     }
 
-    fun hangingIndents(s: String, n: Int): String {
-        val parts = s.split('\n')
-        val indent = String.format("%${n}s", " ")
-        val result = StringBuilder()
-        val psize = parts.size
-
-        if (psize == 1) {
-            return s
-        }
-        for ((i, p) in parts.withIndex()) {
-            if (i == 0) {
-                result.append(p)
-            }
-            else {
-                result.append(indent)
-                result.append(p)
-            }
-            if (i < (psize - 1)) {
-                result.append('\n')
-            }
-        }
-        return result.toString()
-    }
-
     fun createGradlePackageScript(script: Script, jarArtifact: JarArtifact): String {
         val kotlinOptions = createCompilerOptionsSection(script.compilerOpts)
 
@@ -88,7 +64,7 @@ object GradleTemplates {
         repositories {
             mavenLocal()
             mavenCentral()
-            ${createGradleRepositoriesSection(script.repositories).prependIndent()}
+        ${createGradleRepositoriesSection(script.repositories).prependIndent()}
         }
 
         tasks.jar {
@@ -124,7 +100,7 @@ object GradleTemplates {
 
         dependencies {
             implementation(files("${jarArtifact.path.parent.resolve("scriplet.jar")}"))
-            ${hangingIndents(createGradleDependenciesSection(extendedDependencies), 12)}
+        ${createGradleDependenciesSection(extendedDependencies).prependIndent()}
         }
 
         $kotlinOptions

@@ -51,12 +51,6 @@ class PackageCreator(private val executor: Executor) {
 
         infoMsg("Finished packaging '${script.scriptName}'; executable path: ${basePath}/build/libs/$baseName")
 
-        // The tests seem to expect the end product to be in the current directory. Let's copy it for now.
-        val wd = Paths.get(File("").getAbsolutePath()).resolve(baseName).toFile()
-        infoMsg("Copied $executable to $wd")
-        executable.copyTo(wd)
-        wd.setExecutable(true)  // because copy doesn't preserve file attributes
-
         return basePath
     }
 }
