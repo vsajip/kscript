@@ -12,9 +12,6 @@ REQUESTED_SUITES="${@:-ALL}"
 echo "Starting KScript test suites: $REQUESTED_SUITES"
 echo
 
-kscript --clear-cache
-echo
-
 ########################################################################################################################
 
 source "$SCRIPT_DIR/setup_environment.sh"
@@ -22,6 +19,7 @@ echo
 
 ########################################################################################################################
 
+start_suite "clean" $REQUESTED_SUITES
 start_suite "assemble" $REQUESTED_SUITES
 start_suite "junit" $REQUESTED_SUITES
 start_suite "script_input_modes" $REQUESTED_SUITES
@@ -34,4 +32,4 @@ start_suite "custom_interpreters" $REQUESTED_SUITES
 start_suite "misc" $REQUESTED_SUITES
 start_suite "bootstrap_headers" $REQUESTED_SUITES
 start_suite "packaging" $REQUESTED_SUITES
-#start_suite "idea" $REQUESTED_SUITES
+start_suite "idea" $REQUESTED_SUITES

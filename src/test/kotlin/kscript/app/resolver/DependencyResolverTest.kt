@@ -6,13 +6,16 @@ import assertk.assertions.exists
 import assertk.assertions.isFailure
 import assertk.assertions.isInstanceOf
 import kscript.app.model.Dependency
+import kscript.app.model.OsType
 import kscript.app.model.Repository
+import kscript.app.util.OsPath
+import kscript.app.util.leaf
+import kscript.app.util.toNativePath
 import org.apache.commons.io.FileUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
 import kotlin.io.path.invariantSeparatorsPathString
@@ -35,7 +38,7 @@ class DependencyResolverTest {
         val dependency = Dependency(dependencyString)
         val calculatedPath = calculateArtifactPath(dependency, true)
         assertThat(dependencyResolver.resolve(setOf(dependency))).contains(calculatedPath)
-        assertThat(calculatedPath).exists()
+        assertThat(calculatedPath.toNativePath()).exists()
     }
 
     @Test
@@ -51,11 +54,11 @@ class DependencyResolverTest {
         val resolve = dependencyResolver.resolve(setOf(Dependency("org.javamoney:moneta:pom:1.3")))
         apply {
             assertEquals(6, resolve.size)
-            assertThat(resolve.none{ it.fileName.endsWith(".pom")})
+            assertThat(resolve.none { it.leaf.endsWith(".pom") })
         }
     }
 
-    private fun calculateArtifactPath(dependency: Dependency, cleanupFirst: Boolean = false): Path {
+    private fun calculateArtifactPath(dependency: Dependency, cleanupFirst: Boolean = false): OsPath {
         val parts = dependency.value.split(":")
         require(parts.size == 3 || parts.size == 4)
 
@@ -64,8 +67,11 @@ class DependencyResolverTest {
         val extension = if (parts.size == 4) parts[2] else "jar"
         val version = parts[parts.size - 1]
 
-
-        val calculatedPath = Paths.get("$repositoryPathString/$group/$artifact/$version/$artifact-$version.$extension")
+        val calculatedPath =
+            OsPath.createOrThrow(
+                OsType.native,
+                "$repositoryPathString/$group/$artifact/$version/$artifact-$version.$extension"
+            )
 
         if (cleanupFirst) {
             val cleanupPath = Paths.get("$repositoryPathString/$group")

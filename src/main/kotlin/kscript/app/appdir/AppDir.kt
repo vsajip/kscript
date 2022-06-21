@@ -1,11 +1,12 @@
 package kscript.app.appdir
 
+import kscript.app.util.OsPath
+import kscript.app.util.createDirectories
+import kscript.app.util.toNativeFile
 import org.apache.commons.io.FileUtils
-import java.nio.file.Path
-import kotlin.io.path.createDirectories
 
-class AppDir(path: Path) {
-    private val cachePath = path.resolve("cache")
+class AppDir(osPath: OsPath) {
+    private val cachePath = osPath.resolve("cache")
 
     init {
         cachePath.createDirectories()
@@ -14,6 +15,6 @@ class AppDir(path: Path) {
     val cache = Cache(cachePath)
 
     fun clearCache() {
-        FileUtils.cleanDirectory(cachePath.toFile())
+        FileUtils.cleanDirectory(cachePath.toNativeFile())
     }
 }

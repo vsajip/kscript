@@ -9,31 +9,27 @@ import kscript.app.parser.Parser
 import kscript.app.resolver.*
 import kscript.app.util.Executor
 import kscript.app.util.Logger
-import kscript.app.util.Logger.devMsg
+import kscript.app.util.Logger.info
 import kscript.app.util.Logger.infoMsg
 import org.docopt.DocOptWrapper
 import java.net.URI
 
 class KscriptHandler(private val config: Config, private val docopt: DocOptWrapper) {
 
-    fun handle(userArgs: List<String>) {
+    fun handle(kscriptArgs: List<String>, userArgs: List<String>) {
         Logger.silentMode = docopt.getBoolean("silent")
         Logger.devMode = docopt.getBoolean("development")
 
-        devMsg("KScript configuration:")
-        devMsg(config.toString())
-
         if (Logger.devMode) {
-            devMsg("Classpath:")
-            devMsg(System.getProperty("java.class.path"))
+            info(DebugInfoCreator().create(config, kscriptArgs, userArgs))
         }
 
         // create kscript dir if it does not yet exist
-        val appDir = AppDir(config.kscriptDir)
+        val appDir = AppDir(config.osConfig.kscriptConfigDir)
 
         // optionally clear up the jar cache
         if (docopt.getBoolean("clear-cache")) {
-            Logger.info("Cleaning up cache...")
+            info("Cleaning up cache...")
             appDir.clearCache()
             return
         }
@@ -45,14 +41,12 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
                 add(Templates.textProcessingPreamble)
             }
 
-            add(config.customPreamble)
+            add(config.scriptingConfig.customPreamble)
         }
 
-        val contentResolver = ContentResolver(appDir.cache)
-        // see https://github.com/holgerbrandl/kscript/issues/127
-//        val fileResolver = FileSystemDependenciesResolver()
-        val sectionResolver = SectionResolver(Parser(), contentResolver, config)
-        val scriptResolver = ScriptResolver(sectionResolver, contentResolver, config.kotlinOptsEnvVariable)
+        val inputOutputResolver = InputOutputResolver(config.osConfig, appDir.cache)
+        val sectionResolver = SectionResolver(inputOutputResolver, Parser(), config.scriptingConfig)
+        val scriptResolver = ScriptResolver(inputOutputResolver, sectionResolver, config.scriptingConfig)
 
         if (docopt.getBoolean("add-bootstrap-header")) {
             val script = scriptResolver.resolve(docopt.getString("script"), maxResolutionLevel = 0)
@@ -64,12 +58,12 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         val resolvedDependencies = appDir.cache.getOrCreateDependencies(script.digest) {
             DependencyResolver(script.repositories).resolve(script.dependencies)
         }
-        val executor = Executor(CommandResolver(config, script), config)
+        val executor = Executor(CommandResolver(config.osConfig), config.osConfig)
 
         //  Create temporary dev environment
         if (docopt.getBoolean("idea")) {
             val path = appDir.cache.getOrCreateIdeaProject(script.digest) { basePath ->
-                val uriLocalPathProvider = { uri: URI -> contentResolver.resolve(uri).localPath }
+                val uriLocalPathProvider = { uri: URI -> inputOutputResolver.resolveContent(uri).localPath }
                 IdeaProjectCreator().create(basePath, script, userArgs, uriLocalPathProvider)
             }
 
@@ -80,7 +74,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
 
         //  Optionally enter interactive mode
         if (docopt.getBoolean("interactive")) {
-            executor.runInteractiveRepl(resolvedDependencies)
+            executor.runInteractiveRepl(resolvedDependencies, script.compilerOpts, script.kotlinOpts)
             return
         }
 
@@ -104,6 +98,6 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
             return
         }
 
-        executor.executeKotlin(jar, resolvedDependencies, userArgs)
+        executor.executeKotlin(jar, resolvedDependencies, userArgs, script.kotlinOpts)
     }
 }

@@ -52,7 +52,7 @@ kotlin scripting interpreter.
 Installation
 ------------
 
-To use `kscript` just Kotlin and Maven are required.
+To use `kscript` just Kotlin is required.
 To [install Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html) we
 recommend [sdkman](http://sdkman.io/install):
 
@@ -104,9 +104,8 @@ instance [bind mounts](https://docs.docker.com/storage/bind-mounts/).
 
 #### Installation without `sdkman`
 
-If you have Kotlin and Maven already and you would like to install the latest `kscript` release without using `sdkman`
-you can do so by unzipping the [latest ](https://github.com/holgerbrandl/kscript/releases/latest) binary release. Don't
-forget to update your `$PATH` accordingly.
+If you have Kotlin already and you would like to install the latest `kscript` release without using `sdkman`
+you can do so by unzipping the [latest ](https://github.com/holgerbrandl/kscript/releases/latest) binary release. Don't forget to update your `$PATH` accordingly.
 
 #### Installation with Homebrew
 
@@ -316,7 +315,7 @@ Which can be now used using the `//INCLUDE` directive with
 
 //INCLUDE utils.kt
 
-val robustMean = listOf(1.3, 42.3, 7.).median()
+val robustMean = listOf(1.3, 42.3, 7.0).median()
 println(robustMean)
 ```
 
@@ -503,7 +502,7 @@ This will open [IntelliJ IDEA](https://www.jetbrains.com/idea/) with a minimalis
 
 This assumes that you have the Intellij IDEA command line launcher `idea` in your `PATH`. It can be created in IntelliJ
 under `Tools -> Create Command-line Launcher` or you can set the command used to launch your intellij
-as `KSCRIPT_IDEA_COMMAND` env property
+as `KSCRIPT_COMMAND_IDEA` env property
 
 Deploy scripts as standalone binaries
 --------------------------------------

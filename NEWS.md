@@ -12,9 +12,13 @@ Breaking changes
 Major Enhancements
 
 * Initial Windows support
-* Fix for resolution of dependencies
+* When creating IntelliJ project 'gradle' and 'idea' do not have to be in path 
 
-Minor Enhancements
+Bugfixes
+* Fix for dependency resolution
+* Fix creation of Gradle files and their indentation
+* Fix for handling potentially duplicated file names in Idea projects
+* Fix for Idea runtime configuration
 
 ## 4.0.2
 

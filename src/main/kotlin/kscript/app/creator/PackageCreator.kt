@@ -6,10 +6,11 @@ import kscript.app.model.Script
 import kscript.app.util.Executor
 import kscript.app.util.FileUtils
 import kscript.app.util.Logger.infoMsg
-import kscript.app.util.ScriptUtils.dropExtension
+import kscript.app.util.OsPath
+import kscript.app.util.toNativeFile
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.io.File
 
 class PackageCreator(private val executor: Executor) {
     /**
@@ -23,8 +24,8 @@ class PackageCreator(private val executor: Executor) {
         return Templates.executeHeader.replace("java -jar", "java $opts -jar")
     }
 
-    fun packageKscript(basePath: Path, script: Script, jarArtifact: JarArtifact): Path {
-        val baseName = script.scriptName.dropExtension()
+    fun packageKscript(basePath: OsPath, script: Script, jarArtifact: JarArtifact): OsPath {
+        val baseName = script.scriptName
 
         infoMsg("Packaging script '${script.scriptName}' into standalone executable...")
 
@@ -45,7 +46,7 @@ class PackageCreator(private val executor: Executor) {
 
         executor.createPackage(basePath)
 
-        val executable = basePath.resolve("build/libs/$baseName").toFile()
+        val executable = File(basePath.resolve("build/libs/$baseName").toString())
         executable.setExecutable(true)
 
         infoMsg("Finished packaging '${script.scriptName}'; executable path: ${basePath}/build/libs/$baseName")

@@ -3,17 +3,15 @@ package kscript.app.resolver
 import kscript.app.model.*
 import kscript.app.parser.LineParser.extractValues
 import kscript.app.util.ScriptUtils
-import java.io.File
-import java.io.FileInputStream
+import kscript.app.util.UriUtils
+import kscript.app.util.leaf
 import java.net.URI
-import java.net.URL
 
 class ScriptResolver(
+    private val inputOutputResolver: InputOutputResolver,
     private val sectionResolver: SectionResolver,
-    private val contentResolver: ContentResolver,
-    private val kotlinOptsEnvVariable: String = ""
+    private val scriptingConfig: ScriptingConfig
 ) {
-    private val kotlinExtensions = listOf("kts", "kt")
     private val scripletName = "scriplet"
 
     //level parameter - for how many levels should include be resolved
@@ -33,8 +31,8 @@ class ScriptResolver(
                 ScriptSource.STD_INPUT,
                 scriptType,
                 null,
-                File(".").toURI(),
-                scripletName + scriptType.extension,
+                inputOutputResolver.resolveCurrentDir(),
+                scripletName,
                 scriptText,
                 true,
                 maxResolutionLevel
@@ -42,8 +40,8 @@ class ScriptResolver(
         }
 
         //Is it a URL?
-        if (ScriptUtils.isUrl(string)) {
-            val content = contentResolver.resolve(URL(string))
+        if (UriUtils.isUrl(string)) {
+            val content = inputOutputResolver.resolveContent(URI(string))
             val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
 
             return createScript(
@@ -58,48 +56,49 @@ class ScriptResolver(
             )
         }
 
-        val file = File(string)
-        if (file.canRead()) {
-            if (kotlinExtensions.contains(file.extension)) {
-                //Regular file
-                val content = contentResolver.resolve(file.toPath())
+        val filePath = inputOutputResolver.tryToCreateShellFilePath(string)
+
+        if (filePath != null) {
+            val scriptType = ScriptType.findByExtension(filePath.leaf)
+
+            if (inputOutputResolver.isReadable(filePath)) {
+                if (scriptType != null) {
+                    //Regular file
+                    val content = inputOutputResolver.resolveContent(filePath)
+                    val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
+
+                    return createScript(
+                        ScriptSource.FILE,
+                        content.scriptType,
+                        content.uri,
+                        content.contextUri,
+                        content.fileName,
+                        scriptText,
+                        true,
+                        maxResolutionLevel
+                    )
+                }
+
+                //If script input is a process substitution file handle we can not use for content reading following methods:
+                //FileInputStream(this).bufferedReader().use{ readText() } nor readText()
+                val content = inputOutputResolver.resolveContentUsingInputStream(filePath)
                 val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
 
                 return createScript(
-                    ScriptSource.FILE,
+                    ScriptSource.OTHER_FILE,
                     content.scriptType,
                     content.uri,
                     content.contextUri,
-                    content.fileName,
-                    scriptText,
-                    true,
-                    maxResolutionLevel
-                )
-            } else {
-                //If script input is a process substitution file handle we can not use for content reading:
-                //FileInputStream(this).bufferedReader().use{ readText() } nor readText()
-                val uri = file.toURI()
-                val includeContext = uri.resolve(".")
-
-                val scriptText =
-                    ScriptUtils.prependPreambles(preambles, FileInputStream(file).bufferedReader().readText())
-
-                val scriptType = ScriptUtils.resolveScriptType(scriptText)
-                return createScript(
-                    ScriptSource.OTHER_FILE,
-                    scriptType,
-                    uri,
-                    includeContext,
-                    scripletName + scriptType.extension,
+                    scripletName,
                     scriptText,
                     true,
                     maxResolutionLevel
                 )
             }
-        }
 
-        if (kotlinExtensions.contains(file.extension)) {
-            throw IllegalStateException("Could not read script from '$string'")
+            if (scriptType != null) {
+                throw IllegalStateException("Could not read script from '$string'")
+            }
         }
 
         //As a last resort we assume that input is a Kotlin program...
@@ -110,8 +109,8 @@ class ScriptResolver(
             ScriptSource.PARAMETER,
             scriptType,
             null,
-            File(".").toURI(),
-            scripletName + scriptType.extension,
+            inputOutputResolver.resolveCurrentDir(),
+            scripletName,
             scriptText,
             true,
             maxResolutionLevel
@@ -140,8 +139,8 @@ class ScriptResolver(
 
         val code = ScriptUtils.resolveCode(resolutionContext.packageName, resolutionContext.importNames, scriptNode)
 
-        if (kotlinOptsEnvVariable.isNotBlank()) {
-            extractValues(kotlinOptsEnvVariable).map { KotlinOpt(it) }.forEach {
+        if (scriptingConfig.providedKotlinOpts.isNotBlank()) {
+            extractValues(scriptingConfig.providedKotlinOpts).map { KotlinOpt(it) }.forEach {
                 resolutionContext.kotlinOpts.add(it)
             }
         }

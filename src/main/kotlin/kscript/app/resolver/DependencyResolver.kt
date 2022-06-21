@@ -2,10 +2,15 @@ package kscript.app.resolver
 
 import kotlinx.coroutines.runBlocking
 import kscript.app.model.Dependency
+import kscript.app.model.OsConfig
 import kscript.app.model.Repository
 import kscript.app.util.Logger.devMsg
 import kscript.app.util.Logger.infoMsg
+import kscript.app.util.OsPath
+import kscript.app.util.extension
+import kscript.app.util.toOsPath
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.collections.set
 import kotlin.io.path.extension
 import kotlin.script.experimental.api.valueOr
@@ -37,7 +42,7 @@ class DependencyResolver(private val customRepos: Set<Repository>) {
     private val resolver =
         CompoundDependenciesResolver(FileSystemDependenciesResolver(), MavenDependenciesResolver(), mvnResolver)
 
-    fun resolve(depIds: Set<Dependency>): Set<Path> {
+    fun resolve(depIds: Set<Dependency>): Set<OsPath> {
         val resolvedDependencies = runBlocking {
             depIds.map {
                 infoMsg("Resolving ${it.value}...")
@@ -58,7 +63,7 @@ class DependencyResolver(private val customRepos: Set<Repository>) {
                 throw IllegalStateException(exceptionMessage + "\n" + details, firstException)
             }
         }.flatten().map {
-            it.toPath()
+            it.toOsPath()
         }.filter {
             it.extension == "jar"
         }.toSet()

@@ -4,31 +4,35 @@ import kscript.app.code.GradleTemplates
 import kscript.app.code.Templates
 import kscript.app.model.Script
 import kscript.app.util.FileUtils
+import kscript.app.util.FileUtils.resolveUniqueFilePath
 import kscript.app.util.Logger.devMsg
 import kscript.app.util.Logger.infoMsg
+import kscript.app.util.OsPath
 import java.net.URI
 import java.nio.file.Path
 
 class IdeaProjectCreator {
-    fun create(basePath: Path, script: Script, userArgs: List<String>, uriLocalPathProvider: (URI) -> Path): Path {
+    fun create(basePath: OsPath, script: Script, userArgs: List<String>, uriLocalPathProvider: (URI) -> OsPath): OsPath {
         infoMsg("Setting up idea project...")
+        val srcPath = basePath.resolve("src/")
 
         for (scriptNode in script.scriptNodes) {
             val sourceUri = scriptNode.sourceUri
-            val path = basePath.resolve("src/${scriptNode.scriptName}")
+            val filePath = resolveUniqueFilePath(srcPath, scriptNode.scriptName, scriptNode.scriptType)
 
             if (sourceUri == null) {
-                FileUtils.createFile(path, scriptNode.sections.joinToString("\n") { it.code })
+                FileUtils.createFile(filePath, scriptNode.sections.joinToString("\n") { it.code })
             } else {
                 val targetPath = uriLocalPathProvider(sourceUri)
-                devMsg("link: $path, target: $targetPath")
-                FileUtils.symLinkOrCopy(path, targetPath)
+                devMsg("link: $filePath, target: $targetPath")
+
+                FileUtils.symLinkOrCopy(filePath, targetPath)
             }
         }
 
         FileUtils.createFile(
             basePath.resolve(".idea/runConfigurations/Main.xml"),
-            Templates.runConfig(script.rootNode.scriptName, userArgs)
+            Templates.runConfig(script.rootNode.scriptName, script.rootNode.scriptType, userArgs)
         )
 
         FileUtils.createFile(

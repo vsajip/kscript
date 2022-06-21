@@ -37,13 +37,13 @@ assert "kscript ${PROJECT_DIR}/test/resources/dash-test.kts" "dash alarm!"
 ## We also test innner uppercase letters in file name here by using .*T*est
 assert "kscript ${PROJECT_DIR}/test/resources/dot.Test.kts" "dot alarm!"
 
-## missing script
-assert_raises "kscript i_do_not_exist.kts" 1
-assert "kscript i_do_not_exist.kts 2>&1" "[kscript] [ERROR] Could not read script from 'i_do_not_exist.kts'"
-
 ## make sure that it runs with remote URLs
 assert "kscript https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/url_test.kts" "I came from the internet"
 assert "kscript https://git.io/fxHBv" "main was called"
 
 # repeated compilation of buggy same script should end up in error again
 assert_raises "kscript '1-'; kscript '1-'" 1
+
+## missing script gives always error on execution
+assert_raises "kscript i_do_not_exist.kts" 1
+assert "kscript i_do_not_exist.kts 2>&1" "[kscript] [ERROR] Could not read script from 'i_do_not_exist.kts'"

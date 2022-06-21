@@ -47,7 +47,7 @@ jobs:
           
           if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             echo "Linux test..."
-            ./test/test_suite.sh
+            ./test/linux_suite.sh
           elif [[ "$OSTYPE" == "darwin"* ]]; then
             echo "MacOs test..."
             ./gradlew clean build

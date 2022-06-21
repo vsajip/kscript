@@ -1,7 +1,7 @@
 package kscript.app.code
 
 import kscript.app.model.PackageName
-import kscript.app.util.ScriptUtils.dropExtension
+import kscript.app.model.ScriptType
 import org.intellij.lang.annotations.Language
 
 object Templates {
@@ -33,61 +33,49 @@ object Templates {
     fun wrapperForScript(packageName: PackageName, className: String): String {
         val classReference = packageName.value + "." + className
 
-        return """
-            class Main_${className}{
-                companion object {
-                    @JvmStatic
-                    fun main(args: Array<String>) {
-                        val script = Main_${className}::class.java.classLoader.loadClass("$classReference")
-                        script.getDeclaredConstructor(Array<String>::class.java).newInstance(args);
-                    }
-                }
-            }
-            """.trimIndent()
+        return """|class Main_${className}{
+                  |    companion object {
+                  |        @JvmStatic
+                  |        fun main(args: Array<String>) {
+                  |            val script = Main_${className}::class.java.classLoader.loadClass("$classReference")
+                  |            script.getDeclaredConstructor(Array<String>::class.java).newInstance(args);
+                  |        }
+                  |    }
+                  |}""".trimMargin()
     }
 
-    fun runConfig(rootNode: String, userArgs: List<String>): String {
-        val fileNameWithoutExtension = rootNode.dropExtension()
+    fun runConfig(rootScriptName: String, rootScriptType: ScriptType, userArgs: List<String>): String {
+        val rootFileName = rootScriptName + rootScriptType.extension
+        val userArgsString = userArgs.joinToString(" ") { it }
 
-        val runConfigurationBody = if (rootNode.endsWith(".kt")) {
-            """
-        <configuration name="$fileNameWithoutExtension" type="JetRunConfigurationType">
-            <module name="${rootNode}.main" />
-            <option name="VM_PARAMETERS" value="" />
-            <option name="PROGRAM_PARAMETERS" value="" />
-            <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-            <option name="ALTERNATIVE_JRE_PATH" />
-            <option name="PASS_PARENT_ENVS" value="true" />
-            <option name="MAIN_CLASS_NAME" value="${
-                fileNameWithoutExtension.replaceFirstChar { it.titlecase() }
-            }Kt" />
-            <option name="WORKING_DIRECTORY" value="" />
-            <method v="2">
-                <option name="Make" enabled="true" />
-            </method>
-            </configuration>
-            """.trimIndent()
-        } else {
-            """  
-        <configuration default="false" name="Main" type="BashConfigurationType" factoryName="Bash">
-            <option name="INTERPRETER_OPTIONS" value="" />
-            <option name="INTERPRETER_PATH" value="kscript" />
-            <option name="PROJECT_INTERPRETER" value="false" />
-            <option name="WORKING_DIRECTORY" value="" />
-            <option name="PARENT_ENVS" value="true" />
-            <option name="SCRIPT_NAME" value="${'$'}PROJECT_DIR${'$'}/src/${rootNode}" />
-            <option name="PARAMETERS" value="${userArgs.joinToString(" ")}" />
-            <module name="" />
-            <method v="2" />
-         </configuration>
-         """.trimIndent()
+        if (rootScriptType == ScriptType.KT) {
+            return """  |<component name="ProjectRunConfigurationManager">
+                        |  <configuration default="false" name="$rootFileName" type="JetRunConfigurationType" nameIsGenerated="true">
+                        |    <module name="idea" />
+                        |    <option name="MAIN_CLASS_NAME" value="${rootScriptName}Kt" />
+                        |    <option name="PROGRAM_PARAMETERS" value="$userArgsString" />
+                        |    <shortenClasspath name="NONE" />
+                        |    <method v="2">
+                        |      <option name="Make" enabled="true" />
+                        |    </method>
+                        |  </configuration>
+                        |</component>
+                        |""".trimMargin()
         }
 
-        return """
-            <component name="ProjectRunConfigurationManager">
-            $runConfigurationBody
-            </component>
-        """.trimIndent()
+        // This is Kotlin scripting configuration (other possible options: ShConfigurationType (linux), BatchConfigurationType (windows))
+        return """  |<component name="ProjectRunConfigurationManager">
+                    |  <configuration default="false" name="$rootFileName" type="KotlinStandaloneScriptRunConfigurationType" nameIsGenerated="true">
+                    |    <module name="idea" />
+                    |    <option name="PROGRAM_PARAMETERS" value="$userArgsString" />
+                    |    <shortenClasspath name="NONE" />
+                    |    <option name="filePath" value="${'$'}PROJECT_DIR${'$'}/src/$rootFileName" />
+                    |    <method v="2">
+                    |      <option name="Make" enabled="true" />
+                    |    </method>
+                    |  </configuration>
+                    |</component>
+                    |""".trimMargin()
     }
 
     fun usageOptions(selfName: String, version: String) = """
