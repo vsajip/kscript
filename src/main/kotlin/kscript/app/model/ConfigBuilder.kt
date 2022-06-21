@@ -42,6 +42,19 @@ class ConfigBuilder internal constructor() {
         val repositoryUrlEnvVariable = repositoryUrlEnvVariable ?: System.getenv("KSCRIPT_REPOSITORY_URL") ?: ""
         val repositoryUserEnvVariable = repositoryUserEnvVariable ?: System.getenv("KSCRIPT_REPOSITORY_USER") ?: ""
         val repositoryPasswordEnvVariable = repositoryPasswordEnvVariable ?: System.getenv("KSCRIPT_REPOSITORY_PASSWORD") ?: ""
+        val localJars = HashSet<Path>();
+        val localJarEnv = System.getenv("KSCRIPT_LOCAL_JARS")
+
+        if (localJarEnv != null) {
+            val paths = localJarEnv.split(';').map{ Path.of(it) };
+
+            paths.forEach {p ->
+                val f = p.toFile();
+                if (f.exists() && !f.isDirectory && f.isAbsolute) {
+                    localJars.add(p);
+                }
+            }
+        }
 
         return Config(
             osType,
@@ -58,7 +71,8 @@ class ConfigBuilder internal constructor() {
             kotlinOptsEnvVariable,
             repositoryUrlEnvVariable,
             repositoryUserEnvVariable,
-            repositoryPasswordEnvVariable
+            repositoryPasswordEnvVariable,
+            localJars,
         )
     }
 }

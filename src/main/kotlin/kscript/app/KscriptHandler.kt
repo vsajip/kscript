@@ -63,7 +63,7 @@ class KscriptHandler(private val config: Config, private val docopt: DocOptWrapp
         val script = scriptResolver.resolve(docopt.getString("script"), preambles)
         val resolvedDependencies = appDir.cache.getOrCreateDependencies(script.digest) {
             DependencyResolver(script.repositories).resolve(script.dependencies)
-        }
+        } + config.localJars
         val executor = Executor(CommandResolver(config, script), config)
 
         //  Create temporary dev environment
