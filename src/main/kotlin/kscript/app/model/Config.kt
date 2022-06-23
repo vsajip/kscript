@@ -18,6 +18,7 @@ data class Config(
     val repositoryUrlEnvVariable: String,
     val repositoryUserEnvVariable: String,
     val repositoryPasswordEnvVariable: String,
+    val executeCommands: Boolean,
 ) {
     companion object {
         fun builder() = ConfigBuilder()
