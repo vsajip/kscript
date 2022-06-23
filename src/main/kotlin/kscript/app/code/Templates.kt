@@ -113,7 +113,7 @@ object Templates {
 
         Copyright : 2022 Holger Brandl
         License   : MIT
-        Version   : v${version}
+        Version   : v${version} (with modifications by Vinay Sajip)
         Website   : https://github.com/holgerbrandl/kscript
         OS type   : ${System.getenv("OSTYPE")}
         """.trimIndent().trim()
