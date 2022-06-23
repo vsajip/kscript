@@ -5,6 +5,8 @@ import kscript.app.model.Config
 import kscript.app.resolver.CommandResolver
 import kscript.app.util.Logger.devMsg
 import java.nio.file.Path
+import java.lang.ProcessBuilder.Redirect
+import java.util.concurrent.TimeUnit
 
 class Executor(private val commandResolver: CommandResolver, private val config: Config) {
     fun compileKotlin(jar: Path, dependencies: Set<Path>, filePaths: Set<Path>) {
@@ -23,6 +25,26 @@ class Executor(private val commandResolver: CommandResolver, private val config:
         }
     }
 
+    fun executeCommand(command: String) {
+        if (!config.executeCommands) {
+            println(command)
+        }
+        else {
+            // A bit of a kludge here to remove quotes. Needs to be made more bulletproof
+            val cmd = command.trim().split("\\s+".toRegex()).map {
+                var s = it
+                if (s[0] == '\"' && s[s.length - 1] == '\"') {
+                    s = s.substring(1, it.length - 1)
+                }
+                s
+            }
+            ProcessBuilder(cmd)
+                .redirectOutput(Redirect.INHERIT)
+                .redirectError(Redirect.INHERIT)
+                .start().waitFor(60, TimeUnit.MINUTES)
+        }
+    }
+
     fun executeKotlin(jarArtifact: JarArtifact, dependencies: Set<Path>, userArgs: List<String>) {
         if (config.kotlinHome == null && !ShellUtils.isInPath(config.osType, "kotlin") ) {
             throw IllegalStateException("KOTLIN_HOME is not set and could not be inferred from context, and kotlin is not in PATH")
@@ -30,14 +52,14 @@ class Executor(private val commandResolver: CommandResolver, private val config:
 
         val command = commandResolver.executeKotlin(jarArtifact, dependencies, userArgs)
         devMsg("Kotlin execute command: $command")
-        println(command)
+        executeCommand(command)
     }
 
     fun runInteractiveRepl(dependencies: Set<Path>) {
         Logger.infoMsg("Creating REPL")
         val command = commandResolver.interactiveKotlinRepl(dependencies)
         devMsg("REPL Kotlin command: $command")
-        println(command)
+        executeCommand(command)
     }
 
     fun runIdea(projectPath: Path) {
@@ -56,7 +78,7 @@ class Executor(private val commandResolver: CommandResolver, private val config:
 
         val command = commandResolver.executeIdea(projectPath)
         devMsg("Idea execute command: $command")
-        println(command)
+        executeCommand(command)
     }
 
     fun createPackage(projectPath: Path) {

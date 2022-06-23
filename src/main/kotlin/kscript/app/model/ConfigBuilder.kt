@@ -42,6 +42,7 @@ class ConfigBuilder internal constructor() {
         val repositoryUrlEnvVariable = repositoryUrlEnvVariable ?: System.getenv("KSCRIPT_REPOSITORY_URL") ?: ""
         val repositoryUserEnvVariable = repositoryUserEnvVariable ?: System.getenv("KSCRIPT_REPOSITORY_USER") ?: ""
         val repositoryPasswordEnvVariable = repositoryPasswordEnvVariable ?: System.getenv("KSCRIPT_REPOSITORY_PASSWORD") ?: ""
+        val executeCommands = System.getenv("KSCRIPT_EXECUTE") != null
 
         return Config(
             osType,
@@ -58,7 +59,8 @@ class ConfigBuilder internal constructor() {
             kotlinOptsEnvVariable,
             repositoryUrlEnvVariable,
             repositoryUserEnvVariable,
-            repositoryPasswordEnvVariable
+            repositoryPasswordEnvVariable,
+            executeCommands,
         )
     }
 }
