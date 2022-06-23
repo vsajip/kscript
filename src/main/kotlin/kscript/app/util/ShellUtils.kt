@@ -31,7 +31,7 @@ object ShellUtils {
     }
 
     fun quit(status: Int): Nothing {
-        print(if (status == 0) "true" else "false")
+        // print(if (status == 0) "true" else "false")
         exitProcess(status)
     }
 }
