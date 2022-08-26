@@ -2,18 +2,16 @@ package kscript.app.resolver
 
 import kscript.app.model.*
 import kscript.app.parser.LineParser.extractValues
+import kscript.app.shell.leaf
 import kscript.app.util.ScriptUtils
-import java.io.File
-import java.io.FileInputStream
+import kscript.app.util.UriUtils
 import java.net.URI
-import java.net.URL
 
 class ScriptResolver(
+    private val inputOutputResolver: InputOutputResolver,
     private val sectionResolver: SectionResolver,
-    private val contentResolver: ContentResolver,
-    private val kotlinOptsEnvVariable: String = ""
+    private val scriptingConfig: ScriptingConfig
 ) {
-    private val kotlinExtensions = listOf("kts", "kt")
     private val scripletName = "scriplet"
 
     //level parameter - for how many levels should include be resolved
@@ -29,89 +27,94 @@ class ScriptResolver(
             val scriptText = ScriptUtils.prependPreambles(preambles, generateSequence { readLine() }.joinToString("\n"))
             val scriptType = ScriptUtils.resolveScriptType(scriptText)
 
+            val location =
+                Location(
+                    0,
+                    ScriptSource.STD_INPUT,
+                    scriptType,
+                    null,
+                    inputOutputResolver.resolveCurrentDir(),
+                    scripletName
+                )
+
             return createScript(
-                ScriptSource.STD_INPUT,
-                scriptType,
-                null,
-                File(".").toURI(),
-                scripletName + scriptType.extension,
-                scriptText,
-                true,
-                maxResolutionLevel
+                location, scriptText, true, maxResolutionLevel
             )
         }
 
         //Is it a URL?
-        if (ScriptUtils.isUrl(string)) {
-            val content = contentResolver.resolve(URL(string))
+        if (UriUtils.isUrl(string)) {
+            val content = inputOutputResolver.resolveContent(URI(string))
             val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
 
+            val location =
+                Location(0, ScriptSource.HTTP, content.scriptType, content.uri, content.contextUri, content.fileName)
+
             return createScript(
-                ScriptSource.HTTP,
-                content.scriptType,
-                content.uri,
-                content.contextUri,
-                content.fileName,
-                scriptText,
-                false,
-                maxResolutionLevel
+                location, scriptText, false, maxResolutionLevel
             )
         }
 
-        val file = File(string)
-        if (file.canRead()) {
-            if (kotlinExtensions.contains(file.extension)) {
-                //Regular file
-                val content = contentResolver.resolve(file.toPath())
+        val filePath = inputOutputResolver.tryToCreateShellFilePath(string)
+
+        if (filePath != null) {
+            val scriptType = ScriptType.findByExtension(filePath.leaf)
+
+            if (inputOutputResolver.isReadable(filePath)) {
+                if (scriptType != null) {
+                    //Regular file
+                    val content = inputOutputResolver.resolveContent(filePath)
+                    val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
+
+                    val location =
+                        Location(
+                            0,
+                            ScriptSource.FILE,
+                            content.scriptType,
+                            content.uri,
+                            content.contextUri,
+                            content.fileName
+                        )
+
+                    return createScript(
+                        location, scriptText, true, maxResolutionLevel
+                    )
+                }
+
+                //If script input is a process substitution file handle we can not use for content reading following methods:
+                //FileInputStream(this).bufferedReader().use{ readText() } nor readText()
+                val content = inputOutputResolver.resolveContentUsingInputStream(filePath)
                 val scriptText = ScriptUtils.prependPreambles(preambles, content.text)
 
-                return createScript(
-                    ScriptSource.FILE,
-                    content.scriptType,
-                    content.uri,
-                    content.contextUri,
-                    content.fileName,
-                    scriptText,
-                    true,
-                    maxResolutionLevel
-                )
-            } else {
-                //If script input is a process substitution file handle we can not use for content reading:
-                //FileInputStream(this).bufferedReader().use{ readText() } nor readText()
-                val uri = file.toURI()
-                val includeContext = uri.resolve(".")
+                val location =
+                    Location(
+                        0,
+                        ScriptSource.OTHER_FILE,
+                        content.scriptType,
+                        content.uri,
+                        content.contextUri,
+                        scripletName
+                    )
 
-                val scriptText =
-                    ScriptUtils.prependPreambles(preambles, FileInputStream(file).bufferedReader().readText())
-
-                val scriptType = ScriptUtils.resolveScriptType(scriptText)
                 return createScript(
-                    ScriptSource.OTHER_FILE,
-                    scriptType,
-                    uri,
-                    includeContext,
-                    scripletName + scriptType.extension,
-                    scriptText,
-                    true,
-                    maxResolutionLevel
+                    location, scriptText, true, maxResolutionLevel
                 )
             }
-        }
 
-        if (kotlinExtensions.contains(file.extension)) {
-            throw IllegalStateException("Could not read script from '$string'")
+            if (scriptType != null) {
+                throw IllegalStateException("Could not read script from '$string'")
+            }
         }
 
         //As a last resort we assume that input is a Kotlin program...
         val scriptText = ScriptUtils.prependPreambles(preambles, string)
         val scriptType = ScriptUtils.resolveScriptType(scriptText)
 
+        val location =
+            Location(0, ScriptSource.PARAMETER, scriptType, null, inputOutputResolver.resolveCurrentDir(), scripletName)
+
         return createScript(
-            ScriptSource.PARAMETER,
-            scriptType,
-            null,
-            File(".").toURI(),
-            scripletName + scriptType.extension,
+            location,
             scriptText,
             true,
             maxResolutionLevel
@@ -119,29 +122,20 @@ class ScriptResolver(
     }
 
     private fun createScript(
-        scriptSource: ScriptSource,
-        scriptType: ScriptType,
-        sourceUri: URI?,
-        sourceContextUri: URI,
-        scriptName: String,
-        scriptText: String,
-        allowLocalReferences: Boolean,
-        maxResolutionLevel: Int
+        location: Location, scriptText: String, allowLocalReferences: Boolean, maxResolutionLevel: Int
     ): Script {
-        val level = 0
         val resolutionContext = ResolutionContext()
-        val sections = sectionResolver.resolve(
-            scriptText, sourceContextUri, allowLocalReferences, level, maxResolutionLevel, resolutionContext
-        )
+        val sections =
+            sectionResolver.resolve(location, scriptText, allowLocalReferences, maxResolutionLevel, resolutionContext)
 
-        val scriptNode = ScriptNode(level, scriptSource, scriptType, sourceUri, sourceContextUri, scriptName, sections)
+        val scriptNode = ScriptNode(location, sections)
         resolutionContext.scriptNodes.add(scriptNode)
         resolutionContext.packageName = resolutionContext.packageName ?: PackageName("kscript.scriplet")
 
         val code = ScriptUtils.resolveCode(resolutionContext.packageName, resolutionContext.importNames, scriptNode)
 
-        if (kotlinOptsEnvVariable.isNotBlank()) {
-            extractValues(kotlinOptsEnvVariable).map { KotlinOpt(it) }.forEach {
+        if (scriptingConfig.providedKotlinOpts.isNotBlank()) {
+            extractValues(scriptingConfig.providedKotlinOpts).map { KotlinOpt(it) }.forEach {
                 resolutionContext.kotlinOpts.add(it)
             }
         }
@@ -149,11 +143,7 @@ class ScriptResolver(
         val digest = ScriptUtils.calculateHash(code, resolutionContext)
 
         return Script(
-            scriptSource,
-            scriptType,
-            sourceUri,
-            sourceContextUri,
-            scriptName,
+            location,
             code,
             resolutionContext.packageName!!,
             resolutionContext.entryPoint,
@@ -163,6 +153,7 @@ class ScriptResolver(
             resolutionContext.repositories,
             resolutionContext.kotlinOpts,
             resolutionContext.compilerOpts,
+            resolutionContext.deprecatedItems,
             resolutionContext.scriptNodes,
             scriptNode,
             digest

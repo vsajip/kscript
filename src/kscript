@@ -36,9 +36,10 @@ else
   KOTLIN_BIN="$KOTLIN_HOME/bin/"
 fi
 
-# OSTYPE can be: linux-gnu, freebsd, darwin, cygwin, msys
+# OSTYPE can be: linux*, freebsd, darwin*, cygwin, msys
 if [[ "$OSTYPE" == "cygwin" || "$OSTYPE" == "msys" ]]; then
   JAR_PATH=$(cygpath -w "${JAR_PATH}")
+  KOTLIN_BIN=$(cygpath "${KOTLIN_BIN}")
   true
 fi
 
@@ -46,4 +47,13 @@ fi
 export KSCRIPT_FILE="$1"
 
 ## run it using command substitution to have just the user process once kscript is done
-eval "exec $("${KOTLIN_BIN}kotlin" -classpath "${JAR_PATH}" kscript.app.KscriptKt "$OSTYPE" "$@")"
+COMMAND=$("${KOTLIN_BIN}kotlin" -classpath "${JAR_PATH}" kscript.app.KscriptKt "$OSTYPE" "$@")
+RESULT=$?
+
+if [ ! $RESULT -eq 0 ]; then
+    exit $RESULT
+fi
+
+if [ -n "$COMMAND" ]; then
+    eval "exec $COMMAND"
+fi

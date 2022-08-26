@@ -1,28 +1,129 @@
 package kscript.app.resolver
 
-import io.mockk.mockk
-import kscript.app.appdir.Cache
+import assertk.assertThat
+import assertk.assertions.isEqualTo
 import kscript.app.creator.JarArtifact
-import kscript.app.model.Config
-import kscript.app.model.OsType
-import kscript.app.parser.Parser
+import kscript.app.model.*
+import kscript.app.shell.OsPath
 import org.junit.jupiter.api.Test
-import java.nio.file.Paths
 
-internal class CommandResolverTest {
-//    private val testHome = Paths.get("build/tmp/script_resolver_test")
-//    private val config =
-//        Config.builder().apply { osType = OsType.LINUX.osName; homeDir = testHome.resolve("home") }.build()
-//    private val cache = mockk<Cache>()
-//    private val contentResolver = ContentResolver(cache)
-//    private val sectionResolver = SectionResolver(Parser(), contentResolver, config)
-//    private val scriptResolver = ScriptResolver(sectionResolver, contentResolver)
-//    private val commandResolver = CommandResolver(config, scriptResolver.resolve("println(\"Kotlin rocks\")"))
+class CommandResolverTest {
+    private val compilerOpts = setOf(CompilerOpt("-abc"), CompilerOpt("-def"), CompilerOpt("--experimental"))
+    private val kotlinOpts = setOf(KotlinOpt("-k1"), KotlinOpt("-k2"), KotlinOpt("--disable"))
+    private val userArgs = listOf("arg", "u", "ments")
 
     @Test
-    fun executeKotlin() {
-        val jarArtifact = JarArtifact(Paths.get("/home/vagrant/test.jar"), "Main_Scriplet")
-        val dependencies = setOf(Paths.get("/home/vagrant/deps/test1.jar"), Paths.get("/home/vagrant/deps/test2.jar"))
-        //println(commandResolver.executeKotlin(jarArtifact, dependencies, emptyList()))
+    fun `Windows commands`() {
+        val (config, jarPath, jarArtifact, depPaths, filePaths) = createTestData(
+            OsType.WINDOWS,
+            "C:\\My Workspace\\Code",
+            "C:\\Users\\Admin\\scoop\\apps\\kotlin\\current"
+        )
+        val commandResolver = CommandResolver(config.osConfig)
+
+        assertThat(commandResolver.compileKotlin(jarPath, depPaths, filePaths, compilerOpts)).isEqualTo(
+            """C:\Users\Admin\scoop\apps\kotlin\current\bin\kotlinc.bat -abc -def --experimental -classpath "C:\My Workspace\Code\.m2\somepath\dep1.jar;C:\My Workspace\Code\.m2\somepath\dep2.jar;C:\My Workspace\Code\.m2\somepath\dep3.jar" -d "C:\My Workspace\Code\.kscript\cache\somefile.jar" "C:\My Workspace\Code\source\somepath\dep1.kt" "C:\My Workspace\Code\source\somepath\dep2.kts""""
+        )
+
+        assertThat(commandResolver.executeKotlin(jarArtifact, depPaths, userArgs, kotlinOpts)).isEqualTo(
+            """C:\Users\Admin\scoop\apps\kotlin\current\bin\kotlin.bat -k1 -k2 --disable -classpath "C:\My Workspace\Code\.m2\somepath\dep1.jar;C:\My Workspace\Code\.m2\somepath\dep2.jar;C:\My Workspace\Code\.m2\somepath\dep3.jar;C:\My Workspace\Code\.kscript\cache\somefile.jar;C:\Users\Admin\scoop\apps\kotlin\current\lib\kotlin-script-runtime.jar" mainClass "arg" "u" "ments""""
+        )
+    }
+
+    @Test
+    fun `Linux commands`() {
+        val (config, jarPath, jarArtifact, depPaths, filePaths) = createTestData(
+            OsType.LINUX,
+            "/home/vagrant/",
+            "/usr/local/kotlin/"
+        )
+        val commandResolver = CommandResolver(config.osConfig)
+
+        assertThat(commandResolver.compileKotlin(jarPath, depPaths, filePaths, compilerOpts)).isEqualTo(
+            """/usr/local/kotlin/bin/kotlinc -abc -def --experimental -classpath '/home/vagrant/.m2/somepath/dep1.jar:/home/vagrant/.m2/somepath/dep2.jar:/home/vagrant/.m2/somepath/dep3.jar' -d '/home/vagrant/.kscript/cache/somefile.jar' '/home/vagrant/source/somepath/dep1.kt' '/home/vagrant/source/somepath/dep2.kts'"""
+        )
+
+        assertThat(commandResolver.executeKotlin(jarArtifact, depPaths, userArgs, kotlinOpts)).isEqualTo(
+            """/usr/local/kotlin/bin/kotlin -k1 -k2 --disable -classpath '/home/vagrant/.m2/somepath/dep1.jar:/home/vagrant/.m2/somepath/dep2.jar:/home/vagrant/.m2/somepath/dep3.jar:/home/vagrant/.kscript/cache/somefile.jar:/usr/local/kotlin/lib/kotlin-script-runtime.jar' mainClass 'arg' 'u' 'ments'"""
+        )
+    }
+
+    @Test
+    fun `Msys commands`() {
+        val (config, jarPath, jarArtifact, depPaths, filePaths) = createTestData(
+            OsType.MSYS,
+            "/c/My Workspace/",
+            "/c/My Home/kotlin/"
+        )
+        val commandResolver = CommandResolver(config.osConfig)
+
+        assertThat(commandResolver.compileKotlin(jarPath, depPaths, filePaths, compilerOpts)).isEqualTo(
+            """/c/My Home/kotlin/bin/kotlinc -abc -def --experimental -classpath 'c:\My Workspace\.m2\somepath\dep1.jar;c:\My Workspace\.m2\somepath\dep2.jar;c:\My Workspace\.m2\somepath\dep3.jar' -d 'c:\My Workspace\.kscript\cache\somefile.jar' 'c:\My Workspace\source\somepath\dep1.kt' 'c:\My Workspace\source\somepath\dep2.kts'"""
+        )
+
+        assertThat(commandResolver.executeKotlin(jarArtifact, depPaths, userArgs, kotlinOpts)).isEqualTo(
+            """/c/My Home/kotlin/bin/kotlin -k1 -k2 --disable -classpath 'c:\My Workspace\.m2\somepath\dep1.jar;c:\My Workspace\.m2\somepath\dep2.jar;c:\My Workspace\.m2\somepath\dep3.jar;c:\My Workspace\.kscript\cache\somefile.jar;c:\My Home\kotlin\lib\kotlin-script-runtime.jar' mainClass 'arg' 'u' 'ments'"""
+        )
+    }
+
+    @Test
+    fun `Cygwin commands`() {
+        val (config, jarPath, jarArtifact, depPaths, filePaths) = createTestData(
+            OsType.CYGWIN,
+            "/cygdrive/c/My Workspace/",
+            "/cygdrive/c/My Home/kotlin/"
+        )
+        val commandResolver = CommandResolver(config.osConfig)
+
+        assertThat(commandResolver.compileKotlin(jarPath, depPaths, filePaths, compilerOpts)).isEqualTo(
+            """/cygdrive/c/My Home/kotlin/bin/kotlinc -abc -def --experimental -classpath 'c:\My Workspace\.m2\somepath\dep1.jar;c:\My Workspace\.m2\somepath\dep2.jar;c:\My Workspace\.m2\somepath\dep3.jar' -d 'c:\My Workspace\.kscript\cache\somefile.jar' 'c:\My Workspace\source\somepath\dep1.kt' 'c:\My Workspace\source\somepath\dep2.kts'"""
+        )
+
+        assertThat(commandResolver.executeKotlin(jarArtifact, depPaths, userArgs, kotlinOpts)).isEqualTo(
+            """/cygdrive/c/My Home/kotlin/bin/kotlin -k1 -k2 --disable -classpath 'c:\My Workspace\.m2\somepath\dep1.jar;c:\My Workspace\.m2\somepath\dep2.jar;c:\My Workspace\.m2\somepath\dep3.jar;c:\My Workspace\.kscript\cache\somefile.jar;c:\My Home\kotlin\lib\kotlin-script-runtime.jar' mainClass 'arg' 'u' 'ments'"""
+        )
+    }
+
+    private data class TestData(
+        val config: Config,
+        val jarPath: OsPath,
+        val jarArtifact: JarArtifact,
+        val depPaths: Set<OsPath>,
+        val filePaths: Set<OsPath>
+    )
+
+    private fun createTestData(osType: OsType, homeDirString: String, kotlinDirString: String): TestData {
+        val homeDir: OsPath = OsPath.createOrThrow(osType, homeDirString)
+        val kotlinDir: OsPath = OsPath.createOrThrow(osType, kotlinDirString)
+
+        val osConfig = OsConfig(
+            osType,
+            "kscript",
+            "idea",
+            "gradle",
+            homeDir,
+            homeDir.resolve("./.config/"),
+            homeDir.resolve("./.cache/"),
+            kotlinDir,
+        )
+
+        val scriptingConfig = ScriptingConfig("", "", "", "", "")
+
+        val jarPath = osConfig.userHomeDir.resolve(".kscript/cache/somefile.jar")
+        val depPaths = sortedSetOf(
+            compareBy { it.stringPath() },
+            osConfig.userHomeDir.resolve(".m2/somepath/dep1.jar"),
+            osConfig.userHomeDir.resolve(".m2/somepath/dep2.jar"),
+            osConfig.userHomeDir.resolve(".m2/somepath/dep3.jar")
+        )
+        val filePaths = sortedSetOf(
+            compareBy { it.stringPath() },
+            osConfig.userHomeDir.resolve("source/somepath/dep1.kt"),
+            osConfig.userHomeDir.resolve("source/somepath/dep2.kts")
+        )
+
+        return TestData(
+            Config(osConfig, scriptingConfig), jarPath, JarArtifact(jarPath, "mainClass"), depPaths, filePaths
+        )
     }
 }

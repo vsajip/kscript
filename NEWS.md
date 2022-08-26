@@ -1,6 +1,6 @@
 # Changes
 
-## 4.1.0 - TO BE RELEASED
+## 4.1.0
 
 Breaking changes
 
@@ -9,14 +9,30 @@ Breaking changes
   KSCRIPT_IDEA_COMMAND -> KSCRIPT_COMMAND_IDEA
   KSCRIPT_GRADLE_COMMAND -> KSCRIPT_COMMAND_GRADLE
 
-Major Enhancements
+Enhancements
 
-* Initial Windows support
-* Fix for resolution of dependencies
+* Windows support and proper Cygwin and MSys support
+* File argument for specific OS should be in format of that OS (eg. Cygwin: kscript /cygdrive/c/file.kts)
+* Multiplatform tests for different OS-es using Github actions
+* Ability to use configuration file for kscript (thanks to [meztihn](https://github.com/meztihn)) 
+* kscript follows XDG Spec (Issue #323) (thanks to [meztihn](https://github.com/meztihn))
+* Packaging scripts works again (thanks to [Vsajip](https://github.com/vsajip))
+* When creating IntelliJ project 'gradle' and 'idea' do not have to be in path
+* Integration tests rewritten from bash to JUnit
+* Replacements for (current annotations are deprecated):
+  * @MavenRepository -> @Repository
+  * @KotlinOpts -> @KotlinOptions
+  * @CompilerOpts -> @CompilerOptions
+* Deprecation of comment based annotations
+* Report for deprecated features (--report option)
 
-Minor Enhancements
+Bugfixes
+* Fix for dependency resolution
+* Fix for creation of Gradle files and their indentation
+* Fix for handling potentially duplicated file names in Idea projects
+* Fix for Idea runtime configuration
 
-## 4.0.2
+## 4.0.x (last 4.0.3)
 
 Released 2022-05-18
 

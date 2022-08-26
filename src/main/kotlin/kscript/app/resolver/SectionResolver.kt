@@ -2,21 +2,22 @@ package kscript.app.resolver
 
 import kscript.app.model.*
 import kscript.app.parser.Parser
-import kscript.app.util.ScriptUtils
-import java.io.File
+import kscript.app.util.UriUtils
 import java.net.URI
-import java.nio.file.Path
 
-class SectionResolver(private val parser: Parser, private val contentResolver: ContentResolver, private val config: Config) {
+class SectionResolver(
+    private val inputOutputResolver: InputOutputResolver,
+    private val parser: Parser,
+    private val scriptingConfig: ScriptingConfig
+) {
     fun resolve(
+        location: Location,
         scriptText: String,
-        includeContext: URI,
         allowLocalReferences: Boolean,
-        currentLevel: Int,
         maxResolutionLevel: Int,
         resolutionContext: ResolutionContext
     ): List<Section> {
-        val sections = parser.parse(scriptText)
+        val sections = parser.parse(location, scriptText)
         val resultingSections = mutableListOf<Section>()
 
         for (section in sections) {
@@ -25,9 +26,9 @@ class SectionResolver(private val parser: Parser, private val contentResolver: C
             for (annotation in section.scriptAnnotations) {
                 resultingScriptAnnotations += resolveAnnotation(
                     annotation,
-                    includeContext,
+                    location.sourceContextUri,
                     allowLocalReferences,
-                    currentLevel,
+                    location.level,
                     maxResolutionLevel,
                     resolutionContext
                 )
@@ -51,41 +52,38 @@ class SectionResolver(private val parser: Parser, private val contentResolver: C
 
         when (scriptAnnotation) {
             is SheBang -> resolvedScriptAnnotations += scriptAnnotation
+
             is Code -> resolvedScriptAnnotations += scriptAnnotation
+
             is ScriptNode -> resolvedScriptAnnotations += scriptAnnotation
 
             is Include -> {
-                val uri = resolveInclude(includeContext, scriptAnnotation.value, config.homeDir)
+                val uri = resolveIncludeUri(includeContext, scriptAnnotation.value)
 
                 if (currentLevel < maxResolutionLevel && !resolutionContext.uriRegistry.contains(uri)) {
                     resolutionContext.uriRegistry.add(uri)
 
-                    val scriptSource = if (ScriptUtils.isRegularFile(uri)) ScriptSource.FILE else ScriptSource.HTTP
+                    val scriptSource = if (UriUtils.isRegularFile(uri)) ScriptSource.FILE else ScriptSource.HTTP
 
                     if (scriptSource == ScriptSource.FILE && !allowLocalReferences) {
                         throw IllegalStateException("References to local files from remote scripts are disallowed.")
                     }
 
-                    val content = contentResolver.resolve(uri)
+                    val content = inputOutputResolver.resolveContent(uri)
+
+                    val location = Location(
+                        currentLevel + 1, scriptSource, content.scriptType, uri, content.contextUri, content.fileName
+                    )
 
                     val newSections = resolve(
+                        location,
                         content.text,
-                        content.contextUri,
                         allowLocalReferences && scriptSource == ScriptSource.FILE,
-                        currentLevel + 1,
                         maxResolutionLevel,
                         resolutionContext
                     )
 
-                    val scriptNode = ScriptNode(
-                        currentLevel + 1,
-                        scriptSource,
-                        content.scriptType,
-                        uri,
-                        content.contextUri,
-                        ScriptUtils.extractFileName(uri),
-                        newSections
-                    )
+                    val scriptNode = ScriptNode(location, newSections)
 
                     resolutionContext.scriptNodes.add(scriptNode)
                     resolvedScriptAnnotations += scriptNode
@@ -115,40 +113,49 @@ class SectionResolver(private val parser: Parser, private val contentResolver: C
                 resolutionContext.importNames.add(scriptAnnotation)
                 resolvedScriptAnnotations += scriptAnnotation
             }
+
             is Dependency -> {
                 resolutionContext.dependencies.add(scriptAnnotation)
                 resolvedScriptAnnotations += scriptAnnotation
             }
+
             is KotlinOpt -> {
                 resolutionContext.kotlinOpts.add(scriptAnnotation)
                 resolvedScriptAnnotations += scriptAnnotation
             }
+
             is CompilerOpt -> {
                 resolutionContext.compilerOpts.add(scriptAnnotation)
                 resolvedScriptAnnotations += scriptAnnotation
             }
+
             is Repository -> {
                 val repository = Repository(
-                    scriptAnnotation.id,
-                    scriptAnnotation.url.replace("{{KSCRIPT_REPOSITORY_URL}}", config.repositoryUrlEnvVariable),
-                    scriptAnnotation.user.replace("{{KSCRIPT_REPOSITORY_USER}}", config.repositoryUserEnvVariable),
-                    scriptAnnotation.password.replace(
-                        "{{KSCRIPT_REPOSITORY_PASSWORD}}", config.repositoryPasswordEnvVariable
+                    scriptAnnotation.id, scriptAnnotation.url.replace(
+                        "{{KSCRIPT_REPOSITORY_URL}}", scriptingConfig.providedRepositoryUrl
+                    ), scriptAnnotation.user.replace(
+                        "{{KSCRIPT_REPOSITORY_USER}}", scriptingConfig.providedRepositoryUser
+                    ), scriptAnnotation.password.replace(
+                        "{{KSCRIPT_REPOSITORY_PASSWORD}}", scriptingConfig.providedRepositoryPassword
                     )
                 )
 
                 resolutionContext.repositories.add(repository)
                 resolvedScriptAnnotations += repository
             }
+
+            is DeprecatedItem -> {
+                resolutionContext.deprecatedItems.add(scriptAnnotation)
+            }
         }
 
         return resolvedScriptAnnotations
     }
 
-    private fun resolveInclude(includeContext: URI, include: String, homeDir: Path): URI {
+    private fun resolveIncludeUri(includeContext: URI, include: String): URI {
         val result = when {
-            include.startsWith("/") -> File(include).toURI()
-            include.startsWith("~/") -> File(homeDir.toAbsolutePath().toString() + include.substring(1)).toURI()
+            include.startsWith("/") -> inputOutputResolver.resolveUriRelativeToRoot(include.substring(1))
+            include.startsWith("~/") -> inputOutputResolver.resolveUriRelativeToHomeDir(include.substring(2))
             else -> includeContext.resolve(URI(include.removePrefix("./")))
         }
 

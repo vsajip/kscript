@@ -1,7 +1,7 @@
 #!/usr/bin/env kscript
 
-//DEPS log4j:log4j:1.2.14
-//ENTRY  Foo
+@file:DependsOn("log4j:log4j:1.2.14")
+@file:EntryPoint("Foo")
 
 package test
 
@@ -13,5 +13,3 @@ class Foo{
         }
     }
 }
-
-

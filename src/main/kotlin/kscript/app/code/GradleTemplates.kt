@@ -5,43 +5,40 @@ import kscript.app.model.CompilerOpt
 import kscript.app.model.Dependency
 import kscript.app.model.Repository
 import kscript.app.model.Script
-import kscript.app.util.ScriptUtils.dropExtension
 
 object GradleTemplates {
     fun createGradleIdeaScript(script: Script): String {
-        val kotlinOptions = kotlinOptions(script.compilerOpts)
-
         val kotlinVersion = KotlinVersion.CURRENT
         val extendedDependencies = setOf(
             Dependency("org.jetbrains.kotlin:kotlin-stdlib"),
-            Dependency("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
+            Dependency("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion"),
+            Dependency("com.github.holgerbrandl:kscript-annotations:1.4"),
         ) + script.dependencies
 
         return """
-        plugins {
-            id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
-        }
-
-        repositories {
-            mavenLocal()
-            mavenCentral()
-            ${createGradleRepositoriesSection(script.repositories).prependIndent()}
-        }
-
-        dependencies {
-            ${createGradleDependenciesSection(extendedDependencies).prependIndent()}
-        }
-
-        sourceSets.getByName("main").java.srcDirs("src")
-        sourceSets.getByName("test").java.srcDirs("src")
-
-        $kotlinOptions
-        """.trimIndent()
+            |plugins {
+            |    id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
+            |}
+            |
+            |repositories {
+            |    mavenLocal()
+            |    mavenCentral()
+            |${createGradleRepositoriesSection(script.repositories).prependIndent()}
+            |}
+            |
+            |dependencies {
+            |${createGradleDependenciesSection(extendedDependencies).prependIndent()}
+            |}
+            |
+            |sourceSets.getByName("main").java.srcDirs("src")
+            |sourceSets.getByName("test").java.srcDirs("src")
+            |
+            |${createCompilerOptionsSection(script.compilerOpts)}
+            |""".trimMargin()
     }
 
-    //Capsule: https://github.com/ngyewch/gradle-capsule-plugin
     fun createGradlePackageScript(script: Script, jarArtifact: JarArtifact): String {
-        val kotlinOptions = kotlinOptions(script.compilerOpts)
+        val kotlinOptions = createCompilerOptionsSection(script.compilerOpts)
 
         val kotlinVersion = KotlinVersion.CURRENT
         val extendedDependencies = setOf(
@@ -50,52 +47,71 @@ object GradleTemplates {
         ) + script.dependencies
 
         val capsuleApp = jarArtifact.execClassName
+        val baseName = script.location.scriptName
 
         return """
-        plugins {
-            id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
-            id("it.gianluz.capsule") version "1.0.3"
-            application
-        }
-
-        repositories {
-            mavenLocal()
-            mavenCentral()
-            ${createGradleRepositoriesSection(script.repositories).prependIndent()}
-        }
-        
-        tasks.create<us.kirchmeier.capsule.task.FatCapsule>("simpleCapsule") {
-            applicationClass("$capsuleApp")
-            archiveFileName.set("${script.scriptName.dropExtension()}")
-
-            // https://github.com/danthegoodman/gradle-capsule-plugin/blob/master/DOCUMENTATION.md#really-executable-capsules
-            reallyExecutable
-
-            capsuleManifest.apply {
-                applicationClass = "$capsuleApp"
-                application = "${script.scriptName.dropExtension()}"
-                applicationScript = "exec_header.sh"
-                jvmArgs = listOf()
-            }
-        }
-        
-        dependencies {
-            implementation(files("${jarArtifact.path.parent.resolve("scriplet.jar")}"))
-            ${createGradleDependenciesSection(extendedDependencies).prependIndent()}
-        }
-
-        $kotlinOptions
-        """.trimIndent()
+            |import java.io.*
+            |import java.lang.System
+            |import java.nio.file.Files
+            |import java.nio.file.Paths
+            |
+            |plugins {
+            |    id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
+            |    application
+            |}
+            |
+            |repositories {
+            |    mavenLocal()
+            |    mavenCentral()
+            |${createGradleRepositoriesSection(script.repositories).prependIndent()}
+            |}
+            |
+            |tasks.jar {
+            |    manifest {
+            |        attributes["Main-Class"] = "$capsuleApp"
+            |    }
+            |    baseName = "$baseName"
+            |    configurations["compileClasspath"].forEach { file: File ->
+            |        from(zipTree(file.absoluteFile))
+            |    }
+            |    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+            |}
+            |
+            |tasks.register("makeScript") {
+            |    dependsOn(":jar")
+            |    doLast {
+            |        val headerDir = layout.projectDirectory.toString()
+            |        val jarFileName = layout.buildDirectory.file("libs/$baseName.jar").get().toString()
+            |        val outFileName = layout.buildDirectory.file("libs/$baseName").get().toString()
+            |        val lineSeparator = System.getProperty("line.separator").encodeToByteArray()
+            |        val headerPath = Paths.get(headerDir).resolve("exec_header.sh")
+            |        val headerBytes = Files.readAllBytes(headerPath)
+            |        val jarBytes = Files.readAllBytes(Paths.get(jarFileName))
+            |        val outFile = Paths.get(outFileName).toFile()
+            |        val fileStream = FileOutputStream(outFile)
+            |
+            |        fileStream.write(headerBytes)
+            |        fileStream.write(lineSeparator)
+            |        fileStream.write(jarBytes)
+            |        fileStream.close()
+            |    }
+            |}
+            |
+            |dependencies {
+            |    implementation(files("${jarArtifact.path.stringPath().replace("\\", "\\\\")}"))
+            |${createGradleDependenciesSection(extendedDependencies).prependIndent()}
+            |}
+            |
+            |$kotlinOptions
+            """.trimStart().trimMargin()
     }
 
     private fun createGradleRepositoryCredentials(repository: Repository): String {
         if (repository.user.isNotBlank() && repository.password.isNotBlank()) {
-            return """
-                credentials {
-                    username = "${repository.user}"
-                    password = "${repository.password}"
-                }
-            """.trimIndent()
+            return """|credentials {
+                      |    username = "${repository.user}"
+                      |    password = "${repository.password}"
+                      |}""".trimMargin()
         }
 
         return ""
@@ -106,36 +122,37 @@ object GradleTemplates {
     }
 
     private fun createGradleRepositoriesSection(repositories: Set<Repository>) = repositories.joinToString("\n") {
-        """ 
-        maven {
-            url "${it.url}"
-            ${createGradleRepositoryCredentials(it).prependIndent()}
-        }
-        """.trimIndent()
+        """|maven {
+           |    url = uri("${it.url}")
+           |${createGradleRepositoryCredentials(it).prependIndent()}
+           |}
+        """.trimMargin()
     }
 
-    private fun kotlinOptions(compilerOpts: Set<CompilerOpt>): String {
-        val opts = compilerOpts.map { it.value }
-
-        var jvmTargetOption: String? = null
-        for (i in opts.indices) {
-            if (i > 0 && opts[i - 1] == "-jvm-target") {
-                jvmTargetOption = opts[i]
-            }
+    private fun createCompilerOptionsSection(compilerOpts: Set<CompilerOpt>): String {
+        if (compilerOpts.isEmpty()) {
+            return ""
         }
 
-        val kotlinOpts = if (jvmTargetOption != null) {
-            """
-            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-                kotlinOptions { 
-                    jvmTarget = "$jvmTargetOption"
+        var jvmTarget = ""
+        val freeCompilerArgs = mutableListOf<String>()
+
+        for (opt in compilerOpts) {
+            when {
+                opt.value.startsWith("-jvm-target") -> {
+                    jvmTarget = "jvmTarget = \"" + opt.value.drop(11).trim() + "\""
+                }
+                else -> {
+                    freeCompilerArgs.add(opt.value)
                 }
             }
-            """.trimIndent()
-        } else {
-            ""
         }
 
-        return kotlinOpts
+        return """|tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+                  |    kotlinOptions {
+                  |        $jvmTarget
+                  |        freeCompilerArgs = listOf(${freeCompilerArgs.joinToString(", ") { "\"$it\"" }})
+                  |    }
+                  |}""".trimMargin()
     }
 }

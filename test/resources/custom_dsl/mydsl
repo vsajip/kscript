@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export CUSTOM_KSCRIPT_PREAMBLE='
+export KSCRIPT_PREAMBLE='
 // declare dependencies
 @file:DependsOn("com.github.holgerbrandl:kutils:0.12")
 
@@ -10,7 +10,7 @@ export CUSTOM_KSCRIPT_PREAMBLE='
 
 
 // also adjust jvm settings
-@file:KotlinOpts("-J-Xmx5g")
+@file:KotlinOptions("-J-Xmx5g")
 
 
 // define some important variables to be used throughout the dsl

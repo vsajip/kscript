@@ -12,23 +12,49 @@ curl -s "https://get.sdkman.io" | bash
 
 ```bash
 sdk install java 11.0.2-open
-sdk install kotlin 1.5.31
-sdk install gradle 7.2
+sdk install kotlin 1.6.21
+sdk install gradle 7.4.1
 ```
 
 #### 3. Clone repository
 Put the cloned repository into $DIR directory.
 
-
-#### 4. Run test suite
-To run the tests, just run the [`test_suite.sh`](test_suite.sh)
+#### 4. Configure your working environment [optional]
+You can configure your working environment by sourcing setup environment script:
 
 ```bash
-cd $DIR/test
-./test_suite.sh
+cd $DIR
+source linux_environment.sh
 ```
 
-#### 5. Check if all tests passed...
+Sourcing this script allows to use some useful for development commands:
+```bash
+cdk # bash alias which moves you to your kscript development directory
+switchPath # adds/removes development kscript from $PATH env variable
+help-dev # prints some useful commands 
+```
+
+#### 5. Run integration test suite
+
+```bash
+cdk
+./gradlew clean assemble test
+./gradlew -Dos.type=linux -DincludeTags='posix' integration
+<or> 
+./gradlew -Dos.type=linux -DincludeTags='posix' integration --tests BootstrapHeaderTest 
+```
+
+os.type is usually same as $OSTYPE, except of windows 'cmd' shell.
+
+includeTags can be combined:
+https://junit.org/junit5/docs/current/user-guide/#running-tests-tag-syntax-rules
+usually you would like something like 'posix | linux' (all tests for posix + linux specific tests)
+
+-- tests - comes from Gradle:
+https://docs.gradle.org/current/userguide/java_testing.html#test_filtering
+
+
+#### 6. Check if all tests passed...
 
 ---
 Useful commands:
@@ -74,7 +100,7 @@ sdk list kotlin
 #sdk use kotlin 1.3.72
 #sdk use kotlin 1.4.10
 
-${KSCRIPT_HOME}/test/test_suite.sh
+${KSCRIPT_HOME}/test/linux_suite.sh
 
 # # run again with kotlin 1.0.X
 # sdk use kotlin 1.0.6
@@ -159,7 +185,7 @@ curl --request PUT -u admin:password -T $tmpZipDir/tmp.zip http://localhost:8081
 
 ```bash
 echo '
-@file:MavenRepository("my-art", "http://localhost:8081/artifactory/authenticated_repo", user="auth_user", password="password")
+@file:Repository("http://localhost:8081/artifactory/authenticated_repo", user="auth_user", password="password")
 @file:DependsOn("com.jcabi:jcabi-aether:0.10.1") // If unencrypted works via jcenter
 @file:DependsOnMaven("group:somejar:1.0") // If encrypted works.
 println("Hello, World!")

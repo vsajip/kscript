@@ -2,27 +2,38 @@ package kscript.app.parser
 
 import kscript.app.model.*
 
-
+@Suppress("UNUSED_PARAMETER")
 object LineParser {
+    private const val deprecatedAnnotation = "Deprecated annotation:"
     private val sheBang = listOf(SheBang)
 
-    fun parseSheBang(line: String): List<ScriptAnnotation> {
-        if (line.startsWith("#!/")) {
+    fun parseSheBang(location: Location, line: Int, text: String): List<ScriptAnnotation> {
+        if (text.startsWith("#!/")) {
             return sheBang
         }
         return emptyList()
     }
 
-    fun parseInclude(line: String): List<ScriptAnnotation> {
+    fun parseInclude(location: Location, line: Int, text: String): List<ScriptAnnotation> {
         val fileInclude = "@file:Include"
         val include = "//INCLUDE "
 
-        line.trim().let {
+        text.trim().let {
             return when {
                 it.startsWith(fileInclude) -> listOf(
                     Include(extractQuotedValueInParenthesis(it.substring(fileInclude.length)))
                 )
-                it.startsWith(include) -> listOf(Include(extractValue(it.substring(include.length))))
+
+                it.startsWith(include) -> {
+                    val value = extractValue(it.substring(include.length))
+
+                    listOf(
+                        Include(value), createDeprecatedAnnotation(
+                            location, line, deprecatedAnnotation, text, "@file:Include(\"$value\")"
+                        )
+                    )
+                }
+
                 else -> emptyList()
             }
         }
@@ -36,53 +47,82 @@ object LineParser {
         return dependency
     }
 
-    fun parseDependency(line: String): List<ScriptAnnotation> {
+    fun parseDependency(location: Location, line: Int, text: String): List<ScriptAnnotation> {
         val fileDependsOn = "@file:DependsOn"
         val fileDependsOnMaven = "@file:DependsOnMaven"
         val depends = "//DEPS "
 
-        line.trim().let { s ->
+        text.trim().let { s ->
+            val deprecatedItems: MutableList<DeprecatedItem> = mutableListOf()
+
             val dependencies = when {
-                s.startsWith(fileDependsOnMaven) -> extractQuotedValuesInParenthesis(s.substring(fileDependsOnMaven.length))
-                s.startsWith(fileDependsOn) -> extractQuotedValuesInParenthesis(s.substring(fileDependsOn.length))
-                s.startsWith(depends) -> extractValues(s.substring(depends.length))
+                s.startsWith(fileDependsOnMaven) -> {
+                    extractQuotedValuesInParenthesis(s.substring(fileDependsOnMaven.length))
+                }
+
+                s.startsWith(fileDependsOn) -> {
+                    extractQuotedValuesInParenthesis(s.substring(fileDependsOn.length))
+                }
+
+                s.startsWith(depends) -> {
+                    val values = extractValues(s.substring(depends.length))
+                    deprecatedItems.add(createDeprecatedAnnotation(location,
+                                                                   line,
+                                                                   deprecatedAnnotation,
+                                                                   text,
+                                                                   "@file:DependsOn(" + values.joinToString(", ") { "\"${it.trim()}\"" } + ")"))
+
+                    values
+                }
+
                 else -> emptyList()
             }
 
-            return dependencies.map {
+            val dependencyAnnotations = dependencies.map {
                 val validated = validateDependency(it)
                 Dependency(validated)
             }
+
+            return dependencyAnnotations + deprecatedItems
         }
     }
 
-    fun parseEntry(line: String): List<ScriptAnnotation> {
+    fun parseEntry(location: Location, line: Int, text: String): List<ScriptAnnotation> {
         val fileEntry = "@file:EntryPoint"
         val entry = "//ENTRY "
 
-        line.trim().let {
+        text.trim().let {
             return when {
                 it.startsWith(fileEntry) -> listOf(
                     Entry(extractQuotedValueInParenthesis(it.substring(fileEntry.length)))
                 )
-                it.startsWith(entry) -> listOf(Entry(extractValue(it.substring(entry.length))))
+
+                it.startsWith(entry) -> {
+                    val value = extractValue(it.substring(entry.length))
+                    listOf(
+                        Entry(value), createDeprecatedAnnotation(
+                            location, line, deprecatedAnnotation, text, "@file:EntryPoint(\"$value\")"
+                        )
+                    )
+                }
+
                 else -> emptyList()
             }
         }
     }
 
-    fun parseRepository(line: String): List<ScriptAnnotation> {
+    fun parseRepository(location: Location, line: Int, text: String): List<ScriptAnnotation> {
         //Format:
         // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/")
-        // @file:MavenRepository("imagej", "http://maven.imagej.net/content/repositories/releases/", user="user", password="pass")
+        // @file:Repository("http://maven.imagej.net/content/repositories/releases/", user="user", password="pass")
 
         val fileMavenRepository = "@file:MavenRepository"
+        val fileRepository = "@file:Repository"
 
-        line.trim().let {
+        text.trim().let {
             return when {
                 it.startsWith(fileMavenRepository) -> {
                     val value = it.substring(fileMavenRepository.length).substringBeforeLast(")")
-
 
                     val repository = value.split(",").map { it.trim(' ', '"', '(') }.let { annotationParams ->
                         val keyValSep = "[ ]*=[ ]*\"".toRegex()
@@ -104,51 +144,135 @@ object LineParser {
                             namedArgs.getOrDefault("password", annotationParams.getOrNull(3) ?: "")
                         )
                     }
+
+                    var str = """"${repository.url}""""
+
+                    if (repository.user.isNotBlank()) {
+                        str += """, user="${repository.user}""""
+                    }
+
+                    if (repository.password.isNotBlank()) {
+                        str += """, password="${repository.password}""""
+                    }
+
+                    return listOf(
+                        repository, createDeprecatedAnnotation(
+                            location, line, deprecatedAnnotation, text, "@file:Repository($str)"
+                        )
+                    )
+                }
+
+                it.startsWith(fileRepository) -> {
+                    val value = it.substring(fileRepository.length).substringBeforeLast(")")
+
+                    val repository = value.split(",").map { it.trim(' ', '"', '(') }.let { annotationParams ->
+                        val keyValSep = "[ ]*=[ ]*\"".toRegex()
+
+                        val namedArgs = annotationParams.filter { it.contains(keyValSep) }.map { keyVal ->
+                            keyVal.split(keyValSep).map { it.trim(' ', '\"') }.let { it.first() to it.last() }
+                        }.toMap()
+
+                        if (annotationParams.isEmpty()) {
+                            throw ParseException("Missing required argument of annotation @file:Repository(url)")
+                        }
+
+                        Repository(
+                            namedArgs.getOrDefault("id", ""),
+                            namedArgs.getOrDefault("url", annotationParams[0]),
+                            namedArgs.getOrDefault("user", annotationParams.getOrNull(1) ?: ""),
+                            namedArgs.getOrDefault("password", annotationParams.getOrNull(2) ?: "")
+                        )
+                    }
                     return listOf(repository)
                 }
+
                 else -> emptyList()
             }
         }
     }
 
-    fun parseKotlinOpts(line: String): List<ScriptAnnotation> {
+    fun parseKotlinOpts(location: Location, line: Int, text: String): List<ScriptAnnotation> {
+        val fileKotlinOptions = "@file:KotlinOptions"
         val fileKotlinOpts = "@file:KotlinOpts"
         val kotlinOpts = "//KOTLIN_OPTS "
 
-        line.trim().let {
+        text.trim().let {
             return when {
-                it.startsWith(fileKotlinOpts) -> extractQuotedValuesInParenthesis(it.substring(fileKotlinOpts.length)).map {
+                it.startsWith(fileKotlinOptions) -> extractQuotedValuesInParenthesis(it.substring(fileKotlinOptions.length)).map {
                     KotlinOpt(it)
                 }
 
-                it.startsWith(kotlinOpts) -> extractValues(it.substring(kotlinOpts.length)).map { KotlinOpt(it) }
+                it.startsWith(fileKotlinOpts) -> {
+                    val values = extractQuotedValuesInParenthesis(it.substring(fileKotlinOpts.length))
+
+                    values.map { KotlinOpt(it) } + createDeprecatedAnnotation(location,
+                                                                              line,
+                                                                              deprecatedAnnotation,
+                                                                              text,
+                                                                              "@file:KotlinOptions(" + values.joinToString(
+                                                                                  ", "
+                                                                              ) { "\"$it\"" } + ")")
+                }
+
+                it.startsWith(kotlinOpts) -> {
+                    val values = extractValues(it.substring(kotlinOpts.length))
+                    values.map { KotlinOpt(it) } + createDeprecatedAnnotation(location,
+                                                                              line,
+                                                                              deprecatedAnnotation,
+                                                                              text,
+                                                                              "@file:KotlinOptions(" + values.joinToString(
+                                                                                  ", "
+                                                                              ) { "\"$it\"" } + ")")
+                }
+
                 else -> emptyList()
             }
         }
     }
 
-    fun parseCompilerOpts(line: String): List<ScriptAnnotation> {
+    fun parseCompilerOpts(location: Location, line: Int, text: String): List<ScriptAnnotation> {
+        val fileCompilerOptions = "@file:CompilerOptions"
         val fileCompilerOpts = "@file:CompilerOpts"
         val compilerOpts = "//COMPILER_OPTS "
 
-        line.trim().let {
+        text.trim().let {
             return when {
-                it.startsWith(fileCompilerOpts) -> extractQuotedValuesInParenthesis(it.substring(fileCompilerOpts.length)).map {
+                it.startsWith(fileCompilerOptions) -> extractQuotedValuesInParenthesis(it.substring(fileCompilerOptions.length)).map {
                     CompilerOpt(it)
                 }
 
-                it.startsWith(compilerOpts) -> extractValues(it.substring(compilerOpts.length)).map {
-                    CompilerOpt(it)
+                it.startsWith(fileCompilerOpts) -> {
+                    val values = extractQuotedValuesInParenthesis(it.substring(fileCompilerOpts.length))
+
+                    values.map { CompilerOpt(it) } + createDeprecatedAnnotation(location,
+                                                                                line,
+                                                                                deprecatedAnnotation,
+                                                                                text,
+                                                                                "@file:CompilerOptions(" + values.joinToString(
+                                                                                    ", "
+                                                                                ) { "\"$it\"" } + ")")
                 }
+
+                it.startsWith(compilerOpts) -> {
+                    val values = extractValues(it.substring(compilerOpts.length))
+                    values.map { CompilerOpt(it) } + createDeprecatedAnnotation(location,
+                                                                                line,
+                                                                                deprecatedAnnotation,
+                                                                                text,
+                                                                                "@file:CompilerOptions(" + values.joinToString(
+                                                                                    ", "
+                                                                                ) { "\"$it\"" } + ")")
+                }
+
                 else -> emptyList()
             }
         }
     }
 
-    fun parsePackage(line: String): List<ScriptAnnotation> {
+    fun parsePackage(location: Location, line: Int, text: String): List<ScriptAnnotation> {
         val packagePrefix = "package "
 
-        line.trim().let {
+        text.trim().let {
             if (it.startsWith(packagePrefix)) {
                 return listOf(PackageName(it.substring(packagePrefix.length)))
             }
@@ -156,10 +280,10 @@ object LineParser {
         }
     }
 
-    fun parseImport(line: String): List<ScriptAnnotation> {
+    fun parseImport(location: Location, line: Int, text: String): List<ScriptAnnotation> {
         val importPrefix = "import "
 
-        line.trim().let {
+        text.trim().let {
             if (it.startsWith(importPrefix)) {
                 return listOf(ImportName(it.substring(importPrefix.length)))
             }
@@ -215,4 +339,8 @@ object LineParser {
             return it.split(",(?=(?:[^']*'[^']*')*[^']*\$)".toRegex()).map(String::trim).filter(String::isNotBlank)
         }
     }
+
+    private fun createDeprecatedAnnotation(
+        location: Location, line: Int, introText: String, existing: String, replacement: String
+    ): DeprecatedItem = DeprecatedItem(location, line, "$introText\n$existing\nshould be replaced with:\n$replacement")
 }

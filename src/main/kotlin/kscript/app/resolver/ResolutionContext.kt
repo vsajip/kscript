@@ -19,4 +19,5 @@ data class ResolutionContext(
     val kotlinOpts: MutableSet<KotlinOpt> = mutableSetOf(),
     val compilerOpts: MutableSet<CompilerOpt> = mutableSetOf(),
     val importNames: MutableSet<ImportName> = mutableSetOf(),
+    val deprecatedItems: MutableSet<DeprecatedItem> = mutableSetOf(),
 )

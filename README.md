@@ -6,14 +6,13 @@
 
 Enhanced scripting support for [Kotlin](https://kotlinlang.org/) on *nix-based systems.
 
-Kotlin has some built-in support for scripting already but it is not yet feature-rich enough to be a viable alternative
+Kotlin has some built-in support for scripting already, but it is not yet feature-rich enough to be a viable alternative
 in the shell.
 
 In particular this wrapper around `kotlinc` adds
 
 * Compiled script caching (using md5 checksums)
 * Dependency declarations using gradle-style resource locators and automatic dependency resolution
-  with [jcabi-aether](https://github.com/jcabi/jcabi-aether)
 * More options to provide scripts including interpreter mode, reading from stdin, local files or URLs
 * Embedded configuration for Kotlin runtime options
 * Support library to ease the writing of Kotlin scriptlets
@@ -44,6 +43,7 @@ kotlin scripting interpreter.
 - [Boostrap IDEA from a `kscript`let](#boostrap-idea-from-a-kscriptlet)
 - [Deploy scripts as standalone binaries](#deploy-scripts-as-standalone-binaries)
 - [Embed kscript installer within your script](#embed-kscript-installer-within-your-script)
+- [KScript configuration file](#kscript-configuration-file)
 - [FAQ](#faq)
 - [Support](#support)
 - [How to contribute?](#how-to-contribute)
@@ -52,7 +52,7 @@ kotlin scripting interpreter.
 Installation
 ------------
 
-To use `kscript` just Kotlin and Maven are required.
+To use `kscript` just Kotlin is required.
 To [install Kotlin](https://kotlinlang.org/docs/tutorials/command-line.html) we
 recommend [sdkman](http://sdkman.io/install):
 
@@ -89,7 +89,7 @@ docker run -i holgerbrandl/kscript 'println("Hello, world!")'
 docker run -i holgerbrandl/kscript:2.9.3 'println("Hello, world!")'
 ```
 
-To use a script file outside of the container as input, you could do
+To use a script file outside the container as input, you could do
 
 ```bash
 docker run -i holgerbrandl/kscript - < script.kts
@@ -104,9 +104,8 @@ instance [bind mounts](https://docs.docker.com/storage/bind-mounts/).
 
 #### Installation without `sdkman`
 
-If you have Kotlin and Maven already and you would like to install the latest `kscript` release without using `sdkman`
-you can do so by unzipping the [latest ](https://github.com/holgerbrandl/kscript/releases/latest) binary release. Don't
-forget to update your `$PATH` accordingly.
+If you have Kotlin already, and you would like to install the latest `kscript` release without using `sdkman`
+you can do so by unzipping the [latest ](https://github.com/holgerbrandl/kscript/releases/latest) binary release. Don't forget to update your `$PATH` accordingly.
 
 #### Installation with Homebrew
 
@@ -196,7 +195,7 @@ EOF
 
 ```{bash}
 kscript - <<"EOF"
-//DEPS com.offbytwo:docopt:0.6.0.20150202 log4j:log4j:1.2.14
+@file:DependsOn("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2.14")
 
 import org.docopt.Docopt
 val docopt = Docopt("Usage: jl <command> [options] [<joblist_file>]")
@@ -205,7 +204,7 @@ println("hello again")
 EOF
 ```
 
-* Finally (for sake of completeness), it also works with process substitution and for sure you can always provide
+* Finally, (for sake of completeness), it also works with process substitution and for sure you can always provide
   additional arguments (exposed as `args : Array<String>` within the script)
 
 ```{bash}
@@ -247,19 +246,20 @@ Script Configuration
 
 The following directives supported by `kscript` to configure scripts:
 
-* `//DEPS` to declare dependencies with gradle-style locators
-* `//KOTLIN_OPTS`  to configure the kotlin/java runtime environment
-* `//INCLUDE` to source kotlin files into the script
-* `//ENTRY` to declare the application entrypoint for kotlin `*.kt` applications
+* `@file:DependsOn` to declare dependencies with gradle-style locators
+* `@file:Include` to source kotlin files into the script
+* `@file:EntryPoint` to declare the application entrypoint for kotlin `*.kt` applications
+* `@file:CompilerOptions` to configure the compilation options
+* `@file:KotlinOptions` to configure the kotlin/java runtime environment
 
-### Declare dependencies with `//DEPS`
+### Declare dependencies with `@file:DependsOn`
 
 To specify dependencies simply use gradle-style locators. Here's an example
 using [docopt](https://github.com/docopt/docopt.java) and [log4j](http://logging.apache.org/log4j/2.x/)
 
 ```kotlin
 #!/usr/bin/env kscript
-//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:1.2.14
+@file:DependsOn("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2.14")
 
 import org.docopt.Docopt
 import java.util.*
@@ -279,26 +279,26 @@ println("Hello from Kotlin!")
 println("Parsed script arguments are: \n" + doArgs)
 ```
 
-`kscript` will read dependencies from all lines in a script that start with `//DEPS` (if any). Multiple dependencies can
+`kscript` will read dependencies from all lines in a script that start with `@file:DependsOn` (if any). Multiple dependencies can
 be split by comma, space or semicolon.
 
-### Configure the runtime  with `//KOTLIN_OPTS`
+### Configure the runtime  with `@file:KotlinOptions`
 
-`kscript` allows to provide a `//KOTLIN_OPTS` directive followed by parameters passed on to `kotlin` similar to how
+`kscript` allows to provide a `@file:KotlinOptions` directive followed by parameters passed on to `kotlin` similar to how
 dependencies are defined:
 
 ```kotlin
 #!/usr/bin/env kscript
-//KOTLIN_OPTS -J-Xmx5g  -J-server
+@file:KotlinOptions("-J-Xmx5g", "-J-server")
 
 println("Hello from Kotlin with 5g of heap memory running in server mode!")
 ```
 
-Note: Similar to the runtime you can also tweak the compile step by providing `//COMPILER_OPTS`.
+Note: Similar to the runtime you can also tweak the compile step by providing `@file:CompilerOptions`.
 
-### Ease prototyping with `//INCLUDE`
+### Ease prototyping with `@file:Include`
 
-`kscript` supports an `//INCLUDE` directive to directly include other source files without prior compilation. Absolute
+`kscript` supports an `@file:Include` directive to directly include other source files without prior compilation. Absolute
 and relative paths, as well as URLs are supported. Example:
 
 ```kotlin
@@ -309,14 +309,14 @@ fun Array<Double>.median(): Double {
 }
 ```
 
-Which can be now used using the `//INCLUDE` directive with
+Which can be now used using the `@file:Include` directive with
 
 ```kotlin
 #!/usr/bin/env kscript
 
-//INCLUDE utils.kt
+@file:Include("utils.kt")
 
-val robustMean = listOf(1.3, 42.3, 7.).median()
+val robustMean = listOf(1.3, 42.3, 7.0).median()
 println(robustMean)
 ```
 
@@ -326,7 +326,7 @@ with `kscript --clear-cache`.
 
 For more examples see [here](test/resources/includes/include_variations.kts).
 
-### Use `//ENTRY` to run applications with `main` method
+### Use `@file:EntryPoint` to run applications with `main` method
 
 `kscript` also supports running regular Kotlin `kt` files.
 
@@ -335,7 +335,7 @@ Example: `./examples/Foo.kt`:
 ```kotlin
 package examples
 
-//ENTRY examples.Bar
+@file:EntryPoint("examples.Bar")
 
 class Bar {
     companion object {
@@ -349,45 +349,33 @@ class Bar {
 fun main(args: Array<String>) = println("main was called")
 ```
 
-To run top-level main instead we would use `//ENTRY examples.FooKt`
+To run top-level main instead we would use `@file:EntryPoint("examples.FooKt")`
 
 The latter is the default for `kt` files and could be omitted
 
-### Annotation driven script configuration
-
-Using annotations instead of comment directives to configure scripts is cleaner and allow for better tooling.
-
-```kotlin
-// annotation-driven script configuration
-@file:DependsOn("com.github.holgerbrandl:kutils:0.12")
-
-// comment directive
-//DEPS com.github.holgerbrandl:kutils:0.12
-```
-
-To do so `kscript` supports [annotations](https://github.com/holgerbrandl/kscript-annotations) to be used instead of
-comment directives:
+### Examples of annotation driven configuration
 
 ```kotlin
 #!/usr/bin/env kscript
 
 // Declare dependencies
-@file:DependsOn("com.github.holgerbrandl:kutils:0.12") @file:DependsOn(
+@file:DependsOn("com.github.holgerbrandl:kutils:0.12") 
+@file:DependsOn(
     "com.beust:klaxon:0.24",
     "com.github.kittinunf.fuel:fuel:2.3.1"
 )
 
 // To use a custom maven repository you can declare it with
-@file:MavenRepository("imagej-releases", "http://maven.imagej.net/content/repositories/releases")
+@file:Repository("http://maven.imagej.net/content/repositories/releases")
 
 // For compatibility with https://github.com/ligee/kotlin-jupyter kscript supports also
 @file:DependsOnMaven("net.clearvolume:cleargl:2.0.1")
 // Note that for compatibility reasons, only one locator argument is allowed for @DependsOnMaven
 
 // also protected artifact repositories are supported, see <https://github.com/holgerbrandl/kscript/blob/master/test/TestsReadme.md#manual-testing>
-// @file:MavenRepository("my-art", "http://localhost:8081/artifactory/authenticated_repo", user="auth_user", password="password")
+// @file:Repository("my-art", "http://localhost:8081/artifactory/authenticated_repo", user="auth_user", password="password")
 // You can use environment variables for user and password when string surrounded by double {} brackets 
-// @file:MavenRepository("my-art", "http://localhost:8081/artifactory/authenticated_repo", user="{{ARTIFACTORY_USER}}", password="{{ARTIFACTORY_PASSWORD}}")
+// @file:Repository("my-art", "http://localhost:8081/artifactory/authenticated_repo", user="{{ARTIFACTORY_USER}}", password="{{ARTIFACTORY_PASSWORD}}")
 // will be use 'ARTIFACTORY_USER' and 'ARTIFACTORY_PASSWORD' environment variables
 // if the value doesn't found in the script environment  will fail
 
@@ -395,7 +383,9 @@ comment directives:
 @file:Include("util.kt")
 
 // Define kotlin options
-@file:KotlinOpts("-J-Xmx5g") @file:KotlinOpts("-J-server") @file:CompilerOpts("-jvm-target 1.8")
+@file:KotlinOptions("-J-Xmx5g") 
+@file:KotlinOptions("-J-server") 
+@file:CompilerOptions("-jvm-target 1.8")
 
 // declare application entry point (applies on for kt-files)
 @file:EntryPoint("Foo.bar")
@@ -407,7 +397,7 @@ To enable the use of these annotations in Intellij, the user must add the follow
 dependencies:
 
 ```
-com.github.holgerbrandl:kscript-annotations:1.2
+com.github.holgerbrandl:kscript-annotations:1.4
 ```
 
 `kscript` will automatically detect an annotation-driven script, and if so will declare a dependency on this artifact
@@ -429,7 +419,7 @@ e.g. `import DependsOn`).
 * Define variable `val lines = kscript.text.resolveArgFile(args)` which returns an iterator over the lines in the first
   input argument of the script, or the standard input if no file arguments are provided to the script
 
-This allows to to replace `awk`ward constructs (or `sed` or`perl`) with _kotlinesque_ solutions such as
+This allows to replace `awk`ward constructs (or `sed` or`perl`) with _kotlinesque_ solutions such as
 
 ```bash
 cat some_file | kscript -t 'lines
@@ -503,7 +493,7 @@ This will open [IntelliJ IDEA](https://www.jetbrains.com/idea/) with a minimalis
 
 This assumes that you have the Intellij IDEA command line launcher `idea` in your `PATH`. It can be created in IntelliJ
 under `Tools -> Create Command-line Launcher` or you can set the command used to launch your intellij
-as `KSCRIPT_IDEA_COMMAND` env property
+as `KSCRIPT_COMMAND_IDEA` env property
 
 Deploy scripts as standalone binaries
 --------------------------------------
@@ -516,7 +506,7 @@ kscript --package some_script.kts
 ```
 
 The created binary will contain a compiled copy of the script, as well as all declared dependencies (fatjar). Also
-runtime jvm parameters declared via `@file:KotlinOpts` are used to spin up the JVM.
+runtime jvm parameters declared via `@file:KotlinOptions` are used to spin up the JVM.
 
 Just `java` is required to run these binaries.
 
@@ -526,7 +516,7 @@ Embed kscript installer within your script
 
 To make a script automatically [install kscript](#installation) and its dependencies on first run if necessary, run:
 
- ```bash
+```bash
 kscript --add-bootstrap-header some_script.kts
 ```
 
@@ -540,6 +530,49 @@ scripts.
 On the other hand this doesn't embed dependencies within the script("fat jar"), so internet connection may be required
 on its first run.
 
+kscript configuration file
+--------------------------------------
+
+To keep some options stored permanently in configuration you can create kscript configuration file.
+
+KScript follows XDG directory standard, so the file should be created in:
+
+
+| OS          | PATH                                                                                |
+|-------------|-------------------------------------------------------------------------------------|
+| **Windows** | %LOCALAPPDATA%\kscript.properties                                                   |
+| **Posix**   | \\${XDG_CONFIG_DIR}/kscript.properties or \\${user.home}/.config/kscript.properties |
+
+
+Content of kscript.properties file is a standard Java format, with following properties available:
+
+```
+scripting.preamble=
+scripting.kotlin.opts=
+scripting.repository.url=
+scripting.repository.user=
+scripting.repository.password=
+```
+
+Example configuration file:
+
+```
+scripting.preamble=// declare dependencies\n\
+@file:DependsOn("com.github.holgerbrandl:kutils:0.12")\n\
+\n\
+// make sure to also support includes in here\n\
+// @file:Include("util.kt")\n\
+@file:Include("https://raw.githubusercontent.com/holgerbrandl/kscript/master/test/resources/custom_dsl/test_dsl_include.kt")\n\
+\n\
+\n\
+// define some important variables to be used throughout the dsl\n\
+val foo = "bar"
+
+scripting.kotlin.opts=-J-Xmx4g
+scripting.repository.url=https://repository.example
+scripting.repository.user=user
+scripting.repository.password=password
+```
 
 FAQ
 ---
@@ -563,20 +596,11 @@ is a valid Kotlin `kts` script. Plain and simple, no `main`, no `companion`, jus
 
 ### Does `kscript` also work for regular kotlin `.kt` source files with a `main` as entry point?
 
-Yes, (since v1.6) you can run kotlin source files through `kscript`. By default it will assume a top-level `main` method
+Yes, (since kscript v1.6) you can run kotlin source files through `kscript`. By default, it will assume a top-level `main` method
 as entry-point.
 
-However in case you're using a companion object to declare the entry point, you need to indicate this via the `//ENTRY`
-/`@file:Entry` directive:
+However, in case you're using a companion object to declare the entry point, you need to indicate this via the `@file:Entry`.
 
-### Why does it fail to read my script file when using cygwin?
-
-In order to use cygwin you need to use windows paths to provide your scripts. You can map cygwin paths using `cygpath`.
-Example
-
-```bash
-kscript $(cygpath -w /cygdrive/z/some/path/my_script.kts)
-```
 
 ### What are performance and resource usage difference between scripting with kotlin and python?
 
@@ -603,7 +627,7 @@ see [jbang](https://github.com/maxandersen/jbang).
 
 ### Can I use custom artifact repositories?
 
-Yes, via the `@MavenRepository` annotation. See [annotations section](#annotation-driven-script-configuration)
+Yes, via the `@Repository` annotation. See [annotations section](#annotation-driven-script-configuration)
 or [custom_mvn_repo_annot](test/resources/custom_mvn_repo_annot.kts) for a complete example
 
 

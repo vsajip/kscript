@@ -1,7 +1,6 @@
 package kscript.app.parser
 
 import assertk.assertThat
-import assertk.assertions.containsExactly
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isFailure
 import assertk.assertions.messageContains
@@ -15,19 +14,20 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import java.net.URI
 import java.util.stream.Stream
 
 class LineParserTest {
     @Test
     fun `Import parsing`() {
-        assertThat(parseImport("import com.script.test1")).containsExactlyInAnyOrder(ImportName("com.script.test1"))
-        assertThat(parseImport("      import com.script.test2            ")).containsExactlyInAnyOrder(ImportName("com.script.test2"))
-    }
+        assertThat(
+            parseImport(
+                location, 1, "import com.script.test1"
+            )
+        ).containsExactlyInAnyOrder(ImportName("com.script.test1"))
 
-    @Test
-    fun `Repository parsing`() {
-        assertThat(parseRepository("@file:MavenRepository(\"imagej-releases\",\"http://maven.imagej.net/content/repositories/releases\" )")).containsExactlyInAnyOrder(
-            Repository("imagej-releases", "http://maven.imagej.net/content/repositories/releases")
+        assertThat(parseImport(location, 1, "      import com.script.test2            ")).containsExactlyInAnyOrder(
+            ImportName("com.script.test2")
         )
     }
 
@@ -47,8 +47,22 @@ class LineParserTest {
             "    //DEPS $listWithoutQuotesStrangelyFormatted",
         )) {
             println("Case: '$line'")
-            assertThat(parseDependency(line)).containsExactlyInAnyOrder(*list.map { Dependency(it.trim()) }
-                .toTypedArray())
+            var expectedAnnotations: List<ScriptAnnotation> = list.map { Dependency(it.trim()) }
+
+            if (line.trimStart().startsWith("//")) {
+                val expectedList = list.joinToString(", ") { "\"${it.trim()}\"" }
+                expectedAnnotations = expectedAnnotations + DeprecatedItem(
+                    location,
+                    1,
+                    "Deprecated annotation:\n$line\nshould be replaced with:\n@file:DependsOn($expectedList)"
+                )
+            }
+
+            assertThat(
+                parseDependency(
+                    location, 1, line
+                )
+            ).containsExactlyInAnyOrder(*expectedAnnotations.toTypedArray())
         }
     }
 
@@ -64,7 +78,8 @@ class LineParserTest {
             "      @file:DependsOnMaven($listWithQuotes)    ",
         )) {
             println("Case: '$line'")
-            assertThat(parseDependency(line)).containsExactlyInAnyOrder(*list.map { Dependency(it) }.toTypedArray())
+            assertThat(parseDependency(location, 1, line)).containsExactlyInAnyOrder(*list.map { Dependency(it) }
+                .toTypedArray())
         }
     }
 
@@ -83,38 +98,57 @@ class LineParserTest {
             "    //DEPS $listWithoutQuotes",
         )) {
             println("Case: '$line'")
-            assertThat { parseDependency(line) }.isFailure().messageContains(message)
+            assertThat { parseDependency(location, 1, line) }.isFailure().messageContains(message)
         }
     }
 
     @Test
     fun `Dependency parsing - invalid quoting`() {
-        assertThat { parseDependency("@file:DependsOn(\"com.squareup.moshi:moshi:1.5.0,com.squareup.moshi:moshi-adapters:1.5.0\") //Comment") }.isFailure()
+        assertThat {
+            parseDependency(
+                location,
+                1,
+                "@file:DependsOn(\"com.squareup.moshi:moshi:1.5.0,com.squareup.moshi:moshi-adapters:1.5.0\") //Comment"
+            )
+        }.isFailure()
             .messageContains("Artifact locators must be provided as separate annotation arguments and not as comma-separated list")
     }
 
     @ParameterizedTest
     @MethodSource("repositories")
-    fun `Repository parsing`(line: String, repository: Repository) {
+    fun `Repository parsing`(line: String, annotations: List<ScriptAnnotation>) {
         println("Repository: '$line'")
-        assertThat(parseRepository(line)).containsExactly(repository)
+        assertThat(parseRepository(location, 1, line)).containsExactlyInAnyOrder(*annotations.toTypedArray())
     }
 
     @ParameterizedTest
-    @MethodSource("kotlinOpts")
-    fun `Kotlin options parsing`(line: String, kotlinOpts: List<KotlinOpt>) {
-        println("KotlinOpts: '$line'")
-        assertThat(parseKotlinOpts(line)).containsExactlyInAnyOrder(*kotlinOpts.toTypedArray())
+    @MethodSource("kotlinOptions")
+    fun `Kotlin options parsing`(line: String, kotlinOpts: List<ScriptAnnotation>) {
+        println("KotlinOptions: '$line'")
+        assertThat(parseKotlinOpts(location, 1, line)).containsExactlyInAnyOrder(*kotlinOpts.toTypedArray())
     }
 
     @ParameterizedTest
     @MethodSource("entryPoint")
     fun `Entry point parsing`(line: String, entry: String) {
         println("Entry point: '$line'")
-        assertThat(parseEntry(line)).containsExactlyInAnyOrder(Entry(entry))
+
+        var expectedAnnotations: List<ScriptAnnotation> = listOf(Entry(entry))
+
+        if (line.trimStart().startsWith("//")) {
+            expectedAnnotations = expectedAnnotations + DeprecatedItem(
+                location, 1, "Deprecated annotation:\n$line\nshould be replaced with:\n@file:EntryPoint(\"$entry\")"
+            )
+        }
+
+        assertThat(parseEntry(location, 1, line)).containsExactlyInAnyOrder(*expectedAnnotations.toTypedArray())
     }
 
     companion object {
+        @JvmStatic
+        private val location =
+            Location(0, ScriptSource.HTTP, ScriptType.KT, URI("http://example/test.kt"), URI("http://example/"), "test")
+
         @JvmStatic
         fun staticDependencies(): Stream<Arguments> = Stream.of(
             Arguments.of(listOf("org.javamoney:moneta:pom:1.3")),
@@ -145,49 +179,131 @@ class LineParserTest {
         private const val repositorySnapshotsUrl = "http://maven.imagej.net/content/repositories/snapshots"
 
         @JvmStatic
-        fun repositories(): Stream<Arguments> = Stream.of(
-            Arguments.of(
-                """@file:MavenRepository("imagej-releases", "$repositoryReleasesUrl" ) // crazy comment""",
-                Repository("imagej-releases", repositoryReleasesUrl)
-            ),
-            Arguments.of(
-                """@file:MavenRepository("imagej-releases", "$repositoryReleasesUrl", user="user", password="pass") """,
-                Repository("imagej-releases", repositoryReleasesUrl, "user", "pass")
-            ),
-            Arguments.of(
-                """@file:MavenRepository("imagej-snapshots", "$repositorySnapshotsUrl", password="pass", user="user") """,
-                Repository("imagej-snapshots", repositorySnapshotsUrl, "user", "pass")
-            ),
-            Arguments.of(
-                // Whitespaces around credentials see #228
-                """@file:MavenRepository("spaceAroundCredentials", "$repositorySnapshotsUrl", password= "pass" , user ="user" ) """,
-                Repository("spaceAroundCredentials", repositorySnapshotsUrl, "user", "pass")
-            ),
-            Arguments.of(
-                // Different whitespaces around credentials see #228
-                """@file:MavenRepository("spaceAroundCredentials2", "$repositorySnapshotsUrl", password= "pass", user="user" ) """,
-                Repository("spaceAroundCredentials2", repositorySnapshotsUrl, "user", "pass")
-            ),
-            Arguments.of(
-                // Different whitespaces around credentials see #228
-                """@file:MavenRepository("unnamedCredentials", "$repositorySnapshotsUrl", "user", "pass") """,
-                Repository("unnamedCredentials", repositorySnapshotsUrl, "user", "pass")
-            ),
-            Arguments.of(
-                // Named repo options
-                """@file:MavenRepository(id= "imagej-releases", url = "$repositoryReleasesUrl", user="user", password="pass") """,
-                Repository("imagej-releases", repositoryReleasesUrl, "user", "pass")
-            ),
-        )
+        fun createDeprecatedAnnotation(line: String, expectedContent: String): DeprecatedItem {
+            return DeprecatedItem(
+                location,
+                1,
+                "Deprecated annotation:\n$line\nshould be replaced with:\n@file:Repository($expectedContent)"
+            )
+        }
 
         @JvmStatic
-        fun kotlinOpts(): Stream<Arguments> = Stream.of(
+        fun repositories(): Stream<Arguments> {
+            val lines = listOf(
+                """@file:MavenRepository("imagej-releases", "$repositoryReleasesUrl" ) // crazy comment""",
+                """@file:MavenRepository("imagej-releases", "$repositoryReleasesUrl", user="user", password="pass") """,
+                """@file:MavenRepository("imagej-snapshots", "$repositorySnapshotsUrl", password="pass", user="user") """,
+                // Whitespaces around credentials see #228
+                """@file:MavenRepository("spaceAroundCredentials", "$repositorySnapshotsUrl", password= "pass" , user ="user" ) """,
+                // Different whitespaces around credentials see #228
+                """@file:MavenRepository("spaceAroundCredentials2", "$repositorySnapshotsUrl", password= "pass", user="user" ) """,
+                // Different whitespaces around credentials see #228
+                """@file:MavenRepository("unnamedCredentials", "$repositorySnapshotsUrl", "user", "pass") """,
+                // Named repo options
+                """@file:MavenRepository(id= "imagej-releases", url = "$repositoryReleasesUrl", user="user", password="pass") """,
+                """@file:Repository("$repositoryReleasesUrl")""",
+                """@file:Repository("$repositoryReleasesUrl", user="user", password="pass")""",
+            )
+
+            return Stream.of(
+                Arguments.of(
+                    lines[0], listOf(
+                        Repository("imagej-releases", repositoryReleasesUrl),
+                        createDeprecatedAnnotation(lines[0], "\"$repositoryReleasesUrl\"")
+                    )
+                ),
+                Arguments.of(
+                    lines[1], listOf(
+                        Repository("imagej-releases", repositoryReleasesUrl, "user", "pass"),
+                        createDeprecatedAnnotation(
+                            lines[1], "\"$repositoryReleasesUrl\", user=\"user\", password=\"pass\""
+                        )
+                    )
+                ),
+                Arguments.of(
+                    lines[2], listOf(
+                        Repository("imagej-snapshots", repositorySnapshotsUrl, "user", "pass"),
+                        createDeprecatedAnnotation(
+                            lines[2], "\"$repositorySnapshotsUrl\", user=\"user\", password=\"pass\""
+                        )
+                    )
+                ),
+                Arguments.of(
+                    lines[3], listOf(
+                        Repository("spaceAroundCredentials", repositorySnapshotsUrl, "user", "pass"),
+                        createDeprecatedAnnotation(
+                            lines[3], "\"$repositorySnapshotsUrl\", user=\"user\", password=\"pass\""
+                        )
+                    )
+                ),
+                Arguments.of(
+                    lines[4], listOf(
+                        Repository("spaceAroundCredentials2", repositorySnapshotsUrl, "user", "pass"),
+                        createDeprecatedAnnotation(
+                            lines[4], "\"$repositorySnapshotsUrl\", user=\"user\", password=\"pass\""
+                        )
+                    )
+                ),
+                Arguments.of(
+                    lines[5], listOf(
+                        Repository("unnamedCredentials", repositorySnapshotsUrl, "user", "pass"),
+                        createDeprecatedAnnotation(
+                            lines[5], "\"$repositorySnapshotsUrl\", user=\"user\", password=\"pass\""
+                        )
+                    )
+                ),
+                Arguments.of(
+                    lines[6], listOf(
+                        Repository("imagej-releases", repositoryReleasesUrl, "user", "pass"),
+                        createDeprecatedAnnotation(
+                            lines[6], "\"$repositoryReleasesUrl\", user=\"user\", password=\"pass\""
+                        )
+                    )
+                ),
+
+                Arguments.of(
+                    lines[7], listOf(Repository("", repositoryReleasesUrl, "", ""))
+                ),
+                Arguments.of(
+                    lines[8], listOf(Repository("", repositoryReleasesUrl, "user", "pass"))
+                ),
+            )
+        }
+
+        @JvmStatic
+        fun kotlinOptions(): Stream<Arguments> = Stream.of(
             Arguments.of(
-                "//KOTLIN_OPTS -foo, 3 ,'some file.txt'",
-                listOf(KotlinOpt("-foo"), KotlinOpt("3"), KotlinOpt("'some file.txt'"))
+                "//KOTLIN_OPTS -foo, 3 ,'some file.txt'", listOf(
+                    KotlinOpt("-foo"), KotlinOpt("3"), KotlinOpt("'some file.txt'"), DeprecatedItem(
+                        Location(
+                            0,
+                            ScriptSource.HTTP,
+                            ScriptType.KT,
+                            URI.create("http://example/test.kt"),
+                            URI.create("http://example/"),
+                            "test"
+                        ),
+                        line = 1,
+                        message = "Deprecated annotation:\n//KOTLIN_OPTS -foo, 3 ,'some file.txt'\nshould be replaced with:\n@file:KotlinOptions(\"-foo\", \"3\", \"'some file.txt'\")"
+                    )
+                )
             ),
             Arguments.of(
-                """@file:KotlinOpts("--bar") // some other crazy comment""", listOf(KotlinOpt("--bar"))
+                """@file:KotlinOpts("--bar") // some other crazy comment""", listOf(KotlinOpt("--bar"), DeprecatedItem(
+                    Location(
+                        0,
+                        ScriptSource.HTTP,
+                        ScriptType.KT,
+                        URI.create("http://example/test.kt"),
+                        URI.create("http://example/"),
+                        "test"
+                    ),
+                    line = 1,
+                    message = "Deprecated annotation:\n@file:KotlinOpts(\"--bar\") // some other crazy comment\nshould be replaced with:\n@file:KotlinOptions(\"--bar\")"
+                ))
+            ),
+            Arguments.of(
+                """@file:KotlinOptions("--bar") // some other crazy comment""", listOf(KotlinOpt("--bar"))
             ),
         )
 
