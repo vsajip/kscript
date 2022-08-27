@@ -30,6 +30,7 @@ cd $KSCRIPT_HOME
 ## compile binary distribution (including jar and wrapper-script)
 mkdir -p $KSCRIPT_ARCHIVE/kscript-${kscript_version}/bin
 cp ${KSCRIPT_HOME}/build/libs/kscript ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin
+cp ${KSCRIPT_HOME}/build/libs/kscript.bat ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin
 cp ${KSCRIPT_HOME}/build/libs/kscript.jar ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}/bin/kscript.jar
 
 cd ${KSCRIPT_ARCHIVE}
@@ -91,7 +92,7 @@ github-release release \
     --repo kscript \
     --tag "v${kscript_version}" \
     --name "v${kscript_version}" \
-    --description "See [NEWS.md](https://github.com/holgerbrandl/kscript/blob/master/NEWS.md) for changes."
+    --description "See [NEWS.md](https://github.com/kscripting/kscript/blob/master/NEWS.md) for changes."
 #    \
 #    --pre-release
 
@@ -112,7 +113,7 @@ github-release upload \
 
 cd $KSCRIPT_HOME && rm -rf kscript_releases_*
 
-git clone https://github.com/holgerbrandl/kscript kscript_releases_${kscript_version}
+git clone https://github.com/kscripting/kscript kscript_releases_${kscript_version}
 cd kscript_releases_${kscript_version}
 
 git config  user.email "holgerbrandl@users.noreply.github.com"
@@ -136,7 +137,7 @@ git commit -m "v${kscript_version} release"
 git push origin releases
 
 ## test the updated version pointer
-curl https://raw.githubusercontent.com/holgerbrandl/kscript/releases/kscript
+curl https://raw.githubusercontent.com/kscripting/kscript/releases/kscript
 
 ########################################################################
 ### release on sdkman
@@ -153,7 +154,7 @@ echo ${SDKMAN_CONSUMER_KEY} ${SDKMAN_CONSUMER_TOKEN} ${kscript_version}
 
 ## test the binary download
 #cd ~/Desktop
-#wget https://github.com/holgerbrandl/kscript/releases/download/v${kscript_version}/kscript-${kscript_version}-bin.zip
+#wget https://github.com/kscripting/kscript/releases/download/v${kscript_version}/kscript-${kscript_version}-bin.zip
 #unzip kscript-${kscript_version}-bin.zip
 
 #kscript_version=1.5.1
@@ -163,7 +164,7 @@ curl -X POST \
     -H "Consumer-Token: ${SDKMAN_CONSUMER_TOKEN}" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
-    -d '{"candidate": "kscript", "version": "'${kscript_version}'", "url": "https://github.com/holgerbrandl/kscript/releases/download/v'${kscript_version}'/kscript-'${kscript_version}'-bin.zip"}' \
+    -d '{"candidate": "kscript", "version": "'${kscript_version}'", "url": "https://github.com/kscripting/kscript/releases/download/v'${kscript_version}'/kscript-'${kscript_version}'-bin.zip"}' \
     https://vendors.sdkman.io/release
 
 
@@ -188,7 +189,7 @@ curl -X POST \
 
 
 ########################################################################
-### Update the homebrew descriptor (see https://github.com/holgerbrandl/kscript/issues/50)
+### Update the homebrew descriptor (see https://github.com/kscripting/kscript/issues/50)
 
 cd $KSCRIPT_HOME && rm -rf homebrew-tap
 git clone https://github.com/holgerbrandl/homebrew-tap.git
@@ -201,8 +202,8 @@ archiveMd5=$(shasum -a 256 ${KSCRIPT_ARCHIVE}/kscript-${kscript_version}.zip | c
 cat - <<EOF > kscript.rb
 class Kscript < Formula
   desc "kscript"
-  homepage "https://github.com/holgerbrandl/kscript"
-  url "https://github.com/holgerbrandl/kscript/releases/download/v${kscript_version}/kscript-${kscript_version}-bin.zip"
+  homepage "https://github.com/kscripting/kscript"
+  url "https://github.com/kscripting/kscript/releases/download/v${kscript_version}/kscript-${kscript_version}-bin.zip"
   sha256 "${archiveMd5}"
 
   depends_on "kotlin"
@@ -225,7 +226,7 @@ git push #origin releases
 
 
 ########################################################################
-### Update the archlinux package (see https://aur.archlinux.org/packages/kscript/ and https://github.com/holgerbrandl/kscript/pull/216/)
+### Update the archlinux package (see https://aur.archlinux.org/packages/kscript/ and https://github.com/kscripting/kscript/pull/216/)
 
 cd $KSCRIPT_HOME && rm -rf archlinux
 
@@ -237,14 +238,14 @@ cd archlinux
 
 #update the PKGBUILD file/pkgver variable
 cat - <<EOF > PKGBUILD
-# Maintainer: Holger Brandl https://github.com/holgerbrandl/kscript/
+# Maintainer: Holger Brandl https://github.com/kscripting/kscript/
 
 pkgname=kscript
 pkgver=${kscript_version}
 pkgrel=1
 pkgdesc='Enhanced scripting support for Kotlin on *nix-based systems'
 arch=('any')
-url='https://github.com/holgerbrandl/kscript'
+url='https://github.com/kscripting/kscript'
 license=('MIT')
 depends=('kotlin')
 source=("\${pkgname}-\${pkgver}-bin.zip::https://github.com/holgerbrandl/\${pkgname}/releases/download/v\${pkgver}/\${pkgname}-\${pkgver}-bin.zip")
@@ -265,11 +266,11 @@ pkgbase = kscript
 pkgdesc = Enhanced scripting support for Kotlin on *nix-based systems
 pkgver = ${kscript_version}
 pkgrel = 1
-url = https://github.com/holgerbrandl/kscript
+url = https://github.com/kscripting/kscript
 arch = any
 license = MIT
 depends = kotlin
-source = kscript-${kscript_version}.bin.zip::https://github.com/holgerbrandl/kscript/releases/download/v${kscript_version}/kscript-${kscript_version}-bin.zip
+source = kscript-${kscript_version}.bin.zip::https://github.com/kscripting/kscript/releases/download/v${kscript_version}/kscript-${kscript_version}-bin.zip
 sha256sums = ${archiveMd5}
 
 pkgname = kscript
@@ -293,13 +294,13 @@ docker rmi kscript
 
 docker build --build-arg KSCRIPT_VERSION=${kscript_version} -t kscript misc
 
-docker tag kscript holgerbrandl/kscript:${kscript_version}
+docker tag kscript kscripting/kscript:${kscript_version}
 
 docker login
 
 #https://stackoverflow.com/questions/41984399/denied-requested-access-to-the-resource-is-denied-docker
-docker push holgerbrandl/kscript:${kscript_version}
+docker push kscripting/kscript:${kscript_version}
 
 ## create latest tag
-docker tag kscript holgerbrandl/kscript
-docker push holgerbrandl/kscript
+docker tag kscript kscripting/kscript
+docker push kscripting/kscript
