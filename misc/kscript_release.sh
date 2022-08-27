@@ -81,6 +81,7 @@ git commit -am "${kscript_version} release"
 
 #git tag v${kscript_version} && git push --tags
 (git diff --exit-code && git tag v${kscript_version})  || echo "could not tag current branch"
+git push
 git push --tags
 
 # check the current tags and existing releases of the repo
