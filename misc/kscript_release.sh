@@ -84,11 +84,11 @@ git commit -am "${kscript_version} release"
 git push --tags
 
 # check the current tags and existing releases of the repo
-github-release info -u holgerbrandl -r kscript
+github-release info -u kscripting -r kscript
 
 # create a formal release
 github-release release \
-    --user holgerbrandl \
+    --user kscripting \
     --repo kscript \
     --tag "v${kscript_version}" \
     --name "v${kscript_version}" \
@@ -99,7 +99,7 @@ github-release release \
 
 ## upload sdk-man binary set
 github-release upload \
-    --user holgerbrandl \
+    --user kscripting \
     --repo kscript \
     --tag "v${kscript_version}" \
     --name "kscript-${kscript_version}-bin.zip" \
