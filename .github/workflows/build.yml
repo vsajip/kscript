@@ -24,11 +24,11 @@ jobs:
           - os: windows-2022
             variant: cmd
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -39,7 +39,7 @@ jobs:
       - name: Setup Kotlin
         uses: fwilhe2/setup-kotlin@main
         with:
-          version: 1.6.21
+          version: 1.7.21
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
@@ -68,19 +68,19 @@ jobs:
           
           if [[ "$OSTYPE" == "linux"* ]]; then
             echo "Linux test..."
-            gradle -DosType=$OSTYPE -DincludeTags='posix | linux' integration
+            gradle -DosType=$OSTYPE -DincludeTags='posix | linux' integrationTest
           elif [[ "$OSTYPE" == "darwin"* ]]; then
             echo "MacOs test..."
-            gradle -DosType=$OSTYPE -DincludeTags='posix | macos' integration
+            gradle -DosType=$OSTYPE -DincludeTags='posix | macos' integrationTest
           elif [[ "$OSTYPE" == "cygwin" ]]; then
             echo "Cygwin test..."
-            gradle -DosType=$OSTYPE -DincludeTags='posix | cygwin' integration
+            gradle -DosType=$OSTYPE -DincludeTags='posix | cygwin' integrationTest
           elif [[ "$OSTYPE" == "msys" ]]; then
             echo "MSys test..."
-            gradle -DosType=$OSTYPE -DincludeTags='posix | msys' integration
+            gradle -DosType=$OSTYPE -DincludeTags='posix | msys' integrationTest
           elif [[ "$OSTYPE" == "freebsd"* ]]; then
             echo "FreeBsd test..."
-            gradle -DosType=$OSTYPE -DincludeTags='posix' integration      
+            gradle -DosType=$OSTYPE -DincludeTags='posix' integrationTest
           else
             echo "Unknown OS"
             exit 1
@@ -93,7 +93,7 @@ jobs:
           echo "Windows test..."
           gradle clean assemble test
           if %errorlevel% neq 0 exit /b %errorlevel%
-          gradle -DosType=windows -DincludeTags="windows" integration
+          gradle -DosType=windows -DincludeTags="windows" integrationTest
 
       - name: Install Cygwin (only Windows)
         if: matrix.variant == 'cygwin'
@@ -108,4 +108,4 @@ jobs:
           echo "Changing directory to $GITHUB_WORKSPACE ..."
           cd $GITHUB_WORKSPACE
           gradle clean assemble test || { echo 'Compilation or Unit tests failed' ; exit 1; }
-          gradle -DosType=$OSTYPE -DincludeTags='posix | cygwin' integration
+          gradle -DosType=$OSTYPE -DincludeTags='posix | cygwin' integrationTest
