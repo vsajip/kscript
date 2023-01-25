@@ -56,7 +56,6 @@ rem # subroutines
 
 :set_home
   set _BIN_DIR=%~dps0
-  set _KOTLIN_HOME=%_BIN_DIR%..
 goto :eof
 
 rem Parses "java -version" output and stores the major version to _java_major_version.
