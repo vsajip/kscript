@@ -27,7 +27,7 @@ repositories {
 }
 
 group = "io.github.kscripting"
-version = "4.2.0"
+version = "4.2.1"
 
 buildConfig {
     packageName(project.group.toString() + "." + project.name)
