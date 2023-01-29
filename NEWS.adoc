@@ -4,11 +4,11 @@
 
 *Enhancements*
 
-* Scoop installer (thanks to https://github.com/goto1134)
+* Scoop installer (thanks to https://github.com/Dany-coder778[Dany-coder778] and https://github.com/goto1134[goto1134])
 
 *Bugfixes*
 
-* The correct way of resolving kscript binary on Windows (thanks to https://github.com/goto1134)
+* The correct way of resolving kscript binary on Windows (thanks to https://github.com/goto1134[goto1134])
 
 == [4.2.0] - 2023-01-14
 
