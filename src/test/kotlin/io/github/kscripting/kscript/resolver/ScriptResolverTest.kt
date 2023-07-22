@@ -163,5 +163,5 @@ class ScriptResolverTest {
         }
     }
 
-    private fun String.discardEmptyLines(): String = this.lines().filterNot { it.isEmpty() }.joinToString("\n")
+    private fun String.discardEmptyLines(): String = this.lines().filterNot { it.isBlank() }.joinToString("\n")
 }
